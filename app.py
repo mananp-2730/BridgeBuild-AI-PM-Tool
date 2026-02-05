@@ -1,0 +1,127 @@
+import streamlit as st
+from google import genai
+from google.genai import types
+import json
+
+# PAGE CONFIG
+st.set_page_config(page_title="BridgeBuild AI", page_icon="🌉", layout="wide")
+
+# SIDEBAR: CONFIGURATION
+with st.sidebar:
+    st.header("🔑 Configuration")
+    api_key = st.text_input("Enter Google Gemini API Key", type="password")
+    
+    st.divider()
+    st.header("🌍 Business Settings")
+    currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
+    rate_type = st.selectbox("Rate Standard:", ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"])
+    
+    st.info("Get your free key from aistudio.google.com")
+
+# APP HEADER
+st.title("🌉 BridgeBuild AI")
+st.markdown("### Turn Sales Conversations into Engineering Tickets & Budgets")
+
+# INPUT AREA
+sales_input = st.text_area("Paste the Client Requirement / Sales Email:", height=150, 
+    placeholder="Example: Client wants to merge the weighbridge and gate system...")
+
+# HELPER: CURRENCY CONVERTER
+def convert_currency(usd_amount_str, target_currency):
+    try:
+        # Extract number from string like "$50,000" -> 50000
+        clean_amount = int(usd_amount_str.replace("$", "").replace(",", "").replace("-", "0").split(" ")[0])
+        
+        if target_currency == "USD ($)":
+            return f"${clean_amount:,}"
+        else:
+            # Approx conversion rate 1 USD = 85 INR
+            inr_amount = clean_amount * 85
+            return f"₹{inr_amount:,}"
+    except:
+        return usd_amount_str # Return original if parsing fails
+
+# THE LOGIC
+if st.button("Generate Ticket & Budget 🚀"):
+    if not api_key:
+        st.error("Please enter your API Key in the sidebar first!")
+    elif not sales_input:
+        st.warning("Please enter a sales request.")
+    else:
+        try:
+            client = genai.Client(api_key=api_key)
+            
+            # UPDATED PROMPT WITH BUSINESS LOGIC
+            SYSTEM_PROMPT = f"""
+            You are a Senior Technical Product Manager. Translate Sales requests into Engineering Requirements AND Business Estimates.
+            
+            Based on the selected rate standard: {rate_type}, estimate the cost accordingly.
+            
+            Output must be a pure JSON object with these keys:
+            - "summary": (String) 1-sentence technical summary.
+            - "complexity_score": (String) "Low", "Medium", or "High".
+            - "primary_entities": (List) Key data objects.
+            - "technical_risks": (List) Potential blockers.
+            - "suggested_stack": (List) Specific technologies (e.g., 'Django', 'PostgreSQL').
+            - "development_time": (String) Estimated time (e.g., "4-6 Weeks").
+            - "budget_estimate_usd": (String) Estimated cost range in USD (e.g., "5000-8000"). Just numbers, no symbols.
+            """
+            
+            with st.spinner("Consulting Engineering & Finance Teams..."):
+                response = client.models.generate_content(
+                    model="gemini-1.5-flash", 
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_PROMPT,
+                        temperature=0.7,
+                        response_mime_type="application/json"
+                    ),
+                    contents=sales_input
+                )
+                
+                data = json.loads(response.text)
+
+            # DISPLAY RESULTS
+            st.success("Analysis Complete!")
+            
+            # 1. METRICS ROW
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Complexity", data.get("complexity_score"))
+            with col2:
+                st.metric("Dev Time", data.get("development_time"))
+            with col3:
+                # DYNAMIC PRICING LOGIC
+                raw_cost = data.get("budget_estimate_usd", "0-0")
+                low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+                high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+                
+                fmt_low = convert_currency(low_end, currency)
+                fmt_high = convert_currency(high_end, currency)
+                
+                st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
+            with col4:
+                st.metric("Risks Detected", len(data.get("technical_risks", [])))
+
+            # 2. DETAILED TICKET
+            st.divider()
+            col_left, col_right = st.columns([2, 1])
+            
+            with col_left:
+                st.subheader("📋 Engineering Ticket")
+                st.info(f"**Summary:** {data.get('summary')}")
+                
+                st.markdown("#### ⚠️ Technical Risks")
+                for risk in data.get("technical_risks", []):
+                    st.warning(f"- {risk}")
+                    
+                st.markdown("#### 🏗 Suggested Tech Stack")
+                st.code("\n".join(data.get("suggested_stack", [])), language="bash")
+
+            with col_right:
+                st.subheader("💾 Data Schema")
+                st.write("Primary Entities:")
+                for entity in data.get("primary_entities", []):
+                    st.success(f"🆔 {entity}")
+
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
