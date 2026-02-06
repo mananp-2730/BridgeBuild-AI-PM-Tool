@@ -1,3 +1,13 @@
+"""
+BridgeBuild AI - Product Management Feasibility Tool
+----------------------------------------------------
+Author: Manan Patel
+Version: 1.0.0
+Description:
+    This Streamlit application leverages Google Gemini to translate 
+    natural language sales requirements into structured technical engineering 
+    tickets, including risk assessment and cost estimation (USD/INR).
+"""
 import streamlit as st
 from google import genai
 from google.genai import types
