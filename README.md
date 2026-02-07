@@ -45,3 +45,13 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 
 4. Run the application
    streamlit run app.py
+
+## Roadmap
+
+### Short Term
+- [ ] Export to PDF/Jira: Allow users to download specs or push them directly to Jira.
+- [ ] History Tab: Save previous generations for easy access.
+
+### Long Term
+- [ ] Model Selection: Toggle between Gemini 1.5 Flash (speed) and Pro (complex reasoning).
+- [ ] User Auth: Secure login for team collaboration.
