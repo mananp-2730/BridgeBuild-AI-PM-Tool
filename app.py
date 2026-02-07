@@ -8,6 +8,7 @@ Description:
     natural language sales requirements into structured technical engineering 
     tickets, including risk assessment and cost estimation (USD/INR).
 """
+from fpdf import FPDF
 import streamlit as st
 from google import genai
 from google.genai import types
@@ -51,6 +52,16 @@ def convert_currency(usd_amount_str, target_currency):
     except:
         return usd_amount_str # Return original if parsing fails
 
+# HELPER: PDF GENERATOR
+def create_pdf(text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    # Clean text to remove unsupported unicode characters (emojis, etc.)
+    clean_text = text.encode('latin-1', 'replace').decode('latin-1')
+    pdf.multi_cell(0, 10, clean_text)
+    return pdf.output(dest='S').encode('latin-1')
+
 # THE LOGIC
 if st.button("Generate Ticket & Budget 🚀"):
     if not api_key:
@@ -79,7 +90,7 @@ if st.button("Generate Ticket & Budget 🚀"):
             
             with st.spinner("Consulting Engineering & Finance Teams..."):
                 response = client.models.generate_content(
-                    model="gemini-flash-latest", 
+                    model="gemini-1.5-flash", 
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_PROMPT,
                         temperature=0.7,
@@ -132,6 +143,15 @@ if st.button("Generate Ticket & Budget 🚀"):
                 st.write("Primary Entities:")
                 for entity in data.get("primary_entities", []):
                     st.success(f"🆔 {entity}")
+            
+            # --- PDF Export Feature (ADDED HERE) ---
+            st.divider()
+            st.download_button(
+                label="📄 Download Specs as PDF",
+                data=create_pdf(response.text),
+                file_name="project_specs.pdf",
+                mime="application/pdf"
+            )
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
