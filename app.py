@@ -2,17 +2,21 @@
 BridgeBuild AI - Product Management Feasibility Tool
 ----------------------------------------------------
 Author: Manan Patel
-Version: 1.0.0
+Version: 1.1.0
 Description:
     This Streamlit application leverages Google Gemini to translate 
     natural language sales requirements into structured technical engineering 
-    tickets, including risk assessment and cost estimation (USD/INR).
+    tickets, including risk assessment, cost estimation, and session history.
 """
 from fpdf import FPDF
 import streamlit as st
 from google import genai
 from google.genai import types
 import json
+
+# INITIALIZE SESSION STATE (HISTORY)
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 # PAGE CONFIG
 st.set_page_config(page_title="BridgeBuild AI", page_icon="🌉", layout="wide")
@@ -90,7 +94,7 @@ if st.button("Generate Ticket & Budget 🚀"):
             
             with st.spinner("Consulting Engineering & Finance Teams..."):
                 response = client.models.generate_content(
-                    model="gemini-flash-latest", 
+                    model="gemini-1.5-flash", 
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_PROMPT,
                         temperature=0.7,
@@ -103,6 +107,22 @@ if st.button("Generate Ticket & Budget 🚀"):
 
             # DISPLAY RESULTS
             st.success("Analysis Complete!")
+
+            # --- CALCULATE COSTS FIRST (Moved Up) ---
+            raw_cost = data.get("budget_estimate_usd", "0-0")
+            low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+            high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+            
+            fmt_low = convert_currency(low_end, currency)
+            fmt_high = convert_currency(high_end, currency)
+
+            # --- SAVE TO HISTORY (Now it works!) ---
+            st.session_state.history.append({
+                "summary": data.get("summary"),
+                "cost": f"{fmt_low} - {fmt_high}",
+                "time": data.get("development_time"),
+                "full_data": response.text # Save raw data for later
+            })
             
             # 1. METRICS ROW
             col1, col2, col3, col4 = st.columns(4)
@@ -111,14 +131,6 @@ if st.button("Generate Ticket & Budget 🚀"):
             with col2:
                 st.metric("Dev Time", data.get("development_time"))
             with col3:
-                # DYNAMIC PRICING LOGIC
-                raw_cost = data.get("budget_estimate_usd", "0-0")
-                low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
-                high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
-                
-                fmt_low = convert_currency(low_end, currency)
-                fmt_high = convert_currency(high_end, currency)
-                
                 st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
             with col4:
                 st.metric("Risks Detected", len(data.get("technical_risks", [])))
@@ -144,7 +156,7 @@ if st.button("Generate Ticket & Budget 🚀"):
                 for entity in data.get("primary_entities", []):
                     st.success(f"🆔 {entity}")
             
-            # --- PDF Export Feature (ADDED HERE) ---
+            # --- PDF Export Feature ---
             st.divider()
             st.download_button(
                 label="📄 Download Specs as PDF",
@@ -155,3 +167,23 @@ if st.button("Generate Ticket & Budget 🚀"):
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
+
+# --- HISTORY SECTION ---
+if st.session_state.history:
+    st.divider()
+    st.subheader("📜 Session History")
+    
+    # Iterate through history in reverse (newest first)
+    for i, item in enumerate(reversed(st.session_state.history)):
+        with st.expander(f"Ticket #{len(st.session_state.history) - i}: {item['summary'][:60]}..."):
+            st.write(f"**Est. Cost:** {item['cost']}")
+            st.write(f"**Timeline:** {item['time']}")
+            
+            # Direct download button (Fixed nesting issue)
+            st.download_button(
+                label="Download PDF Record",
+                data=create_pdf(item['full_data']),
+                file_name=f"ticket_history_{i}.pdf",
+                mime="application/pdf",
+                key=f"history_btn_{i}"
+            )
