@@ -94,7 +94,7 @@ if st.button("Generate Ticket & Budget 🚀"):
             
             with st.spinner("Consulting Engineering & Finance Teams..."):
                 response = client.models.generate_content(
-                    model="gemini-pro-latest", 
+                    model="gemini-2.5-flash", 
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_PROMPT,
                         temperature=0.7,
