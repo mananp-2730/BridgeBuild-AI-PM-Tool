@@ -26,7 +26,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 | Ambiguity Detection | Identifies vague terms like "seamless integration" and translates them into specific tech requirements (APIs, Webhooks). |
 | Smart Costing | Estimates development costs based on rate cards (US Agency vs. Freelancer) and complexity. |
 | Risk Flagging | Automatically detects compliance issues (GDPR, HIPAA) and infrastructure bottlenecks. |
-
+| Session History | Automatically saves all generated tickets in the sidebar for easy comparison and PDF export. |
 ## How It Works
 https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-ff4c-4953-b6c0-768717a49d58.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzAzOTM1MTIsIm5iZiI6MTc3MDM5MzIxMiwicGF0aCI6Ii8yNTk1NjgyMjIvNTQ2MjkzMzYzLWUyMjFmMjFlLWZmNGMtNDk1My1iNmMwLTc2ODcxN2E0OWQ1OC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMjA2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDIwNlQxNTUzMzJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lOTgyNjlmZmM2NjczNjdmMmZkM2NjYWI5NTViMmRlMjViZWNkYTA2OTY1MjQ5YmJiNTBkMGM4ODkwNTdiYjIxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.IYMIXPwjXyOUI37pOEgoR9scmxk-L6xgvTtuaOS3CkM
 
@@ -50,7 +50,7 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 
 ### Short Term
 - [ ] Export to PDF/Jira: Allow users to download specs or push them directly to Jira.
-- [ ] History Tab: Save previous generations for easy access.
+- [x] History Tab: Save previous generations for easy access.
 
 ### Long Term
 - [ ] Model Selection: Toggle between Gemini 1.5 Flash (speed) and Pro (complex reasoning).
