@@ -37,6 +37,10 @@ with st.sidebar:
         ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
         index=0
     )
+    # CLEAR HISTORY BUTTON
+    if st.button("Clear History"):
+        st.session_state.history = []
+        st.rerun() # Force a rerun to update the UI immediately
     st.info("Get your free key from aistudio.google.com")
 
 # APP HEADER
