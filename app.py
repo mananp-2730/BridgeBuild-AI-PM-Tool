@@ -2,7 +2,7 @@
 BridgeBuild AI - Product Management Feasibility Tool
 ----------------------------------------------------
 Author: Manan Patel
-Version: 1.1.0
+Version: 1.2.0
 Description:
     This Streamlit application leverages Google Gemini to translate 
     natural language sales requirements into structured technical engineering 
@@ -31,6 +31,12 @@ with st.sidebar:
     currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
     rate_type = st.selectbox("Rate Standard:", ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"])
     
+    # NEW: Model Selection
+    model_choice = st.radio(
+        "AI Model:", 
+        ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
+        index=0
+    )
     st.info("Get your free key from aistudio.google.com")
 
 # APP HEADER
@@ -93,8 +99,11 @@ if st.button("Generate Ticket & Budget 🚀"):
             """
             
             with st.spinner("Consulting Engineering & Finance Teams..."):
+                # SELECT MODEL BASED ON USER CHOICE
+                model_id = "gemini-flash-latest" if "Flash" in model_choice else "gemini-pro-latest"
+
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash", 
+                    model=model_id, 
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_PROMPT,
                         temperature=0.7,
@@ -108,7 +117,7 @@ if st.button("Generate Ticket & Budget 🚀"):
             # DISPLAY RESULTS
             st.success("Analysis Complete!")
 
-            # --- CALCULATE COSTS FIRST (Moved Up) ---
+            # --- CALCULATE COSTS FIRST ---
             raw_cost = data.get("budget_estimate_usd", "0-0")
             low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
             high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
@@ -116,7 +125,7 @@ if st.button("Generate Ticket & Budget 🚀"):
             fmt_low = convert_currency(low_end, currency)
             fmt_high = convert_currency(high_end, currency)
 
-            # --- SAVE TO HISTORY (Now it works!) ---
+            # --- SAVE TO HISTORY ---
             st.session_state.history.append({
                 "summary": data.get("summary"),
                 "cost": f"{fmt_low} - {fmt_high}",
@@ -179,7 +188,6 @@ if st.session_state.history:
             st.write(f"**Est. Cost:** {item['cost']}")
             st.write(f"**Timeline:** {item['time']}")
             
-            # Direct download button (Fixed nesting issue)
             st.download_button(
                 label="Download PDF Record",
                 data=create_pdf(item['full_data']),
