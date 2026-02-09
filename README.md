@@ -49,7 +49,7 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 ## Roadmap
 
 ### Short Term
-- [ ] Export to PDF/Jira: Allow users to download specs or push them directly to Jira.
+- [x] Export to PDF/Jira: Allow users to download specs or push them directly to Jira.
 - [x] History Tab: Save previous generations for easy access.
 
 ### Long Term
