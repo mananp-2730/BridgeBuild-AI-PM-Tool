@@ -52,10 +52,8 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 
 ## Roadmap
 
-### Short Term
-- [x] Export to PDF/Jira: Allow users to download specs or push them directly to Jira.
-- [x] History Tab: Save previous generations for easy access.
-
-### Long Term
-- [x] Model Selection: Toggle between Gemini 1.5 Flash (speed) and Pro (complex reasoning).
-- [ ] User Auth: Secure login for team collaboration.
+### Upcoming Features
+- [ ] User Authentication: Secure login for team collaboration.
+- [ ] Analytics Dashboard: Visualize cost trends per project type.
+- [ ] Dark Mode Toggle: Custom UI themes for better accessibility.
+- [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
