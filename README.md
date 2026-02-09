@@ -53,5 +53,5 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 - [x] History Tab: Save previous generations for easy access.
 
 ### Long Term
-- [ ] Model Selection: Toggle between Gemini 1.5 Flash (speed) and Pro (complex reasoning).
+- [x] Model Selection: Toggle between Gemini 1.5 Flash (speed) and Pro (complex reasoning).
 - [ ] User Auth: Secure login for team collaboration.
