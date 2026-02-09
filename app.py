@@ -72,6 +72,31 @@ def create_pdf(text):
     pdf.multi_cell(0, 10, clean_text)
     return pdf.output(dest='S').encode('latin-1')
 
+# HELPER: JIRA FORMATTER
+def generate_jira_format(data):
+    jira_text = f"""
+h1. {data.get('summary')}
+
+h2. Overview
+* **Complexity:** {data.get('complexity_score')}
+* **Est. Time:** {data.get('development_time')}
+* **Est. Budget:** {data.get('budget_estimate_usd')}
+
+h2. Technical Risks
+{{panel:title=Risks|borderStyle=dashed|borderColor=#ff0000}}
+{chr(10).join([f'- {risk}' for risk in data.get('technical_risks', [])])}
+{{panel}}
+
+h2. Tech Stack
+{{code:bash}}
+{chr(10).join(data.get('suggested_stack', []))}
+{{code}}
+
+h2. Data Schema
+||Entity Name||
+{chr(10).join([f'|{entity}|' for entity in data.get('primary_entities', [])])}
+    """
+    return jira_text
 # THE LOGIC
 if st.button("Generate Ticket & Budget 🚀"):
     if not api_key:
@@ -173,6 +198,10 @@ if st.button("Generate Ticket & Budget 🚀"):
                 file_name="project_specs.pdf",
                 mime="application/pdf"
             )
+            # --- JIRA EXPORT ---
+            with st.expander("🛠️ View Jira-Format Ticket"):
+                st.code(generate_jira_format(data), language="jira")
+                st.info("Copy the text above and paste it directly into a Jira Ticket description!")
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
