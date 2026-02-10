@@ -53,7 +53,7 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 ## Roadmap
 
 ### Upcoming Features
-- [ ] User Authentication: Secure login for team collaboration.
+- [x] User Authentication: Secure login for team collaboration.
 - [ ] Analytics Dashboard: Visualize cost trends per project type.
 - [ ] Dark Mode Toggle: Custom UI themes for better accessibility.
 - [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
