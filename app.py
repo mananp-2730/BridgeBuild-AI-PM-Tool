@@ -8,6 +8,7 @@ Description:
     natural language sales requirements into structured technical engineering 
     tickets, including risk assessment, cost estimation, and session history.
 """
+from utils import convert_currency, create_pdf, generate_jira_format
 from fpdf import FPDF
 import streamlit as st
 from google import genai
@@ -22,47 +23,6 @@ if "history" not in st.session_state:
     st.session_state.history = []
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
-# HELPER FUNCTIONS (Keep these as they were)
-def convert_currency(usd_amount_str, target_currency):
-    try:
-        clean_amount = int(usd_amount_str.replace("$", "").replace(",", "").replace("-", "0").split(" ")[0])
-        if target_currency == "USD ($)":
-            return f"${clean_amount:,}"
-        else:
-            inr_amount = clean_amount * 85
-            return f"₹{inr_amount:,}"
-    except:
-        return usd_amount_str
-
-def create_pdf(text):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    clean_text = text.encode('latin-1', 'replace').decode('latin-1')
-    pdf.multi_cell(0, 10, clean_text)
-    return pdf.output(dest='S').encode('latin-1')
-
-def generate_jira_format(data):
-    jira_text = f"""
-h1. {data.get('summary')}
-h2. Overview
-* **Complexity:** {data.get('complexity_score')}
-* **Est. Time:** {data.get('development_time')}
-* **Est. Budget:** {data.get('budget_estimate_usd')}
-h2. Technical Risks
-{{panel:title=Risks|borderStyle=dashed|borderColor=#ff0000}}
-{chr(10).join([f'- {risk}' for risk in data.get('technical_risks', [])])}
-{{panel}}
-h2. Tech Stack
-{{code:bash}}
-{chr(10).join(data.get('suggested_stack', []))}
-{{code}}
-h2. Data Schema
-||Entity Name||
-{chr(10).join([f'|{entity}|' for entity in data.get('primary_entities', [])])}
-    """
-    return jira_text
 
 # --- LOGIN PAGE ---
 def login_page():
@@ -146,7 +106,7 @@ def main_app():
                 """
                 
                 with st.spinner("Consulting Engineering & Finance Teams..."):
-                    model_id = "gemini-1.5-flash" if "Flash" in model_choice else "gemini-1.5-pro-latest"
+                    model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
 
                     response = client.models.generate_content(
                         model=model_id, 
