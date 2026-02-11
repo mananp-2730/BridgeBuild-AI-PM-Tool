@@ -201,9 +201,9 @@ def main_app():
     st.markdown("---")
     col_footer1, col_footer2 = st.columns(2)
     with col_footer1:
-        st.markdown("### 👨‍💻 Built by [Manan Patel](https://github.com/mananp-2730)")
+        st.markdown("### Built by [Manan Patel](https://github.com/mananp-2730)")
     with col_footer2:
-        st.markdown("### 🔗 [View Source Code](https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool)")
+        st.markdown("### [View Source Code](https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool)")
 
 # --- ROUTING LOGIC ---
 if st.session_state.logged_in:
