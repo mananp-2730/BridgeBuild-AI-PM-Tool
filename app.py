@@ -57,7 +57,7 @@ def main_app():
         
         model_choice = st.radio(
             "AI Model:", 
-            ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
+            ["Gemini Flash (Fast)", "Gemini Pro (High Reasoning)"],
             index=0
         )
         
