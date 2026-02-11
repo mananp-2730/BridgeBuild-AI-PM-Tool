@@ -1,3 +1,4 @@
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://bridgebuild-ai-pm-tool-hxpamzy2hsnyxfksaqqk7c.streamlit.app/)
 # BridgeBuild AI: Automated Sales-to-Engineering Translator
 
 A Product Management tool that uses LLMs (Google Gemini) to instantly convert vague sales requests into structured technical specifications, risk assessments, and budget estimates.
