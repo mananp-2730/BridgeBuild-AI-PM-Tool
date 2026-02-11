@@ -1,3 +1,11 @@
 gemini_translator.py 
 check_models.py 
 .env 
+
+# --- Standard Python Ignores ---
+__pycache__/
+*.pyc
+
+# --- Streamlit Cloud Specifics ---
+.streamlit/secrets.toml
+packages.txt
