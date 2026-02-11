@@ -58,3 +58,5 @@ https://private-user-images.githubusercontent.com/259568222/546293363-e221f21e-f
 - [ ] Analytics Dashboard: Visualize cost trends per project type.
 - [ ] Dark Mode Toggle: Custom UI themes for better accessibility.
 - [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
+- [ ] Auto API integration: No need of adding end user API if using basic version.
+- [ ] Team Integration: Number of developers can be added to estimate product timeline even more accurately.
