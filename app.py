@@ -8,7 +8,7 @@ Description:
     natural language sales requirements into structured technical engineering 
     tickets, including risk assessment, cost estimation, and session history.
 """
-from utils import convert_currency, create_pdf, generate_jira_format
+from utils import convert_currency, create_pdf, generate_jira_format, parse_cost_avg
 from fpdf import FPDF
 import streamlit as st
 from google import genai
@@ -137,10 +137,12 @@ def main_app():
 
                 # SAVE TO HISTORY
                 st.session_state.history.append({
-                    "summary": data.get("summary"),
-                    "cost": f"{fmt_low} - {fmt_high}",
-                    "time": data.get("development_time"),
-                    "full_data": response.text
+                "summary": data.get("summary"),
+                "cost": f"{fmt_low} - {fmt_high}",
+                "raw_cost": raw_cost,  
+                "complexity": data.get("complexity_score"), 
+                "time": data.get("development_time"),
+                "full_data": response.text
                 })
                 
                 # METRICS ROW
