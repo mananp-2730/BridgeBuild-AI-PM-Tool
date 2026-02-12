@@ -224,9 +224,9 @@ def main_app():
     footer_html = """
     <div style='text-align: center; color: #666666; font-size: 0.8em; font-family: sans-serif;'>
         <p>
-            👨‍💻 Built by <a href='https://github.com/mananp-2730' target='_blank' style='text-decoration: none; color: #0366d6;'>Manan Patel</a>
+            Built by <a href='https://github.com/mananp-2730' target='_blank' style='text-decoration: none; color: #0366d6;'>Manan Patel</a>
             &nbsp;|&nbsp;
-            🔗 <a href='https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool' target='_blank' style='text-decoration: none; color: #0366d6;'>View Source Code</a>
+            <a href='https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool' target='_blank' style='text-decoration: none; color: #0366d6;'>View Source Code</a>
         </p>
         <p style='font-size: 0.7em; margin-top: -10px;'>Please note: This is a portfolio project using simulated login credentials.</p>
     </div>
