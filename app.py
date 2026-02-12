@@ -48,7 +48,12 @@ def main_app():
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
         st.header("Configuration")
-        api_key = st.text_input("Enter Google Gemini API Key", type="password")
+        if "GOOGLE_API_KEY" in st.secrets:
+            st.success("✅ API Key Loaded from System")
+            api_key = st.secrets["GOOGLE_API_KEY"]
+        else:
+            api_key = st.text_input("Enter Google Gemini API Key", type="password")
+            st.info("Get your free key from aistudio.google.com")
         
         st.divider()
         st.header("Business Settings")
