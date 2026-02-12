@@ -39,3 +39,22 @@ h2. Data Schema
 {chr(10).join([f'|{entity}|' for entity in data.get('primary_entities', [])])}
     """
     return jira_text
+
+def parse_cost_avg(cost_string):
+    """
+    Parses a string like '5000-8000' or '5000' into an integer average.
+    Returns 0 if parsing fails.
+    """
+    try:
+        # Remove currency symbols and commas
+        clean = cost_string.replace("$", "").replace(",", "").replace("USD", "").replace("₹", "").strip()
+        
+        if "-" in clean:
+            parts = clean.split("-")
+            low = int(parts[0].strip())
+            high = int(parts[1].strip())
+            return (low + high) // 2
+        else:
+            return int(clean)
+    except:
+        return 0
