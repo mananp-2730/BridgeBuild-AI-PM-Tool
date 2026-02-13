@@ -74,12 +74,17 @@ def main_app():
         st.divider()
         st.header("Business Settings")
         currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
-        rate_type = st.selectbox("Rate Standard:", ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"])
+        rate_type = st.selectbox(
+            "Rate Standard:", 
+            ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"],
+            help="Select the billing rate to adjust cost estimates."
+        )
         
         model_choice = st.radio(
             "AI Model:", 
             ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
-            index=0
+            index=0,
+            help="Flash is faster/cheaper. Pro is better for complex logic."
         )
         
         st.divider()
