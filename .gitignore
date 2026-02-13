@@ -9,3 +9,6 @@ __pycache__/
 # --- Streamlit Cloud Specifics ---
 .streamlit/secrets.toml
 packages.txt
+
+key.env
+venv/
