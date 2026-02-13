@@ -45,8 +45,8 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
    pip install -r requirements.txt
 
 3. Set up your API Key
-   - Create a `.env` file in the root directory.
-   - Add your Google API key: `GOOGLE_API_KEY=your_key`
+   - Create a folder .streamlit and a file secrets.toml inside it.
+   - Add your Google API key: GOOGLE_API_KEY = "your_key_here"
 
 4. Run the application
    streamlit run app.py
@@ -55,7 +55,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 
 ### Upcoming Features
 - [x] User Authentication: Secure login for team collaboration.
-- [ ] Analytics Dashboard: Visualize cost trends per project type.
+- [x] Analytics Dashboard: Visualize cost trends per project type.
 - [ ] Dark Mode Toggle: Custom UI themes for better accessibility.
 - [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
 - [ ] Auto API integration: No need of adding end user API if using basic version.
