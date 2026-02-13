@@ -98,7 +98,19 @@ def main_app():
     st.markdown("### Turn Sales Conversations into Engineering Tickets & Budgets")
 
     # INPUT AREA
-    sales_input = st.text_area("Paste the Client Requirement / Sales Email:", height=150, 
+    # Add a button to load sample data
+    #sales_input = st.text_area("Paste the Client Requirement / Sales Email:", height=150, 
+        #placeholder="Example: Client wants to merge the weighbridge and gate system...")
+    if st.button("Load Sample Email"):
+        st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
+    
+    # Use session state to hold the input value
+    if "sales_input" not in st.session_state:
+        st.session_state.sales_input = ""
+
+    sales_input = st.text_area("Paste the Client Requirement / Sales Email:", 
+        value=st.session_state.sales_input,
+        height=150, 
         placeholder="Example: Client wants to merge the weighbridge and gate system...")
 
     # THE LOGIC
