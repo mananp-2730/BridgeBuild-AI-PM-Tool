@@ -16,37 +16,34 @@ from google import genai
 from google.genai import types
 import json
 
-# --- CUSTOM CSS STYLING ---
+# Custom CSS
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* 1. Make the main button look cool (Duke Blue Gradient) */
+        /* Main Button: Flat Duke Blue */
         div.stButton > button:first-child {
-            /* We use your Duke Blue (#012169) fading to a slightly lighter tech blue */
-            background: linear-gradient(45deg, #012169, #3a7bd5);
+            background-color: #012169; /* Solid Duke Blue */
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 18px;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: bold;
-            padding: 15px 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 12px 24px;
             transition: all 0.3s ease;
         }
         
-        /* 2. Add a hover effect (Button gets bigger with blue shadow) */
+        /* Hover Effect: Slight lift and shadow (no color change) */
         div.stButton > button:first-child:hover {
-            transform: scale(1.05);
-            /* Changed shadow color to match the new blue */
-            box-shadow: 0 6px 12px rgba(1, 33, 105, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(1, 33, 105, 0.5);
+            opacity: 0.95; /* Subtle interactive feel */
         }
 
-        /* 3. Style the History Cards (Grey border & shadow) */
+        /* History Cards */
         [data-testid="stExpander"] {
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
     </style>
     """, unsafe_allow_html=True)
