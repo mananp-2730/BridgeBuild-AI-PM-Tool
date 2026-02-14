@@ -20,9 +20,10 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* 1. Make the main button look cool (Green Gradient) */
+        /* 1. Make the main button look cool (Duke Blue Gradient) */
         div.stButton > button:first-child {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            /* We use your Duke Blue (#012169) fading to a slightly lighter tech blue */
+            background: linear-gradient(45deg, #012169, #3a7bd5);
             color: white;
             border: none;
             border-radius: 10px;
@@ -33,10 +34,11 @@ def setup_custom_styling():
             transition: all 0.3s ease;
         }
         
-        /* 2. Add a hover effect (Button gets bigger) */
+        /* 2. Add a hover effect (Button gets bigger with blue shadow) */
         div.stButton > button:first-child:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.3);
+            /* Changed shadow color to match the new blue */
+            box-shadow: 0 6px 12px rgba(1, 33, 105, 0.4);
         }
 
         /* 3. Style the History Cards (Grey border & shadow) */
@@ -48,7 +50,7 @@ def setup_custom_styling():
         }
     </style>
     """, unsafe_allow_html=True)
-
+    
 # PAGE CONFIG (Must be the first Streamlit command)
 st.set_page_config(page_title="BridgeBuild AI", page_icon="🌉", layout="wide")
 
