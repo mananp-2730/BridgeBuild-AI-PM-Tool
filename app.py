@@ -94,7 +94,7 @@ def main_app():
         # 2. Analytics Dashboard (Only shows if history exists)
         if st.session_state.history:
             st.divider()
-            st.markdown("📊 Cost Trends")
+            st.markdown("Cost Trends")
 
             # Extract data for the chart
             chart_data = [parse_cost_avg(item.get('raw_cost', '0')) for item in st.session_state.history]
@@ -219,10 +219,10 @@ def main_app():
                 col_left, col_right = st.columns([2, 1])
                 
                 with col_left:
-                    st.subheader("📋 Engineering Ticket")
+                    st.subheader("Engineering Ticket")
                     st.info(f"**Summary:** {data.get('summary')}")
                     
-                    st.markdown("⚠️ Technical Risks")
+                    st.markdown("Technical Risks")
                     for risk in data.get("technical_risks", []):
                         st.warning(f"- {risk}")
                         
@@ -230,7 +230,7 @@ def main_app():
                     st.code("\n".join(data.get("suggested_stack", [])), language="bash")
 
                 with col_right:
-                    st.subheader("💾 Data Schema")
+                    st.subheader("Data Schema")
                     st.write("Primary Entities:")
                     for entity in data.get("primary_entities", []):
                         st.success(f"🆔 {entity}")
@@ -244,7 +244,7 @@ def main_app():
                     mime="application/pdf"
                 )
                 # JIRA EXPORT
-                with st.expander("🛠️ View Jira-Format Ticket"):
+                with st.expander("View Jira-Format Ticket"):
                     st.code(generate_jira_format(data), language="jira")
                     st.info("Copy the text above and paste it directly into a Jira Ticket description!")
 
@@ -254,7 +254,7 @@ def main_app():
     # HISTORY SECTION
     if st.session_state.history:
         st.divider()
-        st.subheader("📜 Session History")
+        st.subheader("Session History")
         for i, item in enumerate(reversed(st.session_state.history)):
             with st.expander(f"Ticket #{len(st.session_state.history) - i}: {item['summary'][:60]}..."):
                 st.write(f"**Est. Cost:** {item['cost']}")
