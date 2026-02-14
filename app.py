@@ -86,6 +86,14 @@ def main_app():
             index=0,
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
+        temperature = st.slider(
+            "Creativity Level (Temperature):", 
+            min_value=0.0, 
+            max_value=1.0, 
+            value=0.7,
+            step=0.1,
+            help="Low = Predictable/Strict. High = Creative/Experimental."
+        )
         
         st.divider()
         # LOGOUT BUTTON
