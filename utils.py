@@ -1,4 +1,5 @@
 from fpdf import FPDF
+import re
 
 def convert_currency(usd_amount_str, target_currency):
     try:
@@ -58,3 +59,14 @@ def parse_cost_avg(cost_string):
             return int(clean)
     except:
         return 0
+
+def clean_json_output(raw_text):
+    """
+    Removes markdown code blocks (```json ... ```) to prevent parsing errors.
+    """
+    # Remove starting ```json or ```
+    text = re.sub(r"^```json\s*", "", raw_text, flags=re.MULTILINE)
+    text = re.sub(r"^```\s*", "", text, flags=re.MULTILINE)
+    # Remove ending ```
+    text = re.sub(r"```\s*$", "", text, flags=re.MULTILINE)
+    return text.strip()
