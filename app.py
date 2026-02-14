@@ -146,7 +146,7 @@ def main_app():
                         model=model_id, 
                         config=types.GenerateContentConfig(
                             system_instruction=SYSTEM_PROMPT,
-                            temperature=0.7,
+                            temperature=temperature,
                             response_mime_type="application/json"
                         ),
                         contents=sales_input
