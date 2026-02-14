@@ -9,7 +9,7 @@ Description:
     tickets, including risk assessment, cost estimation, and session history.
 """
 from prompts import get_system_prompt
-from utils import convert_currency, create_pdf, generate_jira_format, parse_cost_avg
+from utils import convert_currency, create_pdf, generate_jira_format, parse_cost_avg, clean_json_output
 from fpdf import FPDF
 import streamlit as st
 from google import genai
@@ -143,8 +143,8 @@ def main_app():
                         ),
                         contents=sales_input
                     )
-                    
-                    data = json.loads(response.text)
+                    cleaned_text = clean_json_output(response.text)
+                    data = json.loads(cleaned_text)
 
                 st.success("Analysis Complete!")
 
