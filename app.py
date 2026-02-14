@@ -22,21 +22,21 @@ def setup_custom_styling():
     <style>
         /* Main Button: Flat Duke Blue */
         div.stButton > button:first-child {
-            background-color: #012169; /* Solid Duke Blue */
+            background-color: #012169; /* Duke Blue */
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             padding: 12px 24px;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth color change */
         }
         
-        /* Hover Effect: Slight lift and shadow (no color change) */
+        /* Hover Effect: NO resizing, just a slight color shift to show it's clickable */
         div.stButton > button:first-child:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 10px rgba(1, 33, 105, 0.5);
-            opacity: 0.95; /* Subtle interactive feel */
+            background-color: #001547; /* Slightly darker Duke Blue */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow pop */
+            color: white;
         }
 
         /* History Cards */
