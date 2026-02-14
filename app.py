@@ -16,6 +16,39 @@ from google import genai
 from google.genai import types
 import json
 
+# --- CUSTOM CSS STYLING ---
+def setup_custom_styling():
+    st.markdown("""
+    <style>
+        /* 1. Make the main button look cool (Green Gradient) */
+        div.stButton > button:first-child {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        /* 2. Add a hover effect (Button gets bigger) */
+        div.stButton > button:first-child:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        /* 3. Style the History Cards (Grey border & shadow) */
+        [data-testid="stExpander"] {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 10px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 # PAGE CONFIG (Must be the first Streamlit command)
 st.set_page_config(page_title="BridgeBuild AI", page_icon="🌉", layout="wide")
 
@@ -46,6 +79,7 @@ def login_page():
 
 # --- MAIN APP ---
 def main_app():
+    setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
         st.header("Configuration")
