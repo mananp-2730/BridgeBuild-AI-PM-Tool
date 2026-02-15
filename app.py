@@ -86,7 +86,7 @@ def main_app():
     setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
-        st.image("Full Logo.png", use_container_width=True) 
+        st.image("Full Logo.png", width=250) 
         st.markdown("---")
         st.header("Configuration")
         
