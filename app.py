@@ -51,7 +51,7 @@ def setup_custom_styling():
 # PAGE CONFIG (Must be the first Streamlit command)
 st.set_page_config(
         page_title="BridgeBuild AI",
-        page_icon="Logo_bg_removed.jpeg",
+        page_icon="Logo_bg_removed.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )
