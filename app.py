@@ -86,6 +86,8 @@ def main_app():
     setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
+        st.image("Full Logo.jpeg", use_container_width=True) 
+        st.markdown("---")
         st.header("Configuration")
         
         # 1. API Key Logic
