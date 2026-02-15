@@ -49,7 +49,12 @@ def setup_custom_styling():
     """, unsafe_allow_html=True)
     
 # PAGE CONFIG (Must be the first Streamlit command)
-st.set_page_config(page_title="BridgeBuild AI", page_icon="🌉", layout="wide")
+st.set_page_config(
+        page_title="BridgeBuild AI",
+        page_icon="Logo.jpeg",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
 # INITIALIZE SESSION STATE
 if "history" not in st.session_state:
