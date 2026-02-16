@@ -246,7 +246,7 @@ def main_app():
                 st.divider()
                 st.download_button(
                     label="📄 Download Specs as PDF",
-                    data=create_pdf(response.text),
+                    data=create_pdf(data),
                     file_name="project_specs.pdf",
                     mime="application/pdf"
                 )
@@ -268,7 +268,7 @@ def main_app():
                 st.write(f"**Timeline:** {item['time']}")
                 st.download_button(
                     label="Download PDF Record",
-                    data=create_pdf(item['full_data']),
+                    data=create_pdf(json.loads(item['full_data'])),
                     file_name=f"ticket_history_{i}.pdf",
                     mime="application/pdf",
                     key=f"history_btn_{i}"
