@@ -96,67 +96,96 @@ if "logged_in" not in st.session_state:
 # --- LOGIN PAGE ---
 # --- LOGIN PAGE ---
 def login_page():
-    # 1. Spacer to push content down (Vertical Centering)
-    st.markdown("<div style='height: 10vh;'></div>", unsafe_allow_html=True)
+    # 1. SETUP: Hide Sidebar & Fix global padding for this page
+    st.markdown("""
+        <style>
+            /* Hide the actual sidebar navigation on the login page */
+            [data-testid="stSidebar"] { display: none; }
+            
+            /* Minimize top padding so content starts higher up */
+            .block-container { 
+                padding-top: 1rem; 
+                padding-bottom: 0rem; 
+                max-width: 100%; /* Ensure full width utilization */
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 2. CSS for the Hero Image (Right Column Fixes)
+    # This is crucial to make the image look like a "cover" background
+    st.markdown("""
+        <style>
+            /* Target the image inside the second main column */
+            div[data-testid="column"]:nth-of-type(2) div[data-testid="stImage"] > img {
+                height: 92vh;            /* Force it to fill most of the vertical height */
+                object-fit: cover;       /* CROP the image so it doesn't stretch or squish */
+                border-radius: 16px;     /* Adds a modern rounded corner touch */
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 3. SPLIT LAYOUT: Left (Form) vs Right (Hero Image)
+    # Use a [1, 1.6] ratio to give the image slightly more visual weight
+    col1, col2 = st.columns([1, 1.6], gap="large")
     
-    # 2. Horizontal Centering (3 Columns)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        # 3. The "Card" Container
-        with st.container(border=True):
-            
-            # --- BRANDING HEADER (Side-by-Side) ---
-            head_col1, head_col2 = st.columns([0.25, 0.75])
-            
-            with head_col1:
-                # The Icon
-                st.image("Logo_bg_removed.png", use_container_width=True)
-            
-            with head_col2:
-                # UPDATED TEXT COLOR LOGIC:
-                # We use 'var(--text-color)' so it turns White in Dark Mode automatically.
-                # If you want strictly Duke Blue in Light Mode, we can use an inline media query style 
-                # or just stick to the system default which is dark grey/black (standard for dark mode support).
-                # Below is the safest adaptive version:
-                st.markdown(
-                    """
-                    <h2 style='color: var(--text-color); margin: 0; padding-top: 5px; font-weight: 700;'>
-                        BridgeBuild AI
-                    </h2>
-                    <p style='color: #666; font-size: 14px; margin: 0;'>
-                        Engineering Ticket System
-                    </p>
-                    """, 
-                    unsafe_allow_html=True
-                )
-            
-            # Added Icons to placeholders for a premium feel
-            username = st.text_input("Username", placeholder="Enter your ID")
-            password = st.text_input("Password", type="password", placeholder="Enter your password")
-            
-            st.write("") # Tiny spacer
-            
-            # --- ACTION BUTTON ---
-            if st.button("Sign In  ➔", use_container_width=True):
-                # HARDCODED CREDENTIALS
-                if username == "admin" and password == "bridge123":
-                    st.session_state.logged_in = True
-                    st.success("Verifying credentials... Success!")
-                    st.rerun()
-                else:
-                    st.error("Access Denied: Invalid Credentials")
-            
-            # --- FOOTER ---
+    # --- LEFT COLUMN: The Login Form ---
+    with col1:
+        # Spacers to push the form down visually for centering
+        st.write("")
+        st.write("")
+        st.write("")
+        
+        # BRANDING
+        brand_col1, brand_col2 = st.columns([0.2, 1.1])
+        with brand_col1:
+            # Make sure "Logo_bg_removed.png" is in your project folder
+            st.image("Logo_bg_removed.png", width=60)
+        with brand_col2:
+            # var(--text-color) adapts automatically to Light/Dark mode
             st.markdown(
                 """
-                <div style='text-align: center; margin-top: 20px; font-size: 11px; color: #888;'>
-                    By logging in, you agree to the <a href='#' style='color: #012169;'>Terms of Service</a>.
-                    <br>Protected by BridgeBuild Enterprise Security.
-                </div>
+                <h2 style='color: var(--text-color); margin: 0; padding-top: 10px; font-weight: 700; font-size: 28px;'>
+                    BridgeBuild AI
+                </h2>
                 """, 
                 unsafe_allow_html=True
             )
+        st.write("")
+        
+        # INPUTS
+        username = st.text_input("Email", placeholder="name@company.com")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
+        
+        st.write("") # Tiny spacer
+        
+        # BUTTON
+        if st.button("Sign In  ➔", use_container_width=True):
+            # HARDCODED CREDENTIALS
+            if username == "admin" and password == "bridge123":
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("Invalid credentials. Please try again.")
+
+        # FOOTER
+        st.markdown(
+            """
+            <div style='margin-top: 50px; font-size: 12px; color: #888;'>
+                Protected by Enterprise Security. <br>
+                <a href='#' style='color: gray; text-decoration: none;'>Forgot Password?</a>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
+    # --- RIGHT COLUMN: The Abstract Structure Hero Image ---
+    with col2:
+        # Image selection: Abstract modern architecture with blue tones.
+        # Credit: Simone Hutsch via Unsplash
+        st.image(
+            "Image.jpg", 
+            use_container_width=True
+        )
 
 # --- MAIN APP ---
 def main_app():
