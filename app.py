@@ -173,7 +173,6 @@ def main_app():
             index=0,
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
-        st.markdown("---")
         st.divider()
         # LOGOUT BUTTON
         if st.button("Logout"):
