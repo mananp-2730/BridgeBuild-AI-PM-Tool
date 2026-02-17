@@ -101,9 +101,14 @@ def main_app():
             st.image("Logo_bg_removed.png", width=40) 
             
         with col_text:
-            # Custom HTML to position the text perfectly next to the icon
+            # CHANGED: 'color: #012169' -> 'color: var(--text-color)'
+            # This makes it Black in Light Mode and White in Dark Mode automatically.
             st.markdown(
-                "<h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: #012169;'>BridgeBuild</h3>", 
+                """
+                <h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
+                    BridgeBuild
+                </h3>
+                """, 
                 unsafe_allow_html=True
             )
         st.markdown("---")
