@@ -85,11 +85,22 @@ def main_app():
     setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            st.image("Logo_bg_removed.png", width=50) 
-        with col2:
-            st.markdown("### BridgeBuild")
+        logo_col, text_col = st.columns([0.2, 0.8])
+        
+        with logo_col:
+            # Fixed small width (40px is standard icon size)
+            st.image("Logo.jpeg", width=40)
+            
+        with text_col:
+            # Custom HTML to remove top margins so it aligns perfectly with the icon
+            st.markdown(
+                """
+                <h3 style='margin-top: 0px; padding-top: 0px; font-size: 20px; color: #012169;'>
+                    BridgeBuild
+                </h3>
+                """, 
+                unsafe_allow_html=True
+            )
         st.markdown("---")
         st.header("Configuration")
         
