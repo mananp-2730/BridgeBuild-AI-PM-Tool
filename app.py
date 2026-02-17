@@ -19,45 +19,33 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* --- 1. EXISTING STYLES (Kept exactly as you had them) --- */
-        
-        /* Main Button: Flat Duke Blue */
+        /* 1. Main Button: Flat Duke Blue */
         div.stButton > button:first-child {
-            background-color: #012169; /* Duke Blue */
+            background-color: #012169;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             padding: 12px 24px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            transition: background-color 0.3s ease;
         }
-        
-        /* Hover Effect: NO resizing, just a slight color shift */
         div.stButton > button:first-child:hover {
-            background-color: #001547; /* Slightly darker Duke Blue */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow pop */
-            color: white;
+            background-color: #001547;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        /* History Cards */
+        /* 2. SIDEBAR - THE NUCLEAR FIX */
+        /* This targets the internal container of the sidebar */
+        [data-testid="stSidebarUserContent"] {
+            padding-top: 0rem !important; /* Kill the default padding */
+            margin-top: -50px !important; /* Pull everything UP by 50px */
+        }
+        
+        /* 3. History Cards */
         [data-testid="stExpander"] {
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        /* --- 2. NEW COMPACT SIDEBAR RULES --- */
-        
-        /* Shrink the massive white space at the top of the sidebar */
-        section[data-testid="stSidebar"] .block-container {
-            padding-top: 1rem !important; /* Default is 6rem. This pulls it UP. */
-            padding-bottom: 1rem !important;
-        }
-
-        /* Optional: If the logo still feels too low, this targets the image specifically */
-        [data-testid="stSidebar"] [data-testid="stImage"] {
-            margin-top: 0px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -100,7 +88,18 @@ def main_app():
     setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
-        st.image("Logo_bg_removed.png", width=50)
+        col_logo, col_text = st.columns([0.2, 0.8])
+        
+        with col_logo:
+            # Logo.jpeg (The small square icon)
+            st.image("Logo.jpeg", width=40) 
+            
+        with col_text:
+            # Custom HTML to position the text perfectly next to the icon
+            st.markdown(
+                "<h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: #012169;'>BridgeBuild</h3>", 
+                unsafe_allow_html=True
+            )
         st.markdown("---")
         st.header("Configuration")
         
