@@ -19,6 +19,8 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
+        /* --- 1. EXISTING STYLES (Kept exactly as you had them) --- */
+        
         /* Main Button: Flat Duke Blue */
         div.stButton > button:first-child {
             background-color: #012169; /* Duke Blue */
@@ -28,10 +30,10 @@ def setup_custom_styling():
             font-size: 16px;
             font-weight: bold;
             padding: 12px 24px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth color change */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         
-        /* Hover Effect: NO resizing, just a slight color shift to show it's clickable */
+        /* Hover Effect: NO resizing, just a slight color shift */
         div.stButton > button:first-child:hover {
             background-color: #001547; /* Slightly darker Duke Blue */
             box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow pop */
@@ -43,6 +45,19 @@ def setup_custom_styling():
             border: 1px solid #e0e0e0;
             border-radius: 6px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* --- 2. NEW COMPACT SIDEBAR RULES --- */
+        
+        /* Shrink the massive white space at the top of the sidebar */
+        section[data-testid="stSidebar"] .block-container {
+            padding-top: 1rem !important; /* Default is 6rem. This pulls it UP. */
+            padding-bottom: 1rem !important;
+        }
+
+        /* Optional: If the logo still feels too low, this targets the image specifically */
+        [data-testid="stSidebar"] [data-testid="stImage"] {
+            margin-top: 0px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -85,22 +100,7 @@ def main_app():
     setup_custom_styling()
     # SIDEBAR: CONFIGURATION
     with st.sidebar:
-        logo_col, text_col = st.columns([0.2, 0.8])
-        
-        with logo_col:
-            # Fixed small width (40px is standard icon size)
-            st.image("Logo.jpeg", width=40)
-            
-        with text_col:
-            # Custom HTML to remove top margins so it aligns perfectly with the icon
-            st.markdown(
-                """
-                <h3 style='margin-top: 0px; padding-top: 0px; font-size: 20px; color: #012169;'>
-                    BridgeBuild
-                </h3>
-                """, 
-                unsafe_allow_html=True
-            )
+        st.image("Logo_bg_removed.png", width=50)
         st.markdown("---")
         st.header("Configuration")
         
