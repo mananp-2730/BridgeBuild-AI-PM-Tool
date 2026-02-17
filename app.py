@@ -35,16 +35,18 @@ def setup_custom_styling():
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        /* 2. SIDEBAR - THE NUCLEAR FIX */
-        /* This targets the internal container of the sidebar */
+        /* 2. SIDEBAR - THE NUCLEAR FIX (Kept from before) */
         [data-testid="stSidebarUserContent"] {
-            padding-top: 0rem !important; /* Kill the default padding */
-            margin-top: -50px !important; /* Pull everything UP by 50px */
+            padding-top: 0rem !important;
+            margin-top: -50px !important;
         }
         
-        /* 3. History Cards */
+        /* 3. History Cards - ADAPTIVE BORDER */
+        /* We use a semi-transparent white border. 
+           In Light Mode: It's subtle.
+           In Dark Mode: It stands out nicely against the black. */
         [data-testid="stExpander"] {
-            border: 1px solid #e0e0e0;
+            border: 1px solid rgba(128, 128, 128, 0.2); /* Smart adaptive border */
             border-radius: 6px;
         }
     </style>
