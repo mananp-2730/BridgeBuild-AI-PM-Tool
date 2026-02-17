@@ -19,7 +19,13 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* 1. Main Button: Flat Duke Blue */
+        /* --- 1. GENERAL THEME OVERRIDES --- */
+        /* Force the 'primary' color (Radio buttons, sliders, checkboxes) to Duke Blue */
+        :root {
+            --primary-color: #012169;
+        }
+        
+        /* --- 2. BUTTON STYLING --- */
         div.stButton > button:first-child {
             background-color: #012169;
             color: white;
@@ -35,18 +41,16 @@ def setup_custom_styling():
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        /* 2. SIDEBAR - THE NUCLEAR FIX (Kept from before) */
+        /* --- 3. SIDEBAR COMPACTION (The Nuclear Fix) --- */
         [data-testid="stSidebarUserContent"] {
             padding-top: 0rem !important;
             margin-top: -50px !important;
         }
-        
-        /* 3. History Cards - ADAPTIVE BORDER */
-        /* We use a semi-transparent white border. 
-           In Light Mode: It's subtle.
-           In Dark Mode: It stands out nicely against the black. */
+
+        /* --- 4. DARK MODE COMPATIBILITY --- */
+        /* History Cards: Use a semi-transparent border so it looks good in Light AND Dark */
         [data-testid="stExpander"] {
-            border: 1px solid rgba(128, 128, 128, 0.2); /* Smart adaptive border */
+            border: 1px solid rgba(128, 128, 128, 0.25);
             border-radius: 6px;
         }
     </style>
