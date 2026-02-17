@@ -19,45 +19,50 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* --- 1. GENERAL & TEXT --- */
+        /* --- 1. RESET PRIMARY COLOR VARIABLES --- */
         :root {
-            --primary-color: #012169; /* Try to override variable */
+            --primary-color: #012169;
         }
-        
-        /* --- 2. SIDEBAR (The Nuclear Fix) --- */
-        [data-testid="stSidebarUserContent"] {
-            padding-top: 0rem !important;
-            margin-top: -50px !important;
-        }
-        
-        /* --- 3. BRANDING THE WIDGETS (The Spray Paint Job) --- */
-        
-        /* Radio Buttons: Selected Option */
-        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child[aria-checked="true"] {
+
+        /* --- 2. RADIO BUTTONS (The Red Dot) --- */
+        /* Forces the selected radio button to be Duke Blue */
+        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
             background-color: #012169 !important;
             border-color: #012169 !important;
         }
+        /* Ensure the dot inside is white */
+        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child > div {
+            background-color: white !important;
+        }
 
-        /* Checkboxes: Checked State */
+        /* --- 3. SLIDERS (The Red Line & Handle) --- */
+        /* The draggable handle */
+        div[data-baseweb="slider"] div[role="slider"] {
+            background-color: #012169 !important;
+            box-shadow: none !important;
+        }
+        /* The filled track line */
+        div[data-baseweb="slider"] div[data-testid="stTickBar"] > div {
+             background-color: #012169 !important;
+        }
+        /* The value text (e.g., "0.70") which is usually red */
+        div[data-testid="stMarkdownContainer"] p code {
+            color: #012169 !important;
+        }
+        
+        /* --- 4. CHECKBOXES --- */
         div[data-baseweb="checkbox"] div[aria-checked="true"] {
             background-color: #012169 !important;
             border-color: #012169 !important;
         }
 
-        /* Sliders: The Drag Handle & The Bar */
-        div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #012169 !important;
-        }
-        div[data-baseweb="slider"] div[data-testid="stTickBar"] {
-             background-color: #012169 !important;
-        }
-        
-        /* Text Input: Focus Border */
-        div[data-baseweb="input"]:focus-within {
-            border-color: #012169 !important;
+        /* --- 5. SIDEBAR COMPACTION (Keep this!) --- */
+        [data-testid="stSidebarUserContent"] {
+            padding-top: 0rem !important;
+            margin-top: -50px !important;
         }
 
-        /* --- 4. BUTTONS --- */
+        /* --- 6. BUTTONS --- */
         div.stButton > button:first-child {
             background-color: #012169;
             color: white;
@@ -66,17 +71,10 @@ def setup_custom_styling():
             font-size: 16px;
             font-weight: bold;
             padding: 12px 24px;
-            transition: background-color 0.3s ease;
         }
         div.stButton > button:first-child:hover {
             background-color: #001547;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        /* --- 5. DARK MODE COMPATIBILITY --- */
-        [data-testid="stExpander"] {
-            border: 1px solid rgba(128, 128, 128, 0.25);
-            border-radius: 6px;
         }
     </style>
     """, unsafe_allow_html=True)
