@@ -174,15 +174,6 @@ def main_app():
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
         st.markdown("---")
-        temperature = st.slider(
-            "Creativity Level (Temperature):", 
-            min_value=0.0, 
-            max_value=1.0, 
-            value=0.7,
-            step=0.1,
-            help="Low = Predictable/Strict. High = Creative/Experimental."
-        )
-        
         st.divider()
         # LOGOUT BUTTON
         if st.button("Logout"):
@@ -234,7 +225,7 @@ def main_app():
                         model=model_id, 
                         config=types.GenerateContentConfig(
                             system_instruction=SYSTEM_PROMPT,
-                            temperature=temperature,
+                            temperature=0.0,
                             response_mime_type="application/json"
                         ),
                         contents=sales_input
