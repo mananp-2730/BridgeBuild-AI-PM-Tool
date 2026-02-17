@@ -100,7 +100,7 @@ def main_app():
                 "<h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: #012169;'>BridgeBuild</h3>", 
                 unsafe_allow_html=True
             )
-        #st.markdown("---")
+        st.markdown("---")
         st.header("Configuration")
         
         # 1. API Key Logic
@@ -132,13 +132,14 @@ def main_app():
             ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"],
             help="Select the billing rate to adjust cost estimates."
         )
-        
+        st.markdown("---")
         model_choice = st.radio(
             "AI Model:", 
             ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
             index=0,
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
+        st.markdown("---")
         temperature = st.slider(
             "Creativity Level (Temperature):", 
             min_value=0.0, 
