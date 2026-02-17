@@ -19,13 +19,45 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* --- 1. GENERAL THEME OVERRIDES --- */
-        /* Force the 'primary' color (Radio buttons, sliders, checkboxes) to Duke Blue */
+        /* --- 1. GENERAL & TEXT --- */
         :root {
-            --primary-color: #012169;
+            --primary-color: #012169; /* Try to override variable */
         }
         
-        /* --- 2. BUTTON STYLING --- */
+        /* --- 2. SIDEBAR (The Nuclear Fix) --- */
+        [data-testid="stSidebarUserContent"] {
+            padding-top: 0rem !important;
+            margin-top: -50px !important;
+        }
+        
+        /* --- 3. BRANDING THE WIDGETS (The Spray Paint Job) --- */
+        
+        /* Radio Buttons: Selected Option */
+        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child[aria-checked="true"] {
+            background-color: #012169 !important;
+            border-color: #012169 !important;
+        }
+
+        /* Checkboxes: Checked State */
+        div[data-baseweb="checkbox"] div[aria-checked="true"] {
+            background-color: #012169 !important;
+            border-color: #012169 !important;
+        }
+
+        /* Sliders: The Drag Handle & The Bar */
+        div[data-baseweb="slider"] div[role="slider"] {
+            background-color: #012169 !important;
+        }
+        div[data-baseweb="slider"] div[data-testid="stTickBar"] {
+             background-color: #012169 !important;
+        }
+        
+        /* Text Input: Focus Border */
+        div[data-baseweb="input"]:focus-within {
+            border-color: #012169 !important;
+        }
+
+        /* --- 4. BUTTONS --- */
         div.stButton > button:first-child {
             background-color: #012169;
             color: white;
@@ -41,14 +73,7 @@ def setup_custom_styling():
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        /* --- 3. SIDEBAR COMPACTION (The Nuclear Fix) --- */
-        [data-testid="stSidebarUserContent"] {
-            padding-top: 0rem !important;
-            margin-top: -50px !important;
-        }
-
-        /* --- 4. DARK MODE COMPATIBILITY --- */
-        /* History Cards: Use a semi-transparent border so it looks good in Light AND Dark */
+        /* --- 5. DARK MODE COMPATIBILITY --- */
         [data-testid="stExpander"] {
             border: 1px solid rgba(128, 128, 128, 0.25);
             border-radius: 6px;
