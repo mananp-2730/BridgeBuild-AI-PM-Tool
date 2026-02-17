@@ -19,29 +19,30 @@ import json
 def setup_custom_styling():
     st.markdown("""
     <style>
-        /* 1. Main Button: Flat Duke Blue */
+        /* Main Button: Flat Duke Blue */
         div.stButton > button:first-child {
-            background-color: #012169;
+            background-color: #012169; /* Duke Blue */
             color: white;
             border: none;
             border-radius: 8px;
+            font-size: 16px;
             font-weight: bold;
-            padding: 10px 20px;
-            transition: all 0.3s ease;
+            padding: 12px 24px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth color change */
         }
+        
+        /* Hover Effect: NO resizing, just a slight color shift to show it's clickable */
         div.stButton > button:first-child:hover {
-            background-color: #001547;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background-color: #001547; /* Slightly darker Duke Blue */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow pop */
+            color: white;
         }
 
-        /* 2. REMOVE SIDEBAR TOP PADDING (The Critical Fix) */
-        /* This targets the top of the sidebar to pull everything up */
-        section[data-testid="stSidebar"] div[class*="st-emotion-cache"] {
-            padding-top: 1rem; /* Default is 6rem, we made it tiny */
-        }
-        /* Remove the 'x' close button space on mobile if needed */
-        button[kind="header"] {
-            display: none;
+        /* History Cards */
+        [data-testid="stExpander"] {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
     </style>
     """, unsafe_allow_html=True)
