@@ -92,7 +92,7 @@ def main_app():
         
         with col_logo:
             # Logo.jpeg (The small square icon)
-            st.image("Logo.jpeg", width=40) 
+            st.image("Logo_bg_removed.png", width=40) 
             
         with col_text:
             # Custom HTML to position the text perfectly next to the icon
@@ -100,7 +100,7 @@ def main_app():
                 "<h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: #012169;'>BridgeBuild</h3>", 
                 unsafe_allow_html=True
             )
-        st.markdown("---")
+        #st.markdown("---")
         st.header("Configuration")
         
         # 1. API Key Logic
