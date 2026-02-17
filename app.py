@@ -94,23 +94,69 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # --- LOGIN PAGE ---
+# --- LOGIN PAGE ---
 def login_page():
-    st.title("BridgeBuild AI Login")
-    st.markdown("Please sign in to access the Product Management Tool.")
+    # 1. Spacer to push content down (Vertical Centering)
+    st.markdown("<div style='height: 10vh;'></div>", unsafe_allow_html=True)
     
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        
-        if st.button("Login"):
-            # HARDCODED CREDENTIALS (Simulation)
-            if username == "admin" and password == "bridge123":
-                st.session_state.logged_in = True
-                st.success("Login Successful!")
-                st.rerun()
-            else:
-                st.error("Invalid Username or Password")
+    # 2. Horizontal Centering (3 Columns)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # 3. The "Card" Container
+        with st.container(border=True):
+            
+            # --- BRANDING HEADER (Side-by-Side) ---
+            head_col1, head_col2 = st.columns([0.25, 0.75])
+            
+            with head_col1:
+                # The Icon
+                st.image("Logo_bg_removed.png", use_container_width=True)
+            
+            with head_col2:
+                # UPDATED TEXT COLOR LOGIC:
+                # We use 'var(--text-color)' so it turns White in Dark Mode automatically.
+                # If you want strictly Duke Blue in Light Mode, we can use an inline media query style 
+                # or just stick to the system default which is dark grey/black (standard for dark mode support).
+                # Below is the safest adaptive version:
+                st.markdown(
+                    """
+                    <h2 style='color: var(--text-color); margin: 0; padding-top: 5px; font-weight: 700;'>
+                        BridgeBuild AI
+                    </h2>
+                    <p style='color: #666; font-size: 14px; margin: 0;'>
+                        Engineering Ticket System
+                    </p>
+                    """, 
+                    unsafe_allow_html=True
+                )
+            
+            # Added Icons to placeholders for a premium feel
+            username = st.text_input("Username", placeholder="Enter your ID")
+            password = st.text_input("Password", type="password", placeholder="Enter your password")
+            
+            st.write("") # Tiny spacer
+            
+            # --- ACTION BUTTON ---
+            if st.button("Sign In  ➔", use_container_width=True):
+                # HARDCODED CREDENTIALS
+                if username == "admin" and password == "bridge123":
+                    st.session_state.logged_in = True
+                    st.success("Verifying credentials... Success!")
+                    st.rerun()
+                else:
+                    st.error("Access Denied: Invalid Credentials")
+            
+            # --- FOOTER ---
+            st.markdown(
+                """
+                <div style='text-align: center; margin-top: 20px; font-size: 11px; color: #888;'>
+                    By logging in, you agree to the <a href='#' style='color: #012169;'>Terms of Service</a>.
+                    <br>Protected by BridgeBuild Enterprise Security.
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
 
 # --- MAIN APP ---
 def main_app():
