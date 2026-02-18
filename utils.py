@@ -119,7 +119,9 @@ def create_pdf(ticket_data):
     y = print_field("Ticket Name", name, y)
     y = print_field("Complexity", ticket_data.get("complexity_score", "N/A"), y)
     y = print_field("Est. Time", ticket_data.get("development_time", "N/A"), y)
-    y = print_field("Est. Cost", f"${ticket_data.get('budget_estimate_usd', '0')}", y)
+    raw_cost = ticket_data.get('budget_estimate_usd', '0')
+    formatted_cost = convert_currency(raw_cost, "USD ($)") # Adds commas!
+    y = print_field("Est. Cost", formatted_cost, y)
     
     y -= 10
     c.setStrokeColor(colors.lightgrey)
