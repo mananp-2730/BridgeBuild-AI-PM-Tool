@@ -204,7 +204,7 @@ def main_app():
             st.markdown(
                 """
                 <h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
-                    BridgeBuild
+                    BridgeBuild AI
                 </h3>
                 """, 
                 unsafe_allow_html=True
