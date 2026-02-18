@@ -355,18 +355,30 @@ def main_app():
                     for entity in data.get("primary_entities", []):
                         st.success(f"🆔 {entity}")
                 
-                # PDF EXPORT
+               # PDF EXPORT
+               # --- ACTION AREA ---
                 st.divider()
-                st.download_button(
-                    label="📄 Download Specs as PDF",
-                    data=create_pdf(data),
-                    file_name="project_specs.pdf",
-                    mime="application/pdf"
-                )
-                # JIRA EXPORT
-                with st.expander("View Jira-Format Ticket"):
-                    st.code(generate_jira_format(data), language="jira")
-                    st.info("Copy the text above and paste it directly into a Jira Ticket description!")
+                
+                # Create two columns for the export actions
+                col_action1, col_action2 = st.columns([1, 1], gap="medium")
+                
+                with col_action1:
+                    st.markdown("#### 📄 Export Report")
+                    # Uses your updated utils.create_pdf function
+                    st.download_button(
+                        label="Download Professional PDF",
+                        data=create_pdf(data),
+                        file_name="bridgebuild_ticket.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                        icon="📥"
+                    )
+                
+                with col_action2:
+                    st.markdown("#### 🎫 Jira Integration")
+                    with st.expander("View Jira / Confluence Markup", expanded=False):
+                        st.code(generate_jira_format(data), language="jira")
+                        st.caption("Copy this text and paste it directly into Jira's description field.")
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
