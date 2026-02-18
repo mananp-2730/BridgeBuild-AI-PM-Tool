@@ -219,18 +219,6 @@ def main_app():
         else:
             api_key = st.text_input("Enter Google Gemini API Key", type="password")
             st.info("Get your free key from aistudio.google.com")
-
-        # 2. Analytics Dashboard (Only shows if history exists)
-        if st.session_state.history:
-            st.divider()
-            st.markdown("Cost Trends")
-
-            # Extract data for the chart
-            chart_data = [parse_cost_avg(item.get('raw_cost', '0')) for item in st.session_state.history]
-
-            # Show a Line Chart
-            st.line_chart(chart_data)
-            st.caption("Estimated Cost (USD) per Ticket Generated")
         
         # 3. Business Settings (ALWAYS VISIBLE)
         st.divider()
