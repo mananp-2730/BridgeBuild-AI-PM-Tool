@@ -104,99 +104,109 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # --- LOGIN PAGE ---
-# --- LOGIN PAGE ---
 def login_page():
-    # 1. SETUP: Hide Sidebar & Fix global padding for this page
+    # 1. CSS MAGIC: The "Floating Card" Wrapper
     st.markdown("""
         <style>
-            /* Hide the actual sidebar navigation on the login page */
             [data-testid="stSidebar"] { display: none; }
-            
-            /* Minimize top padding so content starts higher up */
-            .block-container { 
-                padding-top: 1rem; 
-                padding-bottom: 0rem; 
-                max-width: 100%; /* Ensure full width utilization */
+            .stApp { background-color: #f4f7f6; }
+            .block-container {
+                max-width: 850px;
+                padding: 0 !important;
+                margin: auto;
+                margin-top: 10vh;
+                background-color: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+                overflow: hidden;
             }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 2. CSS for the Hero Image (Right Column Fixes)
-    # This is crucial to make the image look like a "cover" background
-    st.markdown("""
-        <style>
-            /* Target the image inside the second main column */
+            [data-testid="column"] { padding: 0 !important; }
+            div[data-testid="column"]:nth-of-type(1) > div {
+                padding: 50px 30px 50px 50px !important;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
             div[data-testid="column"]:nth-of-type(2) div[data-testid="stImage"] > img {
-                height: 92vh;            /* Force it to fill most of the vertical height */
-                object-fit: cover;       /* CROP the image so it doesn't stretch or squish */
-                border-radius: 16px;     /* Adds a modern rounded corner touch */
+                height: 600px;
+                object-fit: cover;
+                border-radius: 0px;
+                display: block;
+            }
+            div[data-baseweb="input"] {
+                background-color: #f8f9fa;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    # 3. SPLIT LAYOUT: Left (Form) vs Right (Hero Image)
-    # Use a [1, 1.6] ratio to give the image slightly more visual weight
-    col1, col2 = st.columns([1, 1.6], gap="large")
+    # 2. STATE MANAGEMENT (Login vs Signup)
+    if "auth_mode" not in st.session_state:
+        st.session_state.auth_mode = "login" # or 'signup'
+
+    col1, col2 = st.columns([1, 1.2], gap="small")
     
-    # --- LEFT COLUMN: The Login Form ---
+    # --- LEFT COLUMN: The Form ---
     with col1:
-        # Spacers to push the form down visually for centering
-        st.write("")
-        st.write("")
-        st.write("")
+        st.image("Logo_bg_removed.png", width=50)
         
-        # BRANDING
-        brand_col1, brand_col2 = st.columns([0.2, 1.1])
-        with brand_col1:
-            # Make sure "Logo_bg_removed.png" is in your project folder
-            st.image("Logo_bg_removed.png", width=60)
-        with brand_col2:
-            # var(--text-color) adapts automatically to Light/Dark mode
-            st.markdown(
-                """
-                <h2 style='color: var(--text-color); margin: 0; padding-top: 10px; font-weight: 700; font-size: 28px;'>
-                    BridgeBuild AI
-                </h2>
-                """, 
-                unsafe_allow_html=True
-            )
-        st.write("")
+        # Dynamic Header
+        if st.session_state.auth_mode == "login":
+            st.markdown("<h2 style='color: var(--text-color); margin: 0; padding-top: 15px; font-weight: 700; font-size: 26px;'>Welcome Back</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #888; font-size: 14px; margin-bottom: 30px;'>Log in to your account</p>", unsafe_allow_html=True)
+        else:
+            st.markdown("<h2 style='color: var(--text-color); margin: 0; padding-top: 15px; font-weight: 700; font-size: 26px;'>Create Account</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #888; font-size: 14px; margin-bottom: 30px;'>Sign up for BridgeBuild AI</p>", unsafe_allow_html=True)
         
         # INPUTS
-        username = st.text_input("Email", placeholder="name@company.com")
-        password = st.text_input("Password", type="password", placeholder="Enter your password")
+        email = st.text_input("Email", placeholder="name@company.com", label_visibility="collapsed")
+        st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
+        password = st.text_input("Password", type="password", placeholder="Password", label_visibility="collapsed")
+        st.markdown("<div style='height: 25px'></div>", unsafe_allow_html=True)
         
-        st.write("") # Tiny spacer
-        
-        # BUTTON
-        if st.button("Sign In  ➔", use_container_width=True):
-            # HARDCODED CREDENTIALS
-            if username == "admin" and password == "bridge123":
-                st.session_state.logged_in = True
+        # AUTHENTICATION LOGIC
+        if st.session_state.auth_mode == "login":
+            if st.button("Log In", use_container_width=True):
+                try:
+                    # Supabase Login
+                    response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                    st.session_state.user = response.user
+                    st.session_state.logged_in = True
+                    st.success("Login successful!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Login failed: {str(e)}")
+            
+            # Toggle to Signup
+            st.markdown("""<div style='text-align: center; margin-top: 20px; font-size: 13px; color: #666;'>
+                Don't have an account? </div>""", unsafe_allow_html=True)
+            if st.button("Sign Up Now", type="tertiary", use_container_width=True):
+                st.session_state.auth_mode = "signup"
                 st.rerun()
-            else:
-                st.error("Invalid credentials. Please try again.")
 
-        # FOOTER
-        st.markdown(
-            """
-            <div style='margin-top: 50px; font-size: 12px; color: #888;'>
-                Protected by Enterprise Security. <br>
-                <a href='#' style='color: gray; text-decoration: none;'>Forgot Password?</a>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
+        else: # SIGNUP MODE
+            if st.button("Create Account", use_container_width=True):
+                try:
+                    # Supabase Signup
+                    response = supabase.auth.sign_up({"email": email, "password": password})
+                    st.success("Account created! Please check your email to confirm.")
+                    # Optional: Auto-login if Supabase settings allow, or ask to verify email
+                    st.info("Please verify your email address to log in.")
+                except Exception as e:
+                    st.error(f"Signup failed: {str(e)}")
 
-    # --- RIGHT COLUMN: The Abstract Structure Hero Image ---
+            # Toggle to Login
+            st.markdown("""<div style='text-align: center; margin-top: 20px; font-size: 13px; color: #666;'>
+                Already have an account? </div>""", unsafe_allow_html=True)
+            if st.button("Log In Instead", type="tertiary", use_container_width=True):
+                st.session_state.auth_mode = "login"
+                st.rerun()
+
+    # --- RIGHT COLUMN: The Hero Image ---
     with col2:
-        # Image selection: Abstract modern architecture with blue tones.
-        # Credit: Simone Hutsch via Unsplash
-        st.image(
-            "Image.jpg", 
-            use_container_width=True
-        )
-
+        st.image("Loginpage_image.jpg", use_container_width=True)
+        
 # --- MAIN APP ---
 def main_app():
     setup_custom_styling()
