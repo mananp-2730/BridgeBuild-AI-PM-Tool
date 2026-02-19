@@ -152,7 +152,7 @@ def login_page():
                 st.image("Logo_bg_removed.png", width=80)
             
             # HEADER (Tight margins)
-            st.markdown("<h3 style='text-align: center; margin-top: -15px; margin-bottom: 5px; color: #012169;'>  BridgeBuild AI</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='text-align: center; margin-top: -15px; margin-bottom: 5px; color: #012169;'>     BridgeBuild AI</h3>", unsafe_allow_html=True)
             
             # ACTION SELECTOR (Compact Radio)
             # This will now be Duke Blue thanks to the CSS above
