@@ -13,7 +13,17 @@ from utils import clean_json_output, generate_jira_format, parse_cost_avg, conve
 import streamlit as st
 from google import genai
 from google.genai import types
+from supabase import create_client, Client
 import json
+
+# Initialize Supabase
+@st.cache_resource
+def init_supabase():
+    url = st.secrets["supabase"]["https://supabase.com/dashboard/project/tbsrtghmpggykenyubwr"]
+    key = st.secrets["supabase"]["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRic3J0Z2htcGdneWtlbnl1YndyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NzA5NTEsImV4cCI6MjA4NzA0Njk1MX0._GXngi3CnxqCMcR_0eqRte74jpO0JYae75mWW-PuNes"]
+    return create_client(url, key)
+
+supabase = init_supabase()
 
 # Custom CSS
 def setup_custom_styling():
