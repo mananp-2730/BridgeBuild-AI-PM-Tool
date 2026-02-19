@@ -152,8 +152,7 @@ def login_page():
             
             # TOGGLE: Log In vs Sign Up
             auth_mode = st.radio("Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
-            
-            st.markdown("---") 
+            st.write("")
             
             # INPUTS
             email = st.text_input("Email", placeholder="name@company.com")
