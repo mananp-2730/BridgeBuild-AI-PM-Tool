@@ -103,26 +103,46 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --- LOGIN PAGE (SIMPLE VERSION) ---
+# --- LOGIN PAGE (SIMPLE & BRANDED) ---
 def login_page():
-    # Simple Spacer to push content down
-    st.write("")
-    st.write("")
-    st.write("")
+    # 1. Custom CSS for Duke Blue Theme
+    st.markdown("""
+        <style>
+            /* Force the Primary Button to be Duke Blue */
+            div.stButton > button[kind="primary"] {
+                background-color: #012169 !important;
+                border: none !important;
+            }
+            div.stButton > button[kind="primary"]:hover {
+                background-color: #001547 !important;
+            }
+            /* Hide the default sidebar */
+            [data-testid="stSidebar"] { display: none; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 2. Spacer (Reduced to move content UP)
+    st.write("") 
     
-    # Center the login form using columns
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # 3. Center the login form
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     
     with col2:
-        # Standard Streamlit Container (No custom CSS hacks)
+        # The Card
         with st.container(border=True):
-            # Header
-            st.markdown("## BridgeBuild AI")
-            st.write("Sign in to your account")
-            st.divider()
+            # LOGO (Centered using columns inside the card)
+            img_col1, img_col2, img_col3 = st.columns([1, 1, 1])
+            with img_col2:
+                # Make sure the file "Logo_bg_removed.png" is in your folder!
+                st.image("Logo_bg_removed.png", use_container_width=True)
             
-            # Auth Mode Selection (Simple Radio Button)
+            # Header
+            st.markdown("<h3 style='text-align: center; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: gray; font-size: 14px;'>Sign in to your account</p>", unsafe_allow_html=True)
+            
+            # Auth Mode Selection (Centered Radio)
             auth_mode = st.radio("Select Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
+            st.write("") # Small spacer
             
             # Inputs
             email = st.text_input("Email", placeholder="name@company.com")
@@ -132,6 +152,7 @@ def login_page():
             
             # LOGIC: Supabase Auth
             if auth_mode == "Log In":
+                # The 'type="primary"' triggers our Duke Blue CSS above
                 if st.button("Log In", use_container_width=True, type="primary"):
                     try:
                         # Attempt Login
