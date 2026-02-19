@@ -103,78 +103,76 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --- LOGIN PAGE (SIMPLE & BRANDED) ---
+# --- LOGIN PAGE (LIFTED & CENTERED) ---
 def login_page():
-    # 1. Custom CSS for Duke Blue Theme
+    # 1. CSS TO PULL CONTENT UP
     st.markdown("""
         <style>
-            /* Force the Primary Button to be Duke Blue */
+            /* Hide Sidebar */
+            [data-testid="stSidebar"] { display: none; }
+            
+            /* REMOVE DEFAULT TOP PADDING to pull everything up */
+            .block-container {
+                padding-top: 1rem !important;
+                padding-bottom: 0rem !important;
+            }
+            
+            /* Style the Duke Blue Buttons */
             div.stButton > button[kind="primary"] {
                 background-color: #012169 !important;
                 border: none !important;
             }
-            div.stButton > button[kind="primary"]:hover {
-                background-color: #001547 !important;
-            }
-            /* Hide the default sidebar */
-            [data-testid="stSidebar"] { display: none; }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. Spacer (Reduced to move content UP)
-    st.write("") 
+    # 2. NO SPACERS AT THE TOP! (This was the problem)
     
-    # 3. Center the login form
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    # 3. COLUMNS (Centered)
+    col1, col2, col3 = st.columns([1, 1.2, 1])
     
     with col2:
-        # The Card
+        # The Card Container
         with st.container(border=True):
-            # LOGO (Centered using columns inside the card)
-            img_col1, img_col2, img_col3 = st.columns([1, 1, 1])
-            with img_col2:
-                # Make sure the file "Logo_bg_removed.png" is in your folder!
+            
+            # LOGO & HEADER (Tight Spacing)
+            # Center the logo image
+            c_img1, c_img2, c_img3 = st.columns([1, 1, 1])
+            with c_img2:
                 st.image("Logo_bg_removed.png", use_container_width=True)
             
-            # Header
-            st.markdown("<h3 style='text-align: center; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: gray; font-size: 14px;'>Sign in to your account</p>", unsafe_allow_html=True)
+            st.markdown("<h3 style='text-align: center; margin-top: -10px; margin-bottom: 5px; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
             
-            # Auth Mode Selection (Centered Radio)
-            auth_mode = st.radio("Select Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
-            st.write("") # Small spacer
+            # Auth Mode (Compact)
+            auth_mode = st.radio("Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
             
-            # Inputs
+            st.markdown("---") # Thin divider instead of empty space
+            
+            # INPUTS
             email = st.text_input("Email", placeholder="name@company.com")
             password = st.text_input("Password", type="password", placeholder="Enter your password")
             
-            st.write("") # Spacer
+            st.write("") # Tiny spacer before button
             
-            # LOGIC: Supabase Auth
+            # LOGIC
             if auth_mode == "Log In":
-                # The 'type="primary"' triggers our Duke Blue CSS above
                 if st.button("Log In", use_container_width=True, type="primary"):
                     try:
-                        # Attempt Login
                         response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state.user = response.user
                         st.session_state.logged_in = True
-                        st.success("Login successful!")
+                        st.success("Success!")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Login failed: {str(e)}")
-            
-            else: # Sign Up Mode
+                        st.error(f"Failed: {str(e)}")
+            else:
                 if st.button("Create Account", use_container_width=True, type="primary"):
                     try:
-                        # Attempt Signup
                         response = supabase.auth.sign_up({"email": email, "password": password})
-                        st.success("Account created! Check your email to confirm.")
+                        st.success("Check email to confirm!")
                     except Exception as e:
-                        st.error(f"Signup failed: {str(e)}")
+                        st.error(f"Failed: {str(e)}")
             
-            st.divider()
-            st.caption("Protected by BridgeBuild Enterprise Security")
+            st.caption("Protected by BridgeBuild Security")
             
 # --- MAIN APP ---
 def main_app():
