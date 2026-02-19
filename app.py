@@ -103,148 +103,58 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --- LOGIN PAGE ---
+# --- LOGIN PAGE (SIMPLE VERSION) ---
 def login_page():
-    # 1. CSS MAGIC: Force "Light Mode" Styling for the Card ONLY
-    st.markdown("""
-        <style>
-            /* Hide Sidebar */
-            [data-testid="stSidebar"] { display: none; }
-            
-            /* BACKGROUND: Deep Blue/Black for contrast (matches your dark theme vibe) */
-            .stApp {
-                background-color: #0e1117; 
-            }
-
-            /* THE CARD CONTAINER */
-            .block-container {
-                max-width: 900px;
-                padding: 0 !important;
-                margin: auto;
-                margin-top: 10vh;
-                background-color: #ffffff; /* Always White Card */
-                border-radius: 15px;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-                overflow: hidden;
-            }
-            
-            /* FORCE DARK TEXT INSIDE THE CARD (Overrides Streamlit Dark Mode) */
-            .block-container h1, .block-container h2, .block-container h3, 
-            .block-container p, .block-container span, .block-container div {
-                color: #333333 !important;
-            }
-            
-            /* INPUT FIELDS: Clean Light Grey Style */
-            div[data-baseweb="input"] {
-                background-color: #f0f2f6 !important;
-                border: 1px solid #e0e0e0 !important;
-                border-radius: 8px !important;
-            }
-            /* Input Text Color - Force Black */
-            input.st-ai, input.st-ah {
-                color: #333333 !important;
-            }
-            
-            /* BUTTON STYLING */
-            div.stButton > button {
-                width: 100%;
-                background-color: #012169 !important; /* Duke Blue */
-                color: white !important;
-                border: none;
-                padding-top: 12px;
-                padding-bottom: 12px;
-            }
-            div.stButton > button:hover {
-                background-color: #001547 !important;
-            }
-            
-            /* REMOVE DEFAULT PADDING */
-            div[data-testid="column"] { padding: 0 !important; }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 2. STATE MANAGEMENT
-    if "auth_mode" not in st.session_state:
-        st.session_state.auth_mode = "login"
-
-    # 3. LAYOUT: Split 40% / 60%
-    col1, col2 = st.columns([1, 1.4], gap="small")
+    # Simple Spacer to push content down
+    st.write("")
+    st.write("")
+    st.write("")
     
-    # --- LEFT COLUMN: Form ---
-    with col1:
-        # Internal Padding Wrapper
-        st.markdown("""
-            <div style='padding: 50px 40px 50px 50px; display: flex; flex-direction: column; justify-content: center; height: 600px;'>
-        """, unsafe_allow_html=True)
-        
-        # Logo
-        st.image("Logo_bg_removed.png", width=50)
-        
-        # Dynamic Header
-        if st.session_state.auth_mode == "login":
-            st.markdown("<h2 style='font-weight: 700; font-size: 26px; margin-top: 10px;'>Welcome Back</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #666 !important; font-size: 14px; margin-bottom: 30px;'>Log in to your dashboard</p>", unsafe_allow_html=True)
-        else:
-            st.markdown("<h2 style='font-weight: 700; font-size: 26px; margin-top: 10px;'>Create Account</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #666 !important; font-size: 14px; margin-bottom: 30px;'>Get started with BridgeBuild AI</p>", unsafe_allow_html=True)
-        
-        # Inputs
-        email = st.text_input("Email", placeholder="name@company.com", label_visibility="collapsed")
-        st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
-        password = st.text_input("Password", type="password", placeholder="Password", label_visibility="collapsed")
-        st.markdown("<div style='height: 25px'></div>", unsafe_allow_html=True)
-        
-        # LOGIC
-        if st.session_state.auth_mode == "login":
-            if st.button("Log In"):
-                try:
-                    # SUPABASE LOGIN
-                    response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                    st.session_state.user = response.user
-                    st.session_state.logged_in = True
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-            
-            # Switcher
-            st.markdown("<div style='height: 20px'></div>", unsafe_allow_html=True)
-            if st.button("Don't have an account? Sign Up", type="secondary"):
-                st.session_state.auth_mode = "signup"
-                st.rerun()
-                
-        else: # Signup
-            if st.button("Create Account"):
-                try:
-                    # SUPABASE SIGNUP
-                    response = supabase.auth.sign_up({"email": email, "password": password})
-                    st.success("Check your email to confirm!")
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-            
-            # Switcher
-            st.markdown("<div style='height: 20px'></div>", unsafe_allow_html=True)
-            if st.button("Back to Login", type="secondary"):
-                st.session_state.auth_mode = "login"
-                st.rerun()
-                
-        st.markdown("</div>", unsafe_allow_html=True) # Close Padding Div
-
-    # --- RIGHT COLUMN: Image ---
+    # Center the login form using columns
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
     with col2:
-        # CSS to force image to fill height
-        st.markdown("""
-        <style>
-            div[data-testid="column"]:nth-of-type(2) div[data-testid="stImage"] > img {
-                height: 600px !important;
-                object-fit: cover;
-                border-radius: 0px;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Using the reliable Unsplash URL for now to prevent crashes
-        st.image("https://images.unsplash.com/photo-1541888946425-d036c7a69763?q=80&w=2000&auto=format&fit=crop", use_container_width=True)
-        
+        # Standard Streamlit Container (No custom CSS hacks)
+        with st.container(border=True):
+            # Header
+            st.markdown("## BridgeBuild AI")
+            st.write("Sign in to your account")
+            st.divider()
+            
+            # Auth Mode Selection (Simple Radio Button)
+            auth_mode = st.radio("Select Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
+            
+            # Inputs
+            email = st.text_input("Email", placeholder="name@company.com")
+            password = st.text_input("Password", type="password", placeholder="Enter your password")
+            
+            st.write("") # Spacer
+            
+            # LOGIC: Supabase Auth
+            if auth_mode == "Log In":
+                if st.button("Log In", use_container_width=True, type="primary"):
+                    try:
+                        # Attempt Login
+                        response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                        st.session_state.user = response.user
+                        st.session_state.logged_in = True
+                        st.success("Login successful!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Login failed: {str(e)}")
+            
+            else: # Sign Up Mode
+                if st.button("Create Account", use_container_width=True, type="primary"):
+                    try:
+                        # Attempt Signup
+                        response = supabase.auth.sign_up({"email": email, "password": password})
+                        st.success("Account created! Check your email to confirm.")
+                    except Exception as e:
+                        st.error(f"Signup failed: {str(e)}")
+            
+            st.divider()
+            st.caption("Protected by BridgeBuild Enterprise Security")
+            
 # --- MAIN APP ---
 def main_app():
     setup_custom_styling()
