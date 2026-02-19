@@ -103,55 +103,68 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --- LOGIN PAGE (LIFTED & CENTERED) ---
+# --- LOGIN PAGE (COMPACT & BLUE) ---
 def login_page():
-    # 1. CSS TO PULL CONTENT UP
+    # 1. CSS: Duke Blue Theme & Compact Layout
     st.markdown("""
         <style>
             /* Hide Sidebar */
             [data-testid="stSidebar"] { display: none; }
             
-            /* REMOVE DEFAULT TOP PADDING to pull everything up */
+            /* PULL CONTENT UP: Remove top padding */
             .block-container {
-                padding-top: 1rem !important;
+                padding-top: 3rem !important;
                 padding-bottom: 0rem !important;
             }
             
-            /* Style the Duke Blue Buttons */
+            /* RADIO BUTTONS: Force Duke Blue (Overrides default Red) */
+            div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
+                background-color: #012169 !important;
+                border-color: #012169 !important;
+            }
+            div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child > div {
+                background-color: white !important;
+            }
+            
+            /* PRIMARY BUTTON: Duke Blue */
             div.stButton > button[kind="primary"] {
                 background-color: #012169 !important;
                 border: none !important;
             }
+            div.stButton > button[kind="primary"]:hover {
+                background-color: #001547 !important;
+            }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. NO SPACERS AT THE TOP! (This was the problem)
-    
-    # 3. COLUMNS (Centered)
+    # 2. LAYOUT: Center Column
     col1, col2, col3 = st.columns([1, 1.2, 1])
     
     with col2:
-        # The Card Container
+        # The Card
         with st.container(border=True):
             
-            # LOGO & HEADER (Tight Spacing)
-            # Center the logo image
+            # LOGO (Smaller size to save space)
+            # Using columns to center the image perfectly
             c_img1, c_img2, c_img3 = st.columns([1, 1, 1])
             with c_img2:
-                st.image("Logo_bg_removed.png", use_container_width=True)
+                # Reduced width to 80px so it doesn't push content down
+                st.image("Logo_bg_removed.png", width=80)
             
-            st.markdown("<h3 style='text-align: center; margin-top: -10px; margin-bottom: 5px; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
+            # HEADER (Tight margins)
+            st.markdown("<h3 style='text-align: center; margin-top: -15px; margin-bottom: 5px; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
             
-            # Auth Mode (Compact)
+            # ACTION SELECTOR (Compact Radio)
+            # This will now be Duke Blue thanks to the CSS above
             auth_mode = st.radio("Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
             
-            st.markdown("---") # Thin divider instead of empty space
+            st.markdown("---") 
             
             # INPUTS
             email = st.text_input("Email", placeholder="name@company.com")
             password = st.text_input("Password", type="password", placeholder="Enter your password")
             
-            st.write("") # Tiny spacer before button
+            st.write("") # Tiny spacer
             
             # LOGIC
             if auth_mode == "Log In":
@@ -172,7 +185,8 @@ def login_page():
                     except Exception as e:
                         st.error(f"Failed: {str(e)}")
             
-            st.caption("Protected by BridgeBuild Security")
+            # FOOTER (Inside the card to ensure it doesn't get cut off)
+            st.markdown("<div style='text-align: center; color: grey; font-size: 11px; margin-top: 10px;'>Protected by Enterprise Security</div>", unsafe_allow_html=True)
             
 # --- MAIN APP ---
 def main_app():
