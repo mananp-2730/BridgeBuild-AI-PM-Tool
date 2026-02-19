@@ -166,25 +166,25 @@ def login_page():
             
             st.write("") # Tiny spacer
             
-            # LOGIC
+            # LOGIC: Supabase Auth with Error Handling
             if auth_mode == "Log In":
                 if st.button("Log In", use_container_width=True, type="primary"):
                     try:
                         response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state.user = response.user
                         st.session_state.logged_in = True
-                        st.success("Success!")
+                        st.success("Success! Loading dashboard...")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Failed: {str(e)}")
-            else:
-                if st.button("Create Account", use_container_width=True, type="primary"):
-                    try:
-                        response = supabase.auth.sign_up({"email": email, "password": password})
-                        st.success("Check email to confirm!")
-                    except Exception as e:
-                        st.error(f"Failed: {str(e)}")
-            
+                        # Check for the specific "Email not confirmed" error
+                        error_msg = str(e)
+                        if "Email not confirmed" in error_msg:
+                            st.warning("Please click the confirmation link sent to your email before logging in.")
+                        elif "Invalid login credentials" in error_msg:
+                            st.error("Incorrect email or password.")
+                        else:
+                            st.error(f"Login failed: {error_msg}")
+                            
             # FOOTER (Inside the card to ensure it doesn't get cut off)
             st.markdown("<div style='text-align: center; color: grey; font-size: 11px; margin-top: 10px;'>Protected by Enterprise Security</div>", unsafe_allow_html=True)
             
