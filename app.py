@@ -103,21 +103,20 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --- LOGIN PAGE (COMPACT & BLUE) ---
+# --- LOGIN PAGE (FIXED & OFFICIAL) ---
 def login_page():
     # 1. CSS: Duke Blue Theme & Compact Layout
     st.markdown("""
         <style>
-            /* Hide Sidebar */
             [data-testid="stSidebar"] { display: none; }
             
-            /* PULL CONTENT UP: Remove top padding */
+            /* PULL CONTENT UP */
             .block-container {
                 padding-top: 3rem !important;
                 padding-bottom: 0rem !important;
             }
             
-            /* RADIO BUTTONS: Force Duke Blue (Overrides default Red) */
+            /* RADIO BUTTONS: Duke Blue */
             div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
                 background-color: #012169 !important;
                 border-color: #012169 !important;
@@ -137,38 +136,35 @@ def login_page():
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. LAYOUT: Center Column
+    # 2. LAYOUT
     col1, col2, col3 = st.columns([1, 1.2, 1])
     
     with col2:
-        # The Card
         with st.container(border=True):
             
-            # LOGO (Smaller size to save space)
-            # Using columns to center the image perfectly
+            # LOGO
             c_img1, c_img2, c_img3 = st.columns([1, 1, 0.6])
             with c_img2:
-                # Reduced width to 80px so it doesn't push content down
                 st.image("Logo_bg_removed.png", width=80)
             
-            # HEADER (Tight margins)
+            # TITLE
             #st.markdown("<h3 style='text-align: center; margin-top: -15px; margin-bottom: 5px; color: #012169;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
             
-            # ACTION SELECTOR (Compact Radio)
-            # This will now be Duke Blue thanks to the CSS above
+            # TOGGLE: Log In vs Sign Up
             auth_mode = st.radio("Action:", ["Log In", "Sign Up"], horizontal=True, label_visibility="collapsed")
             
-            st.write("") 
+            st.markdown("---") 
             
             # INPUTS
             email = st.text_input("Email", placeholder="name@company.com")
             password = st.text_input("Password", type="password", placeholder="Enter your password")
             
-            st.write("") # Tiny spacer
+            st.write("") # Spacer
             
-            # LOGIC: Supabase Auth with Error Handling
+            # --- BUTTON LOGIC (Fixed) ---
             if auth_mode == "Log In":
-                if st.button("Log In", use_container_width=True, type="primary"):
+                # LOG IN BUTTON
+                if st.button("Log In", use_container_width=True, type="primary", key="login_btn"):
                     try:
                         response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state.user = response.user
@@ -176,16 +172,25 @@ def login_page():
                         st.success("Success! Loading dashboard...")
                         st.rerun()
                     except Exception as e:
-                        # Check for the specific "Email not confirmed" error
+                        # ERROR HANDLING: Check for unverified email
                         error_msg = str(e)
                         if "Email not confirmed" in error_msg:
-                            st.warning("Please click the confirmation link sent to your email before logging in.")
+                            st.warning("Please check your inbox and click the confirmation link.")
                         elif "Invalid login credentials" in error_msg:
                             st.error("Incorrect email or password.")
                         else:
                             st.error(f"Login failed: {error_msg}")
                             
-            # FOOTER (Inside the card to ensure it doesn't get cut off)
+            else:
+                # SIGN UP BUTTON (This was missing!)
+                if st.button("Create Account", use_container_width=True, type="primary", key="signup_btn"):
+                    try:
+                        response = supabase.auth.sign_up({"email": email, "password": password})
+                        st.success("Account created! Please check your email to confirm.")
+                    except Exception as e:
+                        st.error(f"Signup failed: {str(e)}")
+            
+            # FOOTER
             st.markdown("<div style='text-align: center; color: grey; font-size: 11px; margin-top: 10px;'>Protected by Enterprise Security</div>", unsafe_allow_html=True)
             
 # --- MAIN APP ---
