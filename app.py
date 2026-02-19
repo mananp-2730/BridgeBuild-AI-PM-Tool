@@ -105,107 +105,145 @@ if "logged_in" not in st.session_state:
 
 # --- LOGIN PAGE ---
 def login_page():
-    # 1. CSS MAGIC: The "Floating Card" Wrapper
+    # 1. CSS MAGIC: Force "Light Mode" Styling for the Card ONLY
     st.markdown("""
         <style>
+            /* Hide Sidebar */
             [data-testid="stSidebar"] { display: none; }
-            .stApp { background-color: #f4f7f6; }
+            
+            /* BACKGROUND: Deep Blue/Black for contrast (matches your dark theme vibe) */
+            .stApp {
+                background-color: #0e1117; 
+            }
+
+            /* THE CARD CONTAINER */
             .block-container {
-                max-width: 850px;
+                max-width: 900px;
                 padding: 0 !important;
                 margin: auto;
                 margin-top: 10vh;
-                background-color: white;
-                border-radius: 20px;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+                background-color: #ffffff; /* Always White Card */
+                border-radius: 15px;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
                 overflow: hidden;
             }
-            [data-testid="column"] { padding: 0 !important; }
-            div[data-testid="column"]:nth-of-type(1) > div {
-                padding: 50px 30px 50px 50px !important;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+            
+            /* FORCE DARK TEXT INSIDE THE CARD (Overrides Streamlit Dark Mode) */
+            .block-container h1, .block-container h2, .block-container h3, 
+            .block-container p, .block-container span, .block-container div {
+                color: #333333 !important;
             }
-            div[data-testid="column"]:nth-of-type(2) div[data-testid="stImage"] > img {
-                height: 600px;
-                object-fit: cover;
-                border-radius: 0px;
-                display: block;
-            }
+            
+            /* INPUT FIELDS: Clean Light Grey Style */
             div[data-baseweb="input"] {
-                background-color: #f8f9fa;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
+                background-color: #f0f2f6 !important;
+                border: 1px solid #e0e0e0 !important;
+                border-radius: 8px !important;
             }
+            /* Input Text Color - Force Black */
+            input.st-ai, input.st-ah {
+                color: #333333 !important;
+            }
+            
+            /* BUTTON STYLING */
+            div.stButton > button {
+                width: 100%;
+                background-color: #012169 !important; /* Duke Blue */
+                color: white !important;
+                border: none;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+            div.stButton > button:hover {
+                background-color: #001547 !important;
+            }
+            
+            /* REMOVE DEFAULT PADDING */
+            div[data-testid="column"] { padding: 0 !important; }
         </style>
     """, unsafe_allow_html=True)
 
-    # 2. STATE MANAGEMENT (Login vs Signup)
+    # 2. STATE MANAGEMENT
     if "auth_mode" not in st.session_state:
-        st.session_state.auth_mode = "login" # or 'signup'
+        st.session_state.auth_mode = "login"
 
-    col1, col2 = st.columns([1, 1.2], gap="small")
+    # 3. LAYOUT: Split 40% / 60%
+    col1, col2 = st.columns([1, 1.4], gap="small")
     
-    # --- LEFT COLUMN: The Form ---
+    # --- LEFT COLUMN: Form ---
     with col1:
+        # Internal Padding Wrapper
+        st.markdown("""
+            <div style='padding: 50px 40px 50px 50px; display: flex; flex-direction: column; justify-content: center; height: 600px;'>
+        """, unsafe_allow_html=True)
+        
+        # Logo
         st.image("Logo_bg_removed.png", width=50)
         
         # Dynamic Header
         if st.session_state.auth_mode == "login":
-            st.markdown("<h2 style='color: var(--text-color); margin: 0; padding-top: 15px; font-weight: 700; font-size: 26px;'>Welcome Back</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #888; font-size: 14px; margin-bottom: 30px;'>Log in to your account</p>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-weight: 700; font-size: 26px; margin-top: 10px;'>Welcome Back</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #666 !important; font-size: 14px; margin-bottom: 30px;'>Log in to your dashboard</p>", unsafe_allow_html=True)
         else:
-            st.markdown("<h2 style='color: var(--text-color); margin: 0; padding-top: 15px; font-weight: 700; font-size: 26px;'>Create Account</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #888; font-size: 14px; margin-bottom: 30px;'>Sign up for BridgeBuild AI</p>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-weight: 700; font-size: 26px; margin-top: 10px;'>Create Account</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #666 !important; font-size: 14px; margin-bottom: 30px;'>Get started with BridgeBuild AI</p>", unsafe_allow_html=True)
         
-        # INPUTS
+        # Inputs
         email = st.text_input("Email", placeholder="name@company.com", label_visibility="collapsed")
         st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
         password = st.text_input("Password", type="password", placeholder="Password", label_visibility="collapsed")
         st.markdown("<div style='height: 25px'></div>", unsafe_allow_html=True)
         
-        # AUTHENTICATION LOGIC
+        # LOGIC
         if st.session_state.auth_mode == "login":
-            if st.button("Log In", use_container_width=True):
+            if st.button("Log In"):
                 try:
-                    # Supabase Login
+                    # SUPABASE LOGIN
                     response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user = response.user
                     st.session_state.logged_in = True
-                    st.success("Login successful!")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Login failed: {str(e)}")
+                    st.error(f"Error: {str(e)}")
             
-            # Toggle to Signup
-            st.markdown("""<div style='text-align: center; margin-top: 20px; font-size: 13px; color: #666;'>
-                Don't have an account? </div>""", unsafe_allow_html=True)
-            if st.button("Sign Up Now", type="tertiary", use_container_width=True):
+            # Switcher
+            st.markdown("<div style='height: 20px'></div>", unsafe_allow_html=True)
+            if st.button("Don't have an account? Sign Up", type="secondary"):
                 st.session_state.auth_mode = "signup"
                 st.rerun()
-
-        else: # SIGNUP MODE
-            if st.button("Create Account", use_container_width=True):
+                
+        else: # Signup
+            if st.button("Create Account"):
                 try:
-                    # Supabase Signup
+                    # SUPABASE SIGNUP
                     response = supabase.auth.sign_up({"email": email, "password": password})
-                    st.success("Account created! Please check your email to confirm.")
-                    # Optional: Auto-login if Supabase settings allow, or ask to verify email
-                    st.info("Please verify your email address to log in.")
+                    st.success("Check your email to confirm!")
                 except Exception as e:
-                    st.error(f"Signup failed: {str(e)}")
-
-            # Toggle to Login
-            st.markdown("""<div style='text-align: center; margin-top: 20px; font-size: 13px; color: #666;'>
-                Already have an account? </div>""", unsafe_allow_html=True)
-            if st.button("Log In Instead", type="tertiary", use_container_width=True):
+                    st.error(f"Error: {str(e)}")
+            
+            # Switcher
+            st.markdown("<div style='height: 20px'></div>", unsafe_allow_html=True)
+            if st.button("Back to Login", type="secondary"):
                 st.session_state.auth_mode = "login"
                 st.rerun()
+                
+        st.markdown("</div>", unsafe_allow_html=True) # Close Padding Div
 
-    # --- RIGHT COLUMN: The Hero Image ---
+    # --- RIGHT COLUMN: Image ---
     with col2:
-        st.image("Loginpage_image.jpg", use_container_width=True)
+        # CSS to force image to fill height
+        st.markdown("""
+        <style>
+            div[data-testid="column"]:nth-of-type(2) div[data-testid="stImage"] > img {
+                height: 600px !important;
+                object-fit: cover;
+                border-radius: 0px;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Using the reliable Unsplash URL for now to prevent crashes
+        st.image("https://images.unsplash.com/photo-1541888946425-d036c7a69763?q=80&w=2000&auto=format&fit=crop", use_container_width=True)
         
 # --- MAIN APP ---
 def main_app():
