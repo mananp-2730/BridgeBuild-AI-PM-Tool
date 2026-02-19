@@ -19,8 +19,8 @@ import json
 # Initialize Supabase
 @st.cache_resource
 def init_supabase():
-    url = st.secrets["supabase"]["https://supabase.com/dashboard/project/tbsrtghmpggykenyubwr"]
-    key = st.secrets["supabase"]["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRic3J0Z2htcGdneWtlbnl1YndyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NzA5NTEsImV4cCI6MjA4NzA0Njk1MX0._GXngi3CnxqCMcR_0eqRte74jpO0JYae75mWW-PuNes"]
+    url = st.secrets["supabase"]["SUPABASE_URL"]
+    key = st.secrets["supabase"]["SUPABASE_KEY"]
     return create_client(url, key)
 
 supabase = init_supabase()
