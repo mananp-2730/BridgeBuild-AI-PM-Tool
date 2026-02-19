@@ -146,7 +146,7 @@ def login_page():
             
             # LOGO (Smaller size to save space)
             # Using columns to center the image perfectly
-            c_img1, c_img2, c_img3 = st.columns([1, 1, 0.7])
+            c_img1, c_img2, c_img3 = st.columns([1, 1, 0.6])
             with c_img2:
                 # Reduced width to 80px so it doesn't push content down
                 st.image("Logo_bg_removed.png", width=80)
