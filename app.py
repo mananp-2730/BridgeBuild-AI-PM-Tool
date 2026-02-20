@@ -197,7 +197,6 @@ def main_app():
                 """, 
                 unsafe_allow_html=True
             )
-        st.markdown("---")
         # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
         
