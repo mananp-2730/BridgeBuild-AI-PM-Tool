@@ -322,12 +322,11 @@ def main_app():
                 with col_action1:
                     st.markdown("#### 📄 Export Report")
                     st.download_button(
-                        label="Download Professional PDF",
+                        label="Download PDF",
                         data=create_pdf(data),
                         file_name="bridgebuild_ticket.pdf",
                         mime="application/pdf",
                         use_container_width=True,
-                        icon="📥"
                     )
                 
                 with col_action2:
@@ -373,20 +372,38 @@ def main_app():
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
+    # HISTORY SECTION
     if st.session_state.history:
         st.divider()
         st.subheader("Session History")
         for i, item in enumerate(reversed(st.session_state.history)):
             with st.expander(f"Ticket #{len(st.session_state.history) - i}: {item['summary'][:60]}..."):
-                st.write(f"**Est. Cost:** {item['cost']}")
-                st.write(f"**Timeline:** {item['time']}")
+                
+                # Parse the raw JSON data saved in history
+                past_data = json.loads(item['full_data'])
+                
+                # Layout metrics side-by-side
+                hist_col1, hist_col2 = st.columns(2)
+                with hist_col1:
+                    st.write(f"**Est. Cost:** {item['cost']}")
+                with hist_col2:
+                    st.write(f"**Timeline:** {item['time']}")
+                
+                st.write("") # Spacer
+                
+                # Action Buttons for History
                 st.download_button(
                     label="Download PDF Record",
-                    data=create_pdf(json.loads(item['full_data'])),
+                    data=create_pdf(past_data),
                     file_name=f"ticket_history_{i}.pdf",
                     mime="application/pdf",
                     key=f"history_btn_{i}"
                 )
+                
+                # New Jira Markup expander for historical records
+                with st.expander("View Jira / Confluence Markup", expanded=False):
+                    st.code(generate_jira_format(past_data), language="jira")
+                    st.caption("Copy this historical record for your Jira board.")
     
     st.markdown("---")
     footer_html = """
