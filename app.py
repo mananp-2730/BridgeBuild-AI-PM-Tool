@@ -419,7 +419,7 @@ def main_app():
                 
                 with hist_btn_col1:
                     st.download_button(
-                        label="📄 Download PDF",
+                        label="Download PDF",
                         data=create_pdf(past_data),
                         file_name=f"ticket_history_{i}.pdf",
                         mime="application/pdf",
@@ -443,7 +443,7 @@ def main_app():
                 st.write("") # Spacer before Jira
                 
                 # Jira Markup expander
-                with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
+                with st.expander("View Jira / Confluence Markup", expanded=False):
                     st.code(generate_jira_format(past_data), language="jira")
                     st.caption("Copy this historical record for your Jira board.")
     
