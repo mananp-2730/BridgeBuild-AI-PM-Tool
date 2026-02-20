@@ -338,13 +338,13 @@ def main_app():
                     
                     body_text = f"Hello Engineering Team,\n\n"
                     body_text += f"Please review the following scoped technical requirements from BridgeBuild AI:\n\n"
-                    body_text += f"📌 TICKET SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
-                    body_text += f"📊 METRICS:\n"
+                    body_text += f"-> TICKET SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+                    body_text += f"-> METRICS:\n"
                     body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
                     body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
                     body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
-                    body_text += f"🏗️ SUGGESTED TECH STACK:\n{', '.join(data.get('suggested_stack', []))}\n\n"
-                    body_text += f"⚠️ KEY RISKS:\n"
+                    body_text += f"-> SUGGESTED TECH STACK:\n{', '.join(data.get('suggested_stack', []))}\n\n"
+                    body_text += f"-> KEY RISKS:\n"
                     for risk in data.get('technical_risks', [])[:3]: 
                         body_text += f"- {risk}\n"
                     
