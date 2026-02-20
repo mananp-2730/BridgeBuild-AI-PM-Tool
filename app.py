@@ -240,7 +240,7 @@ def main_app():
         placeholder="Example: Client wants to merge the weighbridge and gate system...")
 
     if st.button("Generate Ticket & Budget"):
-       if not api_key:
+        if not api_key:
             st.error("System Error: AI Engine is currently offline. Please contact support.")
         elif not sales_input:
             st.warning("Please enter a sales request.")
