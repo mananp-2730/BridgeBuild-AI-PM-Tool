@@ -373,79 +373,64 @@ def main_app():
                 st.error(f"An error occurred: {str(e)}")
 
     # HISTORY SECTION
-    # HISTORY SECTION
-    if st.session_state.history:
-        st.divider()
-        st.subheader("Session History")
-        for i, item in enumerate(reversed(st.session_state.history)):
-            with st.expander(f"Ticket #{len(st.session_state.history) - i}: {item['summary'][:60]}..."):
-                
-                # Parse the raw JSON data saved in history
-                past_data = json.loads(item['full_data'])
-                
-                # Layout metrics side-by-side
-                hist_col1, hist_col2 = st.columns(2)
-                with hist_col1:
-                    st.write(f"**Est. Cost:** {item['cost']}")
-                with hist_col2:
-                    st.write(f"**Timeline:** {item['time']}")
-                
-                st.write("") # Spacer
-                
-                # --- PREPARE EMAIL CONTENT ---
-                hist_ticket_name = past_data.get('ticket_name', past_data.get('summary', 'Historical Project'))[:50]
-                if len(past_data.get('summary', '')) > 50: hist_ticket_name += "..."
-                
-                hist_body = f"Hello Engineering Team,\n\n"
-                hist_body += f"Please review the following scoped technical requirements from BridgeBuild AI (Historical Record):\n\n"
-                hist_body += f"-> TICKET SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
-                hist_body += f"-> METRICS:\n"
-                hist_body += f"- Complexity: {past_data.get('complexity_score', 'N/A')}\n"
-                hist_body += f"- Est. Dev Time: {past_data.get('development_time', 'N/A')}\n"
-                hist_body += f"- Est. Budget: {item['cost']}\n\n"  # Grabs the formatted cost directly from history
-                hist_body += f"-> SUGGESTED TECH STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\n"
-                hist_body += f"-> KEY RISKS:\n"
-                for risk in past_data.get('technical_risks', [])[:3]: 
-                    hist_body += f"- {risk}\n"
-                
-                hist_body += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
-                
-                hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
-                hist_body_enc = urllib.parse.quote(hist_body)
-                hist_mailto = f"mailto:?subject={hist_subj_enc}&body={hist_body_enc}"
+    # --- HISTORY SECTION (Now fetching from Supabase!) ---
+    st.divider()
+    st.subheader("🗄️ Saved Tickets History")
+    
+    try:
+        # 1. Fetch data from Supabase, ordered by newest first
+        user_id = st.session_state.user.id
+        db_response = supabase.table("tickets").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        saved_tickets = db_response.data
+        
+        # 2. Display the tickets
+        if saved_tickets:
+            for i, item in enumerate(saved_tickets):
+                with st.expander(f"Ticket: {item['summary'][:60]}..."):
+                    
+                    past_data = json.loads(item['full_data'])
+                    
+                    hist_col1, hist_col2 = st.columns(2)
+                    with hist_col1:
+                        st.write(f"**Est. Cost:** {item['cost']}")
+                    with hist_col2:
+                        st.write(f"**Timeline:** {item['time']}")
+                    
+                    st.write("") 
+                    
+                    hist_ticket_name = past_data.get('ticket_name', past_data.get('summary', 'Historical Project'))[:50]
+                    hist_body = f"Hello Engineering Team,\n\nPlease review the historical ticket:\n\n📌 SUMMARY:\n{past_data.get('summary')}\n\n📊 METRICS:\n- Complexity: {past_data.get('complexity_score')}\n- Dev Time: {item['time']}\n- Budget: {item['cost']}\n\n🏗️ STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\nBest,\nProduct Management"
+                    
+                    hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
+                    hist_body_enc = urllib.parse.quote(hist_body)
+                    hist_mailto = f"mailto:?subject={hist_subj_enc}&body={hist_body_enc}"
 
-                # --- SIDE-BY-SIDE ACTION BUTTONS ---
-                hist_btn_col1, hist_btn_col2 = st.columns(2)
-                
-                with hist_btn_col1:
-                    st.download_button(
-                        label="Download PDF",
-                        data=create_pdf(past_data),
-                        file_name=f"ticket_history_{i}.pdf",
-                        mime="application/pdf",
-                        key=f"history_btn_{i}",
-                        use_container_width=True
-                    )
-                
-                with hist_btn_col2:
-                    st.markdown(
-                        f"""
-                        <a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
-                            <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                Email Team
-                            </button>
-                        </a>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                
-                st.write("") # Spacer before Jira
-                
-                # Jira Markup expander
-                with st.expander("View Jira / Confluence Markup", expanded=False):
-                    st.code(generate_jira_format(past_data), language="jira")
-                    st.caption("Copy this historical record for your Jira board.")
+                    hist_btn_col1, hist_btn_col2 = st.columns(2)
+                    with hist_btn_col1:
+                        st.download_button(
+                            label="📄 Download PDF",
+                            data=create_pdf(past_data),
+                            file_name=f"ticket_{item['id'][:8]}.pdf",
+                            mime="application/pdf",
+                            key=f"hist_pdf_{item['id']}",
+                            use_container_width=True
+                        )
+                    with hist_btn_col2:
+                        st.markdown(
+                            f"""<a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
+                                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email Team</button>
+                            </a>""", unsafe_allow_html=True
+                        )
+                    
+                    st.write("") 
+                    with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
+                        st.code(generate_jira_format(past_data), language="jira")
+                        
+        else:
+            st.info("No saved tickets yet. Generate your first one above!")
+            
+    except Exception as e:
+        st.error(f"Could not load history: {str(e)}")
     
     st.markdown("---")
     footer_html = """
