@@ -198,16 +198,10 @@ def main_app():
                 unsafe_allow_html=True
             )
         st.markdown("---")
-        st.header("Configuration")
+        # Load the API key for backend use
+        api_key = st.secrets.get("GOOGLE_API_KEY")
         
-        if "GOOGLE_API_KEY" in st.secrets:
-            st.write("✅ API Key Loaded from System")
-            api_key = st.secrets["GOOGLE_API_KEY"]
-        else:
-            api_key = st.text_input("Enter Google Gemini API Key", type="password")
-            st.info("Get your free key from aistudio.google.com")
-        
-        st.divider()
+        # Move straight to Business Settings
         st.header("Business Settings")
         currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
         rate_type = st.selectbox(
@@ -245,9 +239,9 @@ def main_app():
         height=150, 
         placeholder="Example: Client wants to merge the weighbridge and gate system...")
 
-    if st.button("Generate Ticket & Budget"):
+   if st.button("Generate Ticket & Budget"):
         if not api_key:
-            st.error("Please enter your API Key in the sidebar first!")
+            st.error("System Error: AI Engine is currently offline. Please contact support.")
         elif not sales_input:
             st.warning("Please enter a sales request.")
         else:
