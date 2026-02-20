@@ -381,7 +381,7 @@ def main_app():
     # HISTORY SECTION
     # --- HISTORY SECTION (Now fetching from Supabase!) ---
     st.divider()
-    st.subheader("🗄️ Saved Tickets History")
+    st.subheader("Saved Tickets History")
     
     try:
         # 1. Fetch data from Supabase, ordered by newest first
