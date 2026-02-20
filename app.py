@@ -201,7 +201,7 @@ def main_app():
         st.header("Configuration")
         
         if "GOOGLE_API_KEY" in st.secrets:
-            st.success("✅ API Key Loaded from System")
+            st.write("✅ API Key Loaded from System")
             api_key = st.secrets["GOOGLE_API_KEY"]
         else:
             api_key = st.text_input("Enter Google Gemini API Key", type="password")
