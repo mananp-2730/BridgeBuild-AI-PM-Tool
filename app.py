@@ -199,7 +199,7 @@ def main_app():
             )
         # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
-        
+        st.write("")
         # Move straight to Business Settings
         st.header("Business Settings")
         currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
