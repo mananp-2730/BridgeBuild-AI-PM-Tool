@@ -221,8 +221,14 @@ def main_app():
             st.rerun()
             
         if st.button("Clear History"):
-            st.session_state.history = []
-            st.rerun()
+            try:
+                user_id = st.session_state.user.id
+                # Delete all rows where the user_id matches the logged-in user
+                supabase.table("tickets").delete().eq("user_id", user_id).execute()
+                st.success("Database History Cleared!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to clear history: {str(e)}")
 
     st.title("BridgeBuild AI")
     st.markdown("### Turn Sales Conversations into Engineering Tickets & Budgets")
