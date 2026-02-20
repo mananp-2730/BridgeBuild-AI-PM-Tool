@@ -272,14 +272,21 @@ def main_app():
                 fmt_low = convert_currency(low_end, currency)
                 fmt_high = convert_currency(high_end, currency)
 
-                st.session_state.history.append({
-                    "summary": data.get("summary"),
-                    "cost": f"{fmt_low} - {fmt_high}",
-                    "raw_cost": raw_cost,  
-                    "complexity": data.get("complexity_score"), 
-                    "time": data.get("development_time"),
-                    "full_data": response.text
-                })
+                # --- SAVE TO SUPABASE DATABASE (Permanent!) ---
+                try:
+                    user_id = st.session_state.user.id
+                    new_ticket = {
+                        "user_id": user_id,
+                        "summary": data.get("summary"),
+                        "cost": f"{fmt_low} - {fmt_high}",
+                        "raw_cost": raw_cost,  
+                        "complexity": data.get("complexity_score"), 
+                        "time": data.get("development_time"),
+                        "full_data": response.text
+                    }
+                    supabase.table("tickets").insert(new_ticket).execute()
+                except Exception as db_error:
+                    st.error(f"Could not save to database: {str(db_error)}")
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("Complexity", data.get("complexity_score"))
