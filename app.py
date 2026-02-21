@@ -98,6 +98,14 @@ def setup_custom_styling():
             font-weight: bold;
             padding: 12px 24px;
         }
+        /* --- 7. METRIC COLOR FIX --- */
+        /* Forces the metric values to stay pure white/black instead of inheriting primary blue */
+        [data-testid="stMetricValue"] {
+            color: var(--text-color) !important;
+        }
+        [data-testid="stMetricValue"] > div {
+            color: var(--text-color) !important;
+        }
         div.stButton > button:first-child:hover {
             background-color: #001547;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
