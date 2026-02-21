@@ -244,6 +244,13 @@ def main_app():
         height=150, 
         placeholder="Example: Client wants to merge the weighbridge and gate system...")
 
+    # --- 1. SESSION STATE FOR ACTIVE TICKET ---
+    if "active_ticket" not in st.session_state:
+        st.session_state.active_ticket = None
+    if "active_ticket_id" not in st.session_state:
+        st.session_state.active_ticket_id = None
+
+    # --- 2. GENERATION LOGIC ---
     if st.button("Generate Ticket & Budget"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline. Please contact support.")
@@ -256,7 +263,6 @@ def main_app():
                 
                 with st.spinner("Consulting Engineering & Finance Teams..."):
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
-
                     response = client.models.generate_content(
                         model=model_id, 
                         config=types.GenerateContentConfig(
@@ -269,114 +275,159 @@ def main_app():
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
 
+                # Save to Session State (Memory)
+                st.session_state.active_ticket = data
                 st.success("Analysis Complete!")
 
+                # Calculate formatted costs
                 raw_cost = data.get("budget_estimate_usd", "0-0")
                 low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
                 high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
-                
                 fmt_low = convert_currency(low_end, currency)
                 fmt_high = convert_currency(high_end, currency)
 
-                # --- SAVE TO SUPABASE DATABASE (Permanent!) ---
-                try:
-                    user_id = st.session_state.user.id
-                    new_ticket = {
-                        "user_id": user_id,
-                        "summary": data.get("summary"),
-                        "cost": f"{fmt_low} - {fmt_high}",
-                        "raw_cost": raw_cost,  
-                        "complexity": data.get("complexity_score"), 
-                        "time": data.get("development_time"),
-                        "full_data": response.text
-                    }
-                    supabase.table("tickets").insert(new_ticket).execute()
-                except Exception as db_error:
-                    st.error(f"Could not save to database: {str(db_error)}")
+                # --- SAVE INITIAL DRAFT TO SUPABASE ---
+                user_id = st.session_state.user.id
+                new_ticket = {
+                    "user_id": user_id,
+                    "summary": data.get("summary"),
+                    "cost": f"{fmt_low} - {fmt_high}",
+                    "raw_cost": raw_cost,  
+                    "complexity": data.get("complexity_score"), 
+                    "time": data.get("development_time"),
+                    "full_data": response.text
+                }
+                db_res = supabase.table("tickets").insert(new_ticket).execute()
+                # Save the database ID so we can update it if the user iterates
+                st.session_state.active_ticket_id = db_res.data[0]['id']
                 
-                col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("Complexity", data.get("complexity_score"))
-                with col2: st.metric("Dev Time", data.get("development_time"))
-                with col3: st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
-                with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
-
-                st.divider()
-                col_left, col_right = st.columns([2, 1])
-                
-                with col_left:
-                    st.subheader("Engineering Ticket")
-                    st.info(f"**Summary:** {data.get('summary')}")
-                    
-                    st.markdown("Technical Risks")
-                    for risk in data.get("technical_risks", []):
-                        st.warning(f"- {risk}")
-                        
-                    st.markdown("🏗 Suggested Tech Stack")
-                    st.code("\n".join(data.get("suggested_stack", [])), language="bash")
-
-                with col_right:
-                    st.subheader("Data Schema")
-                    st.write("Primary Entities:")
-                    for entity in data.get("primary_entities", []):
-                        st.success(f"🆔 {entity}")
-                
-                # --- ACTION AREA ---
-                st.divider()
-                
-                col_action1, col_action2 = st.columns([1, 1], gap="medium")
-                
-                with col_action1:
-                    st.markdown("#### 📄 Export Report")
-                    st.download_button(
-                        label="Download PDF",
-                        data=create_pdf(data),
-                        file_name="bridgebuild_ticket.pdf",
-                        mime="application/pdf",
-                        use_container_width=True,
-                    )
-                
-                with col_action2:
-                    st.markdown("#### ✉️ Share with Team")
-                    
-                    ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-                    if len(data.get('summary', '')) > 50: ticket_name += "..."
-                    
-                    body_text = f"Hello Engineering Team,\n\n"
-                    body_text += f"Please review the following scoped technical requirements from BridgeBuild AI:\n\n"
-                    body_text += f"-> TICKET SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
-                    body_text += f"-> METRICS:\n"
-                    body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
-                    body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
-                    body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
-                    body_text += f"-> SUGGESTED TECH STACK:\n{', '.join(data.get('suggested_stack', []))}\n\n"
-                    body_text += f"-> KEY RISKS:\n"
-                    for risk in data.get('technical_risks', [])[:3]: 
-                        body_text += f"- {risk}\n"
-                    
-                    body_text += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
-                    
-                    subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
-                    body_encoded = urllib.parse.quote(body_text)
-                    mailto_link = f"mailto:?subject={subject_encoded}&body={body_encoded}"
-                    
-                    st.markdown(
-                        f"""
-                        <a href="{mailto_link}" target="_blank" style="text-decoration: none;">
-                            <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                Email to Engineering
-                            </button>
-                        </a>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                    
-                    with st.expander("View Jira / Confluence Markup", expanded=False):
-                        st.code(generate_jira_format(data), language="jira")
-                        st.caption("Copy to paste directly into Jira's description field.")
+                st.rerun() # Force a UI refresh to show the new ticket
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
+
+    # --- 3. DISPLAY & ITERATE ACTIVE TICKET ---
+    if st.session_state.active_ticket:
+        data = st.session_state.active_ticket
+        
+        # Recalculate costs for display based on current currency setting
+        raw_cost = data.get("budget_estimate_usd", "0-0")
+        low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+        high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+        fmt_low = convert_currency(low_end, currency)
+        fmt_high = convert_currency(high_end, currency)
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1: st.metric("Complexity", data.get("complexity_score"))
+        with col2: st.metric("Dev Time", data.get("development_time"))
+        with col3: st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
+        with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
+
+        st.divider()
+        col_left, col_right = st.columns([2, 1])
+        
+        with col_left:
+            st.subheader("Engineering Ticket")
+            st.info(f"**Summary:** {data.get('summary')}")
+            
+            st.markdown("Technical Risks")
+            for risk in data.get("technical_risks", []):
+                st.warning(f"- {risk}")
+                
+            st.markdown("🏗 Suggested Tech Stack")
+            st.code("\n".join(data.get("suggested_stack", [])), language="bash")
+
+        with col_right:
+            st.subheader("Data Schema")
+            st.write("Primary Entities:")
+            for entity in data.get("primary_entities", []):
+                st.success(f"🆔 {entity}")
+        
+        # --- EXPORT ACTIONS ---
+        st.divider()
+        col_action1, col_action2 = st.columns([1, 1], gap="medium")
+        
+        with col_action1:
+            st.markdown("#### 📄 Export Report")
+            st.download_button(
+                label="Download Professional PDF",
+                data=create_pdf(data),
+                file_name="bridgebuild_ticket.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                icon="📥"
+            )
+        
+        with col_action2:
+            st.markdown("#### ✉️ Share with Team")
+            ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
+            body_text = f"Hello Engineering Team,\n\nPlease review:\n\n📌 SUMMARY:\n{data.get('summary')}\n\n📊 METRICS:\n- Complexity: {data.get('complexity_score')}\n- Dev Time: {data.get('development_time')}\n- Budget: {fmt_low} - {fmt_high}\n\nBest,\nProduct Management"
+            subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
+            body_encoded = urllib.parse.quote(body_text)
+            mailto_link = f"mailto:?subject={subject_encoded}&body={body_encoded}"
+            
+            st.markdown(
+                f"""<a href="{mailto_link}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email to Engineering</button>
+                </a>""", unsafe_allow_html=True
+            )
+            
+            with st.expander("View Jira / Confluence Markup", expanded=False):
+                st.code(generate_jira_format(data), language="jira")
+
+        # --- 4. THE ITERATION ENGINE (AI CHAT) ---
+        st.divider()
+        st.subheader("🔄 Refine this Ticket")
+        refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
+        
+        if refine_query:
+            if not api_key:
+                st.error("API Key missing.")
+            else:
+                with st.spinner("AI is updating the ticket..."):
+                    try:
+                        client = genai.Client(api_key=api_key)
+                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+                        
+                        # Tell Gemini to update the existing JSON
+                        update_prompt = f"""
+                        You are a Technical Product Manager. Update the following JSON ticket based on the user's request.
+                        You MUST return the exact same JSON schema structure, just with updated values.
+                        
+                        CURRENT TICKET:
+                        {json.dumps(data)}
+                        
+                        USER REQUEST:
+                        {refine_query}
+                        """
+                        
+                        update_response = client.models.generate_content(
+                            model=model_id, 
+                            config=types.GenerateContentConfig(
+                                temperature=0.1,
+                                response_mime_type="application/json"
+                            ),
+                            contents=update_prompt
+                        )
+                        
+                        updated_data = json.loads(clean_json_output(update_response.text))
+                        
+                        # 1. Update Streamlit Memory
+                        st.session_state.active_ticket = updated_data
+                        
+                        # 2. Update Supabase Database Row
+                        if st.session_state.active_ticket_id:
+                            supabase.table("tickets").update({
+                                "summary": updated_data.get("summary"),
+                                "complexity": updated_data.get("complexity_score"),
+                                "time": updated_data.get("development_time"),
+                                "full_data": update_response.text
+                            }).eq("id", st.session_state.active_ticket_id).execute()
+                            
+                        st.rerun() # Refresh UI with new data
+                        
+                    except Exception as e:
+                        st.error(f"Failed to refine: {str(e)}")
 
     # HISTORY SECTION
     # --- HISTORY SECTION (Now fetching from Supabase!) ---
