@@ -56,12 +56,12 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 Roadmap:
 
 Completed Milestones 
-[x] User Authentication: Secure login for team collaboration.
-[x] Persistent Database: Save session history to the cloud.
-[x] Auto API Integration: Hidden backend keys for a seamless user experience.
-[x] Advanced Workflows: 1-click email drafts and Jira markup generation.
+- [x] User Authentication: Secure login for team collaboration.
+- [x] Persistent Database: Save session history to the cloud.
+- [x] Auto API Integration: Hidden backend keys for a seamless user experience.
+- [x] Advanced Workflows: 1-click email drafts and Jira markup generation.
 
 Upcoming Features 
-[ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
-[ ] Dark/Light Mode Toggle: Custom UI theme overrides for accessibility.
-[ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
+- [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
+- [ ] Dark/Light Mode Toggle: Custom UI theme overrides for accessibility.
+- [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
