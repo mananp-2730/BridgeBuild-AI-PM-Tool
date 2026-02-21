@@ -334,7 +334,7 @@ def main_app():
             for risk in data.get("technical_risks", []):
                 st.warning(f"- {risk}")
                 
-            st.markdown("🏗 Suggested Tech Stack")
+            st.markdown("Suggested Tech Stack")
             st.code("\n".join(data.get("suggested_stack", [])), language="bash")
 
         with col_right:
@@ -348,20 +348,19 @@ def main_app():
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Report")
+            st.markdown("#### Export Report")
             st.download_button(
                 label="Download Professional PDF",
                 data=create_pdf(data),
                 file_name="bridgebuild_ticket.pdf",
                 mime="application/pdf",
                 use_container_width=True,
-                icon="📥"
             )
         
         with col_action2:
-            st.markdown("#### ✉️ Share with Team")
+            st.markdown("#### Share with Team")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-            body_text = f"Hello Engineering Team,\n\nPlease review:\n\n📌 SUMMARY:\n{data.get('summary')}\n\n📊 METRICS:\n- Complexity: {data.get('complexity_score')}\n- Dev Time: {data.get('development_time')}\n- Budget: {fmt_low} - {fmt_high}\n\nBest,\nProduct Management"
+            body_text = f"Hello Engineering Team,\n\nPlease review:\n\n-> SUMMARY:\n{data.get('summary')}\n\n-> METRICS:\n- Complexity: {data.get('complexity_score')}\n- Dev Time: {data.get('development_time')}\n- Budget: {fmt_low} - {fmt_high}\n\nBest,\nProduct Management"
             subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
             body_encoded = urllib.parse.quote(body_text)
             mailto_link = f"mailto:?subject={subject_encoded}&body={body_encoded}"
@@ -456,7 +455,7 @@ def main_app():
                     st.write("") 
                     
                     hist_ticket_name = past_data.get('ticket_name', past_data.get('summary', 'Historical Project'))[:50]
-                    hist_body = f"Hello Engineering Team,\n\nPlease review the historical ticket:\n\n📌 SUMMARY:\n{past_data.get('summary')}\n\n📊 METRICS:\n- Complexity: {past_data.get('complexity_score')}\n- Dev Time: {item['time']}\n- Budget: {item['cost']}\n\n🏗️ STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\nBest,\nProduct Management"
+                    hist_body = f"Hello Engineering Team,\n\nPlease review the historical ticket:\n\n-> SUMMARY:\n{past_data.get('summary')}\n\n-> METRICS:\n- Complexity: {past_data.get('complexity_score')}\n- Dev Time: {item['time']}\n- Budget: {item['cost']}\n\n-> STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\nBest,\nProduct Management"
                     
                     hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
                     hist_body_enc = urllib.parse.quote(hist_body)
@@ -465,7 +464,7 @@ def main_app():
                     hist_btn_col1, hist_btn_col2 = st.columns(2)
                     with hist_btn_col1:
                         st.download_button(
-                            label="📄 Download PDF",
+                            label="Download PDF",
                             data=create_pdf(past_data),
                             file_name=f"ticket_{item['id'][:8]}.pdf",
                             mime="application/pdf",
