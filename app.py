@@ -420,7 +420,7 @@ def main_app():
                 use_container_width=True,
             )
         
-       with col_action2:
+        with col_action2:
             st.markdown("#### Share with Team")
             
             # 1. Safely grab the summary name for the subject line
