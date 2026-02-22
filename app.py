@@ -246,6 +246,7 @@ def main_app():
         model_pref = st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
         model_idx = model_opts.index(model_pref) if model_pref in model_opts else 0
 
+        st.divider()
         # --- SIDEBAR UI ---
         st.header("Business Settings")
         
