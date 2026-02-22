@@ -420,14 +420,34 @@ def main_app():
                 use_container_width=True,
             )
         
-        with col_action2:
+       with col_action2:
             st.markdown("#### Share with Team")
+            
+            # 1. Safely grab the summary name for the subject line
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-            body_text = f"Hello Engineering Team,\n\nPlease review:\n\n-> SUMMARY:\n{data.get('summary')}\n\n-> METRICS:\n- Complexity: {data.get('complexity_score')}\n- Dev Time: {data.get('development_time')}\n- Budget: {fmt_low} - {fmt_high}\n\nBest,\nProduct Management"
+            if len(data.get('summary', '')) > 50: ticket_name += "..."
+            
+            # 2. Build the FULL email body text
+            body_text = f"Hello Engineering Team,\n\n"
+            body_text += f"Please review the following scoped technical requirements from BridgeBuild AI:\n\n"
+            body_text += f"-> TICKET SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+            body_text += f"-> METRICS:\n"
+            body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
+            body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
+            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
+            body_text += f"-> SUGGESTED TECH STACK:\n{', '.join(data.get('suggested_stack', []))}\n\n"
+            body_text += f"-> KEY RISKS:\n"
+            for risk in data.get('technical_risks', [])[:3]: # Grab top 3 risks
+                body_text += f"- {risk}\n"
+            
+            body_text += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
+            
+            # 3. URL Encode
             subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
             body_encoded = urllib.parse.quote(body_text)
             mailto_link = f"mailto:?subject={subject_encoded}&body={body_encoded}"
             
+            # 4. Render Button
             st.markdown(
                 f"""<a href="{mailto_link}" target="_blank" style="text-decoration: none;">
                     <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email to Engineering</button>
@@ -436,7 +456,7 @@ def main_app():
             
             with st.expander("View Jira / Confluence Markup", expanded=False):
                 st.code(generate_jira_format(data), language="jira")
-
+                
         # --- 4. THE ITERATION ENGINE (AI CHAT) ---
         st.divider()
         st.subheader("🔄 Refine this Ticket")
