@@ -279,7 +279,6 @@ def main_app():
                 st.error(f"Failed to save settings: {str(e)}")
                 
         st.divider()
-        st.divider()
         if st.button("Logout"):
             st.session_state.logged_in = False
             st.rerun()
