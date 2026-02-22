@@ -47,72 +47,71 @@ if "logged_in" not in st.session_state:
 # -------------------------------------------------------------
 # 3. CUSTOM CSS
 # -------------------------------------------------------------
-def setup_custom_styling():
-    st.markdown("""
-    <style>
+# --- 3. CUSTOM CSS (DYNAMIC THEME ENGINE) ---
+def setup_custom_styling(theme="System Default"):
+    # Base CSS (Duke Blue elements, Buttons, Compact layout)
+    base_css = """
         /* --- 1. RESET PRIMARY COLOR VARIABLES --- */
-        :root {
-            --primary-color: #012169;
-        }
+        :root { --primary-color: #012169; }
 
-        /* --- 2. RADIO BUTTONS (The Red Dot) --- */
+        /* --- 2. RADIO BUTTONS & SLIDERS (Duke Blue) --- */
         div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
-            background-color: #012169 !important;
-            border-color: #012169 !important;
+            background-color: #012169 !important; border-color: #012169 !important;
         }
         div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child > div {
             background-color: white !important;
         }
-
-        /* --- 3. SLIDERS (The Red Line & Handle) --- */
         div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #012169 !important;
-            box-shadow: none !important;
+            background-color: #012169 !important; box-shadow: none !important;
         }
         div[data-baseweb="slider"] div[data-testid="stTickBar"] > div {
              background-color: #012169 !important;
         }
-        div[data-testid="stMarkdownContainer"] p code {
-            color: #012169 !important;
-        }
         
-        /* --- 4. CHECKBOXES --- */
+        /* --- 3. CHECKBOXES & SIDEBAR --- */
         div[data-baseweb="checkbox"] div[aria-checked="true"] {
-            background-color: #012169 !important;
-            border-color: #012169 !important;
+            background-color: #012169 !important; border-color: #012169 !important;
         }
-
-        /* --- 5. SIDEBAR COMPACTION --- */
         [data-testid="stSidebarUserContent"] {
-            padding-top: 0rem !important;
-            margin-top: -50px !important;
+            padding-top: 0rem !important; margin-top: -50px !important;
         }
 
-        /* --- 6. BUTTONS --- */
+        /* --- 4. BUTTONS --- */
         div.stButton > button:first-child {
-            background-color: #012169;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 12px 24px;
-        }
-        /* --- 7. METRIC COLOR FIX --- */
-        /* Forces the metric values to stay pure white/black instead of inheriting primary blue */
-        [data-testid="stMetricValue"] {
-            color: var(--text-color) !important;
-        }
-        [data-testid="stMetricValue"] > div {
-            color: var(--text-color) !important;
+            background-color: #012169; color: white; border: none;
+            border-radius: 8px; font-size: 16px; font-weight: bold; padding: 12px 24px;
         }
         div.stButton > button:first-child:hover {
-            background-color: #001547;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background-color: #001547; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-    </style>
-    """, unsafe_allow_html=True)
+        
+        /* --- 5. METRIC FIX (Prevents blue text in dark mode) --- */
+        [data-testid="stMetricValue"], [data-testid="stMetricValue"] > div {
+            color: var(--text-color) !important;
+        }
+    """
 
+    # Add Theme Overrides based on user selection
+    if theme == "Dark Mode":
+        theme_css = """
+            .stApp { background-color: #0E1117 !important; }
+            [data-testid="stHeader"] { background-color: #0E1117 !important; }
+            .stApp * { color: #FAFAFA !important; }
+            div[data-baseweb="select"] *, div[data-baseweb="input"] * { color: #FAFAFA !important; background-color: #262730 !important; border-color: #4B4C53 !important; }
+        """
+    elif theme == "Light Mode":
+        theme_css = """
+            .stApp { background-color: #F8F9FA !important; }
+            [data-testid="stHeader"] { background-color: #F8F9FA !important; }
+            .stApp * { color: #1E1E1E !important; }
+            div[data-baseweb="select"] *, div[data-baseweb="input"] * { color: #1E1E1E !important; background-color: #FFFFFF !important; border-color: #CCCCCC !important; }
+        """
+    else:
+        theme_css = "" # Let Streamlit system defaults handle it
+
+    # Inject everything
+    st.markdown(f"<style>{base_css}\n{theme_css}</style>", unsafe_allow_html=True)
+    
 # -------------------------------------------------------------
 # 4. LOGIN PAGE (LOCKED - COMPACT & BLUE)
 # -------------------------------------------------------------
