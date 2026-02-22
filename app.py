@@ -208,21 +208,77 @@ def main_app():
         # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
         st.write("")
-        # Move straight to Business Settings
+        
+        # --- FETCH USER PROFILE PREFERENCES ---
+        if "user_prefs" not in st.session_state:
+            try:
+                user_id = st.session_state.user.id
+                profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
+                
+                if profile_res.data:
+                    st.session_state.user_prefs = profile_res.data[0]
+                else:
+                    # Create default profile if they are a new user
+                    default_prefs = {
+                        "id": user_id,
+                        "currency": "USD ($)",
+                        "rate_standard": "US Agency ($150/hr)",
+                        "ai_model": "Gemini 1.5 Flash (Fast)"
+                    }
+                    supabase.table("profiles").insert(default_prefs).execute()
+                    st.session_state.user_prefs = default_prefs
+            except Exception as e:
+                # Fallback if DB fails
+                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+
+        # Safe list options
+        curr_opts = ["USD ($)", "INR (₹)"]
+        rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
+        model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
+
+        # Safely find the index of their saved preference (defaults to 0 if not found)
+        curr_pref = st.session_state.user_prefs.get("currency", "USD ($)")
+        curr_idx = curr_opts.index(curr_pref) if curr_pref in curr_opts else 0
+        
+        rate_pref = st.session_state.user_prefs.get("rate_standard", "US Agency ($150/hr)")
+        rate_idx = rate_opts.index(rate_pref) if rate_pref in rate_opts else 0
+        
+        model_pref = st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
+        model_idx = model_opts.index(model_pref) if model_pref in model_opts else 0
+
+        # --- SIDEBAR UI ---
         st.header("Business Settings")
-        currency = st.radio("Display Currency:", ["USD ($)", "INR (₹)"])
+        
+        currency = st.radio("Display Currency:", curr_opts, index=curr_idx)
         rate_type = st.selectbox(
             "Rate Standard:", 
-            ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"],
+            rate_opts, 
+            index=rate_idx,
             help="Select the billing rate to adjust cost estimates."
         )
         st.markdown("---")
         model_choice = st.radio(
             "AI Model:", 
-            ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"],
-            index=0,
+            model_opts, 
+            index=model_idx,
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
+        
+        # --- SAVE SETTINGS BUTTON ---
+        if st.button("Save Settings", use_container_width=True):
+            new_prefs = {
+                "currency": currency,
+                "rate_standard": rate_type,
+                "ai_model": model_choice
+            }
+            try:
+                supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
+                st.session_state.user_prefs.update(new_prefs)
+                st.success("Settings saved successfully!")
+            except Exception as e:
+                st.error(f"Failed to save settings: {str(e)}")
+                
+        st.divider()
         st.divider()
         if st.button("Logout"):
             st.session_state.logged_in = False
