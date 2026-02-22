@@ -47,71 +47,72 @@ if "logged_in" not in st.session_state:
 # -------------------------------------------------------------
 # 3. CUSTOM CSS
 # -------------------------------------------------------------
-# --- 3. CUSTOM CSS (DYNAMIC THEME ENGINE) ---
-def setup_custom_styling(theme="System Default"):
-    # Base CSS (Duke Blue elements, Buttons, Compact layout)
-    base_css = """
+def setup_custom_styling():
+    st.markdown("""
+    <style>
         /* --- 1. RESET PRIMARY COLOR VARIABLES --- */
-        :root { --primary-color: #012169; }
+        :root {
+            --primary-color: #012169;
+        }
 
-        /* --- 2. RADIO BUTTONS & SLIDERS (Duke Blue) --- */
+        /* --- 2. RADIO BUTTONS (The Red Dot) --- */
         div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
-            background-color: #012169 !important; border-color: #012169 !important;
+            background-color: #012169 !important;
+            border-color: #012169 !important;
         }
         div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child > div {
             background-color: white !important;
         }
+
+        /* --- 3. SLIDERS (The Red Line & Handle) --- */
         div[data-baseweb="slider"] div[role="slider"] {
-            background-color: #012169 !important; box-shadow: none !important;
+            background-color: #012169 !important;
+            box-shadow: none !important;
         }
         div[data-baseweb="slider"] div[data-testid="stTickBar"] > div {
              background-color: #012169 !important;
         }
-        
-        /* --- 3. CHECKBOXES & SIDEBAR --- */
-        div[data-baseweb="checkbox"] div[aria-checked="true"] {
-            background-color: #012169 !important; border-color: #012169 !important;
+        div[data-testid="stMarkdownContainer"] p code {
+            color: #012169 !important;
         }
-        [data-testid="stSidebarUserContent"] {
-            padding-top: 0rem !important; margin-top: -50px !important;
+        
+        /* --- 4. CHECKBOXES --- */
+        div[data-baseweb="checkbox"] div[aria-checked="true"] {
+            background-color: #012169 !important;
+            border-color: #012169 !important;
         }
 
-        /* --- 4. BUTTONS --- */
+        /* --- 5. SIDEBAR COMPACTION --- */
+        [data-testid="stSidebarUserContent"] {
+            padding-top: 0rem !important;
+            margin-top: -50px !important;
+        }
+
+        /* --- 6. BUTTONS --- */
         div.stButton > button:first-child {
-            background-color: #012169; color: white; border: none;
-            border-radius: 8px; font-size: 16px; font-weight: bold; padding: 12px 24px;
+            background-color: #012169;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 12px 24px;
         }
-        div.stButton > button:first-child:hover {
-            background-color: #001547; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        /* --- 5. METRIC FIX (Prevents blue text in dark mode) --- */
-        [data-testid="stMetricValue"], [data-testid="stMetricValue"] > div {
+        /* --- 7. METRIC COLOR FIX --- */
+        /* Forces the metric values to stay pure white/black instead of inheriting primary blue */
+        [data-testid="stMetricValue"] {
             color: var(--text-color) !important;
         }
-    """
+        [data-testid="stMetricValue"] > div {
+            color: var(--text-color) !important;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #001547;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Add Theme Overrides based on user selection
-    if theme == "Dark Mode":
-        theme_css = """
-            .stApp { background-color: #0E1117 !important; }
-            [data-testid="stHeader"] { background-color: #0E1117 !important; }
-            .stApp * { color: #FAFAFA !important; }
-            div[data-baseweb="select"] *, div[data-baseweb="input"] * { color: #FAFAFA !important; background-color: #262730 !important; border-color: #4B4C53 !important; }
-        """
-    elif theme == "Light Mode":
-        theme_css = """
-            .stApp { background-color: #F8F9FA !important; }
-            [data-testid="stHeader"] { background-color: #F8F9FA !important; }
-            .stApp * { color: #1E1E1E !important; }
-            div[data-baseweb="select"] *, div[data-baseweb="input"] * { color: #1E1E1E !important; background-color: #FFFFFF !important; border-color: #CCCCCC !important; }
-        """
-    else:
-        theme_css = "" # Let Streamlit system defaults handle it
-
-    # Inject everything
-    st.markdown(f"<style>{base_css}\n{theme_css}</style>", unsafe_allow_html=True)
-    
 # -------------------------------------------------------------
 # 4. LOGIN PAGE (LOCKED - COMPACT & BLUE)
 # -------------------------------------------------------------
@@ -189,53 +190,53 @@ def login_page():
 def main_app():
     setup_custom_styling()
     
-    # -------------------------------------------------------------
-# 5. MAIN APP
-# -------------------------------------------------------------
-def main_app():
-    # Fetch user preferences FIRST so we know which theme to load
-    if "user_prefs" not in st.session_state:
-        try:
-            user_id = st.session_state.user.id
-            profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
-            
-            if profile_res.data:
-                st.session_state.user_prefs = profile_res.data[0]
-            else:
-                default_prefs = {
-                    "id": user_id, "currency": "USD ($)", 
-                    "rate_standard": "US Agency ($150/hr)", 
-                    "ai_model": "Gemini 1.5 Flash (Fast)",
-                    "ui_theme": "System Default"
-                }
-                supabase.table("profiles").insert(default_prefs).execute()
-                st.session_state.user_prefs = default_prefs
-        except Exception as e:
-            st.session_state.user_prefs = {
-                "currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", 
-                "ai_model": "Gemini 1.5 Flash (Fast)", "ui_theme": "System Default"
-            }
-
-    # Now run the styling engine with their saved theme
-    current_theme = st.session_state.user_prefs.get("ui_theme", "System Default")
-    setup_custom_styling(current_theme)
-    
     with st.sidebar:
         col_logo, col_text = st.columns([0.2, 0.8])
+        
         with col_logo:
             st.image("Logo_bg_removed.png", width=40) 
+            
         with col_text:
-            st.markdown("<h3 style='margin: 0; padding-top: 8px; font-size: 18px; font-weight: 600;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
-        st.markdown("---")
-        
+            st.markdown(
+                """
+                <h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
+                    BridgeBuild AI
+                </h3>
+                """, 
+                unsafe_allow_html=True
+            )
+        # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
+        st.write("")
         
-        # --- UI LISTS & DEFAULTS ---
+        # --- FETCH USER PROFILE PREFERENCES ---
+        if "user_prefs" not in st.session_state:
+            try:
+                user_id = st.session_state.user.id
+                profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
+                
+                if profile_res.data:
+                    st.session_state.user_prefs = profile_res.data[0]
+                else:
+                    # Create default profile if they are a new user
+                    default_prefs = {
+                        "id": user_id,
+                        "currency": "USD ($)",
+                        "rate_standard": "US Agency ($150/hr)",
+                        "ai_model": "Gemini 1.5 Flash (Fast)"
+                    }
+                    supabase.table("profiles").insert(default_prefs).execute()
+                    st.session_state.user_prefs = default_prefs
+            except Exception as e:
+                # Fallback if DB fails
+                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+
+        # Safe list options
         curr_opts = ["USD ($)", "INR (₹)"]
         rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
         model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
-        theme_opts = ["System Default", "Light Mode", "Dark Mode"]
 
+        # Safely find the index of their saved preference (defaults to 0 if not found)
         curr_pref = st.session_state.user_prefs.get("currency", "USD ($)")
         curr_idx = curr_opts.index(curr_pref) if curr_pref in curr_opts else 0
         
@@ -244,38 +245,38 @@ def main_app():
         
         model_pref = st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
         model_idx = model_opts.index(model_pref) if model_pref in model_opts else 0
-        
-        theme_pref = st.session_state.user_prefs.get("ui_theme", "System Default")
-        theme_idx = theme_opts.index(theme_pref) if theme_pref in theme_opts else 0
 
+        st.divider()
         # --- SIDEBAR UI ---
         st.header("Business Settings")
         
-        ui_theme = st.radio("UI Theme:", theme_opts, index=theme_idx, horizontal=True)
-        st.write("") # Spacer
-        
         currency = st.radio("Display Currency:", curr_opts, index=curr_idx)
-        rate_type = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
-        st.markdown("---")
-        model_choice = st.radio("AI Model:", model_opts, index=model_idx)
+        rate_type = st.selectbox(
+            "Rate Standard:", 
+            rate_opts, 
+            index=rate_idx,
+            help="Select the billing rate to adjust cost estimates."
+        )
+        model_choice = st.radio(
+            "AI Model:", 
+            model_opts, 
+            index=model_idx,
+            help="Flash is faster/cheaper. Pro is better for complex logic."
+        )
         
-        if st.button("💾 Save Settings", use_container_width=True):
+        # --- SAVE SETTINGS BUTTON ---
+        if st.button("Save Settings", use_container_width=True):
             new_prefs = {
                 "currency": currency,
                 "rate_standard": rate_type,
-                "ai_model": model_choice,
-                "ui_theme": ui_theme
+                "ai_model": model_choice
             }
             try:
                 supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
                 st.session_state.user_prefs.update(new_prefs)
-                st.success("Settings saved! Refreshing UI...")
-                st.rerun() # Immediately refresh to apply the new theme!
+                st.success("Settings saved successfully!")
             except Exception as e:
                 st.error(f"Failed to save settings: {str(e)}")
-                
-        st.divider()
-        # ... (Keep your Logout and Clear History buttons exactly the same below here)
                 
         st.divider()
         if st.button("Logout"):
