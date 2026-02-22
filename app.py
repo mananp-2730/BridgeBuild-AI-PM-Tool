@@ -537,8 +537,23 @@ def main_app():
                     
                     st.write("") 
                     
+                    # --- PREPARE FULL EMAIL CONTENT FOR HISTORY ---
                     hist_ticket_name = past_data.get('ticket_name', past_data.get('summary', 'Historical Project'))[:50]
-                    hist_body = f"Hello Engineering Team,\n\nPlease review the historical ticket:\n\n-> SUMMARY:\n{past_data.get('summary')}\n\n-> METRICS:\n- Complexity: {past_data.get('complexity_score')}\n- Dev Time: {item['time']}\n- Budget: {item['cost']}\n\n-> STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\nBest,\nProduct Management"
+                    if len(past_data.get('summary', '')) > 50: hist_ticket_name += "..."
+                    
+                    hist_body = f"Hello Engineering Team,\n\n"
+                    hist_body += f"Please review the following scoped technical requirements from BridgeBuild AI (Historical Record):\n\n"
+                    hist_body += f"-> TICKET SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
+                    hist_body += f"-> METRICS:\n"
+                    hist_body += f"- Complexity: {past_data.get('complexity_score', 'N/A')}\n"
+                    hist_body += f"- Est. Dev Time: {item['time']}\n"
+                    hist_body += f"- Est. Budget: {item['cost']}\n\n"  # Using the DB saved cost
+                    hist_body += f"-> SUGGESTED TECH STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\n"
+                    hist_body += f"-> KEY RISKS:\n"
+                    for risk in past_data.get('technical_risks', [])[:3]: # Grab top 3 risks
+                        hist_body += f"- {risk}\n"
+                    
+                    hist_body += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
                     
                     hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
                     hist_body_enc = urllib.parse.quote(hist_body)
