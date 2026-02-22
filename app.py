@@ -189,53 +189,53 @@ def login_page():
 def main_app():
     setup_custom_styling()
     
+    # -------------------------------------------------------------
+# 5. MAIN APP
+# -------------------------------------------------------------
+def main_app():
+    # Fetch user preferences FIRST so we know which theme to load
+    if "user_prefs" not in st.session_state:
+        try:
+            user_id = st.session_state.user.id
+            profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
+            
+            if profile_res.data:
+                st.session_state.user_prefs = profile_res.data[0]
+            else:
+                default_prefs = {
+                    "id": user_id, "currency": "USD ($)", 
+                    "rate_standard": "US Agency ($150/hr)", 
+                    "ai_model": "Gemini 1.5 Flash (Fast)",
+                    "ui_theme": "System Default"
+                }
+                supabase.table("profiles").insert(default_prefs).execute()
+                st.session_state.user_prefs = default_prefs
+        except Exception as e:
+            st.session_state.user_prefs = {
+                "currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", 
+                "ai_model": "Gemini 1.5 Flash (Fast)", "ui_theme": "System Default"
+            }
+
+    # Now run the styling engine with their saved theme
+    current_theme = st.session_state.user_prefs.get("ui_theme", "System Default")
+    setup_custom_styling(current_theme)
+    
     with st.sidebar:
         col_logo, col_text = st.columns([0.2, 0.8])
-        
         with col_logo:
             st.image("Logo_bg_removed.png", width=40) 
-            
         with col_text:
-            st.markdown(
-                """
-                <h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
-                    BridgeBuild AI
-                </h3>
-                """, 
-                unsafe_allow_html=True
-            )
-        # Load the API key for backend use
-        api_key = st.secrets.get("GOOGLE_API_KEY")
-        st.write("")
+            st.markdown("<h3 style='margin: 0; padding-top: 8px; font-size: 18px; font-weight: 600;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
+        st.markdown("---")
         
-        # --- FETCH USER PROFILE PREFERENCES ---
-        if "user_prefs" not in st.session_state:
-            try:
-                user_id = st.session_state.user.id
-                profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
-                
-                if profile_res.data:
-                    st.session_state.user_prefs = profile_res.data[0]
-                else:
-                    # Create default profile if they are a new user
-                    default_prefs = {
-                        "id": user_id,
-                        "currency": "USD ($)",
-                        "rate_standard": "US Agency ($150/hr)",
-                        "ai_model": "Gemini 1.5 Flash (Fast)"
-                    }
-                    supabase.table("profiles").insert(default_prefs).execute()
-                    st.session_state.user_prefs = default_prefs
-            except Exception as e:
-                # Fallback if DB fails
-                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
-
-        # Safe list options
+        api_key = st.secrets.get("GOOGLE_API_KEY")
+        
+        # --- UI LISTS & DEFAULTS ---
         curr_opts = ["USD ($)", "INR (₹)"]
         rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
         model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
+        theme_opts = ["System Default", "Light Mode", "Dark Mode"]
 
-        # Safely find the index of their saved preference (defaults to 0 if not found)
         curr_pref = st.session_state.user_prefs.get("currency", "USD ($)")
         curr_idx = curr_opts.index(curr_pref) if curr_pref in curr_opts else 0
         
@@ -244,38 +244,38 @@ def main_app():
         
         model_pref = st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
         model_idx = model_opts.index(model_pref) if model_pref in model_opts else 0
+        
+        theme_pref = st.session_state.user_prefs.get("ui_theme", "System Default")
+        theme_idx = theme_opts.index(theme_pref) if theme_pref in theme_opts else 0
 
-        st.divider()
         # --- SIDEBAR UI ---
         st.header("Business Settings")
         
-        currency = st.radio("Display Currency:", curr_opts, index=curr_idx)
-        rate_type = st.selectbox(
-            "Rate Standard:", 
-            rate_opts, 
-            index=rate_idx,
-            help="Select the billing rate to adjust cost estimates."
-        )
-        model_choice = st.radio(
-            "AI Model:", 
-            model_opts, 
-            index=model_idx,
-            help="Flash is faster/cheaper. Pro is better for complex logic."
-        )
+        ui_theme = st.radio("UI Theme:", theme_opts, index=theme_idx, horizontal=True)
+        st.write("") # Spacer
         
-        # --- SAVE SETTINGS BUTTON ---
-        if st.button("Save Settings", use_container_width=True):
+        currency = st.radio("Display Currency:", curr_opts, index=curr_idx)
+        rate_type = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
+        st.markdown("---")
+        model_choice = st.radio("AI Model:", model_opts, index=model_idx)
+        
+        if st.button("💾 Save Settings", use_container_width=True):
             new_prefs = {
                 "currency": currency,
                 "rate_standard": rate_type,
-                "ai_model": model_choice
+                "ai_model": model_choice,
+                "ui_theme": ui_theme
             }
             try:
                 supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
                 st.session_state.user_prefs.update(new_prefs)
-                st.success("Settings saved successfully!")
+                st.success("Settings saved! Refreshing UI...")
+                st.rerun() # Immediately refresh to apply the new theme!
             except Exception as e:
                 st.error(f"Failed to save settings: {str(e)}")
+                
+        st.divider()
+        # ... (Keep your Logout and Clear History buttons exactly the same below here)
                 
         st.divider()
         if st.button("Logout"):
