@@ -256,7 +256,6 @@ def main_app():
             index=rate_idx,
             help="Select the billing rate to adjust cost estimates."
         )
-        st.markdown("---")
         model_choice = st.radio(
             "AI Model:", 
             model_opts, 
