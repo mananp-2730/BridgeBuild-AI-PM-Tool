@@ -4,7 +4,7 @@ from reportlab.lib import colors
 import io
 import re
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # --- 1. HELPER FUNCTIONS ---
 def convert_currency(amount, currency_type):
@@ -50,10 +50,25 @@ def clean_json_output(raw_text):
     text = re.sub(r"```\s*$", "", text, flags=re.MULTILINE)
     return text.strip()
 
-def generate_jira_format(data):
+def format_cost_range(raw_cost, currency):
+    """
+    Helper to apply currency formatting to a range (e.g. '15000-20000').
+    """
+    raw_cost = str(raw_cost)
+    if "-" in raw_cost:
+        parts = raw_cost.split("-")
+        low = convert_currency(parts[0].strip(), currency)
+        high = convert_currency(parts[1].strip(), currency)
+        return f"{low} - {high}"
+    return convert_currency(raw_cost, currency)
+
+def generate_jira_format(data, currency="USD ($)"):
     """
     Converts JSON data into JIRA/Confluence markup format.
     """
+    p1_cost = format_cost_range(data.get('budget_estimate_usd', '0'), currency)
+    p2_cost = format_cost_range(data.get('phase_2_budget_usd', '0'), currency)
+    
     jira_text = f"""
 h1. {data.get('ticket_name', 'Untitled Ticket')}
 
@@ -62,12 +77,12 @@ h2. Overview
 
 h2. Phase 1: Core MVP
 * **Est. Time:** {data.get('development_time', 'N/A')}
-* **Est. Budget:** {data.get('budget_estimate_usd', '0')}
+* **Est. Budget:** {p1_cost}
 {chr(10).join([f'* {feat}' for feat in data.get('mvp_features', [])])}
 
 h2. Phase 2: Future Enhancements
 * **Est. Extra Time:** {data.get('phase_2_time', 'N/A')}
-* **Est. Extra Budget:** {data.get('phase_2_budget_usd', '0')}
+* **Est. Extra Budget:** {p2_cost}
 {chr(10).join([f'* {feat}' for feat in data.get('phase_2_features', [])])}
 
 h2. Technical Risks
@@ -83,7 +98,7 @@ h2. Tech Stack
     return jira_text
 
 # --- 2. THE PRO PDF GENERATOR ---
-def create_pdf(ticket_data):
+def create_pdf(ticket_data, currency="USD ($)"):
     """
     Generates a professional PDF with Duke Blue branding.
     Includes SMART TEXT WRAPPING to prevent cut-off text.
@@ -124,7 +139,10 @@ def create_pdf(ticket_data):
     c.setFont("Helvetica-Bold", 22)
     c.drawString(40, height - 60, "Engineering Ticket Report")
     
-    date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    # --- TIMEZONE FIX: Force IST (+5:30) ---
+    ist = timezone(timedelta(hours=5, minutes=30))
+    date_str = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
+    
     c.setFont("Helvetica", 10)
     c.drawString(40, height - 80, f"Generated on: {date_str} | BridgeBuild AI")
     
@@ -151,6 +169,10 @@ def create_pdf(ticket_data):
     c.line(40, y, width-40, y)
     y -= 25
 
+    # CURRENCY FIX: Apply selected currency to PDF budget fields
+    p1_budget = format_cost_range(ticket_data.get('budget_estimate_usd', '0'), currency)
+    p2_budget = format_cost_range(ticket_data.get('phase_2_budget_usd', '0'), currency)
+
     # 1. Phase 1: MVP
     y = check_page_break(c, y)
     c.setFont("Helvetica-Bold", 14)
@@ -160,7 +182,7 @@ def create_pdf(ticket_data):
     
     c.setFillColor(colors.black)
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(40, y, f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: ${ticket_data.get('budget_estimate_usd', '0')}")
+    c.drawString(40, y, f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}")
     y -= 20
     
     c.setFont("Helvetica", 11)
@@ -180,7 +202,7 @@ def create_pdf(ticket_data):
     
     c.setFillColor(colors.black)
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(40, y, f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: ${ticket_data.get('phase_2_budget_usd', '0')}")
+    c.drawString(40, y, f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_budget}")
     y -= 20
     
     c.setFont("Helvetica", 11)
