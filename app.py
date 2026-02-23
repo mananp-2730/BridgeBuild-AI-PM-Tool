@@ -486,7 +486,7 @@ def main_app():
             )
             
             with st.expander("View Jira / Confluence Markup", expanded=False):
-                st.code(generate_jira_format(data), language="jira")
+                st.code(generate_jira_format(data, currency), language="jira")
                 
         # --- 4. THE ITERATION ENGINE (AI CHAT) ---
         st.divider()
