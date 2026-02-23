@@ -12,7 +12,6 @@ def convert_currency(amount, currency_type):
     Converts a raw number (e.g., 5000) into formatted string ($5,000 or ₹4,25,000).
     """
     try:
-        # If amount is a string like "$5,000", clean it first
         if isinstance(amount, str):
             clean_amount = int(amount.replace("$", "").replace(",", "").split("-")[0].strip())
         else:
@@ -21,7 +20,6 @@ def convert_currency(amount, currency_type):
         if currency_type == "USD ($)":
             return f"${clean_amount:,}"
         else:
-            # Approx rate: 1 USD = 85 INR
             inr_amount = clean_amount * 85
             return f"₹{inr_amount:,}"
     except:
@@ -58,14 +56,25 @@ def generate_jira_format(data):
     """
     jira_text = f"""
 h1. {data.get('ticket_name', 'Untitled Ticket')}
+
 h2. Overview
 * **Complexity:** {data.get('complexity_score', 'N/A')}
+
+h2. Phase 1: Core MVP
 * **Est. Time:** {data.get('development_time', 'N/A')}
 * **Est. Budget:** {data.get('budget_estimate_usd', '0')}
+{chr(10).join([f'* {feat}' for feat in data.get('mvp_features', [])])}
+
+h2. Phase 2: Future Enhancements
+* **Est. Extra Time:** {data.get('phase_2_time', 'N/A')}
+* **Est. Extra Budget:** {data.get('phase_2_budget_usd', '0')}
+{chr(10).join([f'* {feat}' for feat in data.get('phase_2_features', [])])}
+
 h2. Technical Risks
 {{panel:title=Risks|borderStyle=dashed|borderColor=#ff0000}}
 {chr(10).join([f'- {risk}' for risk in data.get('technical_risks', [])])}
 {{panel}}
+
 h2. Tech Stack
 {{code:bash}}
 {chr(10).join(data.get('suggested_stack', []))}
@@ -73,7 +82,7 @@ h2. Tech Stack
     """
     return jira_text
 
-# --- 2. THE PRO PDF GENERATOR (SMART WRAP VERSION) ---
+# --- 2. THE PRO PDF GENERATOR ---
 def create_pdf(ticket_data):
     """
     Generates a professional PDF with Duke Blue branding.
@@ -85,30 +94,27 @@ def create_pdf(ticket_data):
     
     # --- HELPER: Smart Text Wrapper ---
     def draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
-        """
-        Draws text that automatically wraps to the next line if it gets too long.
-        Returns the new Y position after writing.
-        """
         c.setFont(font_name, font_size)
         words = text.split(' ')
         line = ""
-        
         for word in words:
-            # Check if adding the next word exceeds the max width
             if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
                 line += word + " "
             else:
-                # Draw current line and move down
                 c.drawString(x, y, line.strip())
                 y -= line_height
                 line = word + " "
-        
-        # Draw the last remaining line
         if line:
             c.drawString(x, y, line.strip())
             y -= line_height
-            
         return y
+
+    # --- HELPER: Page Break Check ---
+    def check_page_break(c, current_y, threshold=100):
+        if current_y < threshold:
+            c.showPage()
+            return height - 50
+        return current_y
 
     # --- HEADER SECTION ---
     c.setFillColorRGB(0.004, 0.129, 0.412) # Duke Blue
@@ -128,97 +134,95 @@ def create_pdf(ticket_data):
     # --- CONTENT SECTION ---
     y = height - 140
     c.setFillColor(colors.black)
-    
-    # 1. Key Metrics Table
-    def print_field(label, value, y_pos):
-        c.setFont("Helvetica-Bold", 12)
-        c.setFillColorRGB(0.004, 0.129, 0.412) 
-        c.drawString(40, y_pos, f"{label}:")
-        
-        c.setFont("Helvetica", 12)
-        c.setFillColor(colors.black) 
-        # Use simple string for metrics, truncated if absolutely massive
-        text_val = str(value)
-        if len(text_val) > 60: text_val = text_val[:60] + "..."
-        c.drawString(160, y_pos, text_val)
-        return y_pos - 25
 
-    # Ticket Name (Handle long names by wrapping)
+    # Title & Summary
     name = ticket_data.get("ticket_name", ticket_data.get("summary", "Untitled"))
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont("Helvetica-Bold", 16)
     c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, "Ticket Name:")
-    c.setFillColor(colors.black)
-    # Wrap the name if it's super long
-    y = draw_wrapped_text(c, name, 160, y, 400, "Helvetica", 12) 
-    y -= 10 # Extra spacer after name
-
-    y = print_field("Complexity", ticket_data.get("complexity_score", "N/A"), y)
-    y = print_field("Est. Time", ticket_data.get("development_time", "N/A"), y)
-    
-    # Cost Formatting
-    raw_cost = ticket_data.get('budget_estimate_usd', '0')
-    formatted_cost = convert_currency(raw_cost, "USD ($)")
-    y = print_field("Est. Cost", formatted_cost, y)
-    
-    y -= 10
-    c.setStrokeColor(colors.lightgrey)
-    c.line(40, y, width-40, y)
-    y -= 30
-
-    # 2. Description
-    c.setFont("Helvetica-Bold", 14)
-    c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, "Technical Summary")
-    y -= 25
+    y = draw_wrapped_text(c, f"Project: {name}", 40, y, 500, "Helvetica-Bold", 16)
+    y -= 15
     
     c.setFillColor(colors.black)
     description = ticket_data.get("summary", "No summary provided.")
-    # Wrap text within 500px width
     y = draw_wrapped_text(c, description, 40, y, 520, "Helvetica", 11)
     y -= 20
 
-    # 3. Technical Risks
+    c.setStrokeColor(colors.lightgrey)
+    c.line(40, y, width-40, y)
+    y -= 25
+
+    # 1. Phase 1: MVP
+    y = check_page_break(c, y)
     c.setFont("Helvetica-Bold", 14)
     c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, "⚠️ Technical Risks")
-    y -= 25
+    c.drawString(40, y, "Phase 1: Core MVP")
+    y -= 20
     
     c.setFillColor(colors.black)
-    risks = ticket_data.get("technical_risks", [])
-    if not risks:
-        c.drawString(50, y, "• No significant risks detected.")
-        y -= 15
-    else:
-        for risk in risks:
-            # Bullet Point Logic
-            c.drawString(45, y, "•") # Draw bullet
-            # Draw text slightly indented (x=60), wrapping at 500px width
-            y = draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
-            y -= 5 # Extra breathing room between items
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(40, y, f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: ${ticket_data.get('budget_estimate_usd', '0')}")
+    y -= 20
+    
+    c.setFont("Helvetica", 11)
+    for feat in ticket_data.get("mvp_features", []):
+        y = check_page_break(c, y)
+        c.drawString(45, y, "•")
+        y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
+        y -= 5
+    y -= 15
 
+    # 2. Phase 2: Enhancements
+    y = check_page_break(c, y)
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, "Phase 2: Future Enhancements")
+    y -= 20
+    
+    c.setFillColor(colors.black)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(40, y, f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: ${ticket_data.get('phase_2_budget_usd', '0')}")
+    y -= 20
+    
+    c.setFont("Helvetica", 11)
+    for feat in ticket_data.get("phase_2_features", []):
+        y = check_page_break(c, y)
+        c.drawString(45, y, "•")
+        y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
+        y -= 5
+    y -= 20
+
+    c.setStrokeColor(colors.lightgrey)
+    c.line(40, y, width-40, y)
+    y -= 25
+
+    # 3. Technical Risks
+    y = check_page_break(c, y)
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, "Technical Risks")
+    y -= 20
+    
+    c.setFillColor(colors.black)
+    for risk in ticket_data.get("technical_risks", []):
+        y = check_page_break(c, y)
+        c.drawString(45, y, "•")
+        y = draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
+        y -= 5
     y -= 15
 
     # 4. Tech Stack
-    # Check if we are running out of space
-    if y < 150: 
-        c.showPage() # Start new page if low on space
-        y = height - 50
-
+    y = check_page_break(c, y)
     c.setFont("Helvetica-Bold", 14)
     c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, "🏗 Suggested Tech Stack")
-    y -= 25
+    c.drawString(40, y, "Suggested Tech Stack")
+    y -= 20
     
     c.setFillColor(colors.black)
-    stack = ticket_data.get("suggested_stack", [])
-    if not stack:
-         c.drawString(50, y, "• No specific stack suggested.")
-    else:
-        for item in stack:
-            c.drawString(45, y, "•")
-            y = draw_wrapped_text(c, item, 60, y, 490, "Helvetica", 11)
-            y -= 5
+    for item in ticket_data.get("suggested_stack", []):
+        y = check_page_break(c, y)
+        c.drawString(45, y, "•")
+        y = draw_wrapped_text(c, item, 60, y, 490, "Helvetica", 11)
+        y -= 5
 
     c.save()
     buffer.seek(0)
