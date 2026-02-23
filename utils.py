@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 # --- 1. HELPER FUNCTIONS ---
 def convert_currency(amount, currency_type):
     """
-    Converts a raw number (e.g., 5000) into formatted string ($5,000 or ₹4,25,000).
+    Converts a raw number (e.g., 5000) into formatted string ($5,000 or INR 4,25,000).
     """
     try:
         if isinstance(amount, str):
@@ -21,7 +21,7 @@ def convert_currency(amount, currency_type):
             return f"${clean_amount:,}"
         else:
             inr_amount = clean_amount * 85
-            return f"₹{inr_amount:,}"
+            return f"INR {inr_amount:,}"  # Changed from ₹ to INR for PDF compatibility
     except:
         return str(amount)
 
@@ -30,7 +30,8 @@ def parse_cost_avg(cost_string):
     Parses a cost range string (e.g., "$5,000 - $8,000") and returns average integer.
     """
     try:
-        clean = str(cost_string).replace("$", "").replace(",", "").replace("USD", "").replace("₹", "").strip()
+        # Added 'INR' to the replace chain so it strips cleanly
+        clean = str(cost_string).replace("$", "").replace(",", "").replace("USD", "").replace("₹", "").replace("INR", "").strip()
         if "-" in clean:
             parts = clean.split("-")
             low = int(parts[0].strip())
@@ -40,7 +41,7 @@ def parse_cost_avg(cost_string):
             return int(clean)
     except:
         return 0
-
+        
 def clean_json_output(raw_text):
     """
     Removes markdown code blocks from AI response to get pure JSON.
