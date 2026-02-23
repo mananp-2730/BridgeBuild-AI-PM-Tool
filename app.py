@@ -433,7 +433,7 @@ def main_app():
             st.markdown("#### Export Report")
             st.download_button(
                 label="Download Professional PDF",
-                data=create_pdf(data),
+                data=create_pdf(data, currency),
                 file_name="bridgebuild_ticket.pdf",
                 mime="application/pdf",
                 use_container_width=True,
