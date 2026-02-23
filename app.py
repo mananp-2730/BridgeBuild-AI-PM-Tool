@@ -393,11 +393,30 @@ def main_app():
             st.subheader("Engineering Ticket")
             st.info(f"**Summary:** {data.get('summary')}")
             
-            st.markdown("Technical Risks")
+            # --- NEW: MVP PHASING UI ---
+            st.markdown("### Phase 1: Core MVP")
+            for feat in data.get("mvp_features", []):
+                st.markdown(f"- {feat}")
+                
+            st.markdown("### Phase 2: Future Enhancements")
+            
+            # Convert Phase 2 Budget Currency
+            p2_raw = data.get("phase_2_budget_usd", "0-0")
+            p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
+            p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
+            p2_fmt_low = convert_currency(p2_low, currency)
+            p2_fmt_high = convert_currency(p2_high, currency)
+            
+            st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
+            for feat in data.get("phase_2_features", []):
+                st.markdown(f"- {feat}")
+            # ---------------------------
+            
+            st.markdown("### Technical Risks")
             for risk in data.get("technical_risks", []):
                 st.warning(f"- {risk}")
                 
-            st.markdown("Suggested Tech Stack")
+            st.markdown("### Suggested Tech Stack")
             st.code("\n".join(data.get("suggested_stack", [])), language="bash")
 
         with col_right:
