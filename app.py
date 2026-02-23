@@ -447,19 +447,31 @@ def main_app():
             if len(data.get('summary', '')) > 50: ticket_name += "..."
             
             # 2. Build the FULL email body text
-            body_text = f"Hello Engineering Team,\n\n"
-            body_text += f"Please review the following scoped technical requirements from BridgeBuild AI:\n\n"
-            body_text += f"-> TICKET SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
-            body_text += f"-> METRICS:\n"
-            body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
+            body_text = f"Hello Team,\n\n"
+            body_text += f"Please review the scoped technical requirements and phased approach from BridgeBuild AI:\n\n"
+            body_text += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+            
+            body_text += f"-> PHASE 1: CORE MVP\n"
             body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
-            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
-            body_text += f"-> SUGGESTED TECH STACK:\n{', '.join(data.get('suggested_stack', []))}\n\n"
+            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n"
+            for feat in data.get('mvp_features', []):
+                body_text += f"  * {feat}\n"
+            
+            body_text += f"\n-> PHASE 2: FUTURE ENHANCEMENTS\n"
+            body_text += f"- Est. Extra Time: {data.get('phase_2_time', 'N/A')}\n"
+            body_text += f"- Est. Extra Budget: {p2_fmt_low} - {p2_fmt_high}\n"
+            for feat in data.get('phase_2_features', []):
+                body_text += f"  * {feat}\n"
+                
+            body_text += f"\n-> OVERVIEW & STACK:\n"
+            body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
+            body_text += f"- Suggested Stack: {', '.join(data.get('suggested_stack', []))}\n\n"
+            
             body_text += f"-> KEY RISKS:\n"
-            for risk in data.get('technical_risks', [])[:3]: # Grab top 3 risks
+            for risk in data.get('technical_risks', [])[:3]:
                 body_text += f"- {risk}\n"
             
-            body_text += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
+            body_text += "\nFull data schema is attached in the PDF.\n\nBest,\nProduct Management"
             
             # 3. URL Encode
             subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
