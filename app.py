@@ -621,7 +621,7 @@ def main_app():
                     
                     st.write("") 
                     with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
-                        st.code(generate_jira_format(past_data), language="jira")
+                        st.code(generate_jira_format(past_data, currency), language="jira")
                         
         else:
             st.info("No saved tickets yet. Generate your first one above!")
