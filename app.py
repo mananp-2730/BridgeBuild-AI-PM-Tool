@@ -606,7 +606,7 @@ def main_app():
                     with hist_btn_col1:
                         st.download_button(
                             label="Download PDF",
-                            data=create_pdf(past_data),
+                            data=create_pdf(past_data, currency),
                             file_name=f"ticket_{item['id'][:8]}.pdf",
                             mime="application/pdf",
                             key=f"hist_pdf_{item['id']}",
