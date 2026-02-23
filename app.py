@@ -572,19 +572,31 @@ def main_app():
                     hist_ticket_name = past_data.get('ticket_name', past_data.get('summary', 'Historical Project'))[:50]
                     if len(past_data.get('summary', '')) > 50: hist_ticket_name += "..."
                     
-                    hist_body = f"Hello Engineering Team,\n\n"
-                    hist_body += f"Please review the following scoped technical requirements from BridgeBuild AI (Historical Record):\n\n"
-                    hist_body += f"-> TICKET SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
-                    hist_body += f"-> METRICS:\n"
-                    hist_body += f"- Complexity: {past_data.get('complexity_score', 'N/A')}\n"
+                    hist_body = f"Hello Team,\n\n"
+                    hist_body += f"Please review the historical scoped requirements and phased approach:\n\n"
+                    hist_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
+                    
+                    hist_body += f"-> PHASE 1: CORE MVP\n"
                     hist_body += f"- Est. Dev Time: {item['time']}\n"
-                    hist_body += f"- Est. Budget: {item['cost']}\n\n"  # Using the DB saved cost
-                    hist_body += f"-> SUGGESTED TECH STACK:\n{', '.join(past_data.get('suggested_stack', []))}\n\n"
+                    hist_body += f"- Est. Budget: {item['cost']}\n"
+                    for feat in past_data.get('mvp_features', []):
+                        hist_body += f"  * {feat}\n"
+                    
+                    hist_body += f"\n-> PHASE 2: FUTURE ENHANCEMENTS\n"
+                    hist_body += f"- Est. Extra Time: {past_data.get('phase_2_time', 'N/A')}\n"
+                    hist_body += f"- Est. Extra Budget (USD Raw): ${past_data.get('phase_2_budget_usd', 'N/A')}\n"
+                    for feat in past_data.get('phase_2_features', []):
+                        hist_body += f"  * {feat}\n"
+                        
+                    hist_body += f"\n-> OVERVIEW & STACK:\n"
+                    hist_body += f"- Complexity: {past_data.get('complexity_score', 'N/A')}\n"
+                    hist_body += f"- Suggested Stack: {', '.join(past_data.get('suggested_stack', []))}\n\n"
+                    
                     hist_body += f"-> KEY RISKS:\n"
-                    for risk in past_data.get('technical_risks', [])[:3]: # Grab top 3 risks
+                    for risk in past_data.get('technical_risks', [])[:3]:
                         hist_body += f"- {risk}\n"
                     
-                    hist_body += "\nFull acceptance criteria and data schema are attached in the PDF.\n\nBest,\nProduct Management"
+                    hist_body += "\nFull data schema is attached in the PDF.\n\nBest,\nProduct Management"
                     
                     hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
                     hist_body_enc = urllib.parse.quote(hist_body)
