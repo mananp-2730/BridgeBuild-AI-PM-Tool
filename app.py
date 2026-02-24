@@ -440,10 +440,10 @@ def main_app():
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export PDF Reports")
+            st.markdown("#### Export PDF Reports")
             # Button 1: Detailed (Eng)
             st.download_button(
-                label="📥 Download Detailed Ticket (Engineering)",
+                label="Download Detailed Ticket (Engineering)",
                 data=create_pdf(data, currency, ticket_type="detailed"),
                 file_name="bridgebuild_detailed_ticket.pdf",
                 mime="application/pdf",
@@ -451,7 +451,7 @@ def main_app():
             )
             # Button 2: Brief (Sales)
             st.download_button(
-                label="📥 Download Brief Summary (Sales / Client)",
+                label="Download Brief Summary (Sales / Client)",
                 data=create_pdf(data, currency, ticket_type="brief"),
                 file_name="bridgebuild_brief_summary.pdf",
                 mime="application/pdf",
@@ -459,7 +459,7 @@ def main_app():
             )
         
         with col_action2:
-            st.markdown("#### ✉️ Share with Stakeholders")
+            st.markdown("#### Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
             
             # --- EMAIL 1: ENGINEERING (Highly Technical) ---
