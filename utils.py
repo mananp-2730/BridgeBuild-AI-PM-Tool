@@ -89,7 +89,8 @@ h2. Tech Stack
     return jira_text
 
 # --- 2. THE PRO PDF GENERATOR ---
-def create_pdf(ticket_data, currency="USD ($)"):
+# ADDED 'ticket_type' parameter!
+def create_pdf(ticket_data, currency="USD ($)", ticket_type="detailed"):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -126,7 +127,10 @@ def create_pdf(ticket_data, currency="USD ($)"):
     
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 22)
-    c.drawString(40, height - 60, "Engineering Ticket Report")
+    
+    # Change title based on Brief vs Detailed
+    report_title = "Executive Scoping Report" if ticket_type == "brief" else "Engineering Ticket Report"
+    c.drawString(40, height - 60, report_title)
     
     ist = timezone(timedelta(hours=5, minutes=30))
     date_str = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
@@ -163,7 +167,7 @@ def create_pdf(ticket_data, currency="USD ($)"):
     y = check_page_break(c, y)
     c.setFont("Helvetica-Bold", 14)
     c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, safe_text("Phase 1: Core MVP (User Stories)"))
+    c.drawString(40, y, safe_text("Phase 1: Core MVP"))
     y -= 20
     
     c.setFillColor(colors.black)
@@ -171,17 +175,26 @@ def create_pdf(ticket_data, currency="USD ($)"):
     c.drawString(40, y, safe_text(f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}"))
     y -= 20
     
+    # SMART LOGIC: Show ACs only if Detailed!
     if "mvp_user_stories" in ticket_data:
         for item in ticket_data.get("mvp_user_stories", []):
             y = check_page_break(c, y)
-            c.setFont("Helvetica-Bold", 10)
-            y = draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
-            c.setFont("Helvetica", 10)
-            for ac in item.get("acceptance_criteria", []):
-                y = check_page_break(c, y)
-                c.drawString(50, y, "-")
-                y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
-            y -= 10
+            
+            if ticket_type == "detailed":
+                c.setFont("Helvetica-Bold", 10)
+                y = draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
+                c.setFont("Helvetica", 10)
+                for ac in item.get("acceptance_criteria", []):
+                    y = check_page_break(c, y)
+                    c.drawString(50, y, "-")
+                    y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
+                y -= 10
+            else:
+                # Brief Version: Just print the story as a bullet point
+                c.setFont("Helvetica", 11)
+                c.drawString(45, y, "-")
+                y = draw_wrapped_text(c, item.get('story', ''), 60, y, 490, "Helvetica", 11)
+                y -= 5
     else:
         c.setFont("Helvetica", 11)
         for feat in ticket_data.get("mvp_features", []):
