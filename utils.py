@@ -163,7 +163,7 @@ def create_pdf(ticket_data, currency="USD ($)"):
     y = check_page_break(c, y)
     c.setFont("Helvetica-Bold", 14)
     c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, safe_text("Phase 1: Core MVP"))
+    c.drawString(40, y, safe_text("Phase 1: Core MVP (User Stories)"))
     y -= 20
     
     c.setFillColor(colors.black)
@@ -171,12 +171,24 @@ def create_pdf(ticket_data, currency="USD ($)"):
     c.drawString(40, y, safe_text(f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}"))
     y -= 20
     
-    c.setFont("Helvetica", 11)
-    for feat in ticket_data.get("mvp_features", []):
-        y = check_page_break(c, y)
-        c.drawString(45, y, "-")
-        y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
-        y -= 5
+    if "mvp_user_stories" in ticket_data:
+        for item in ticket_data.get("mvp_user_stories", []):
+            y = check_page_break(c, y)
+            c.setFont("Helvetica-Bold", 10)
+            y = draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
+            c.setFont("Helvetica", 10)
+            for ac in item.get("acceptance_criteria", []):
+                y = check_page_break(c, y)
+                c.drawString(50, y, "-")
+                y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
+            y -= 10
+    else:
+        c.setFont("Helvetica", 11)
+        for feat in ticket_data.get("mvp_features", []):
+            y = check_page_break(c, y)
+            c.drawString(45, y, "-")
+            y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
+            y -= 5
     y -= 15
 
     # 2. Phase 2: Enhancements
