@@ -435,71 +435,95 @@ def main_app():
                 st.success(f"🆔 {entity}")
         
         # --- EXPORT ACTIONS ---
+        # --- EXPORT ACTIONS ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### Export Report")
+            st.markdown("#### 📄 Export PDF Reports")
+            # Button 1: Detailed (Eng)
             st.download_button(
-                label="Download Professional PDF",
-                data=create_pdf(data, currency),
-                file_name="bridgebuild_ticket.pdf",
+                label="📥 Download Detailed Ticket (Engineering)",
+                data=create_pdf(data, currency, ticket_type="detailed"),
+                file_name="bridgebuild_detailed_ticket.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+            # Button 2: Brief (Sales)
+            st.download_button(
+                label="📥 Download Brief Summary (Sales / Client)",
+                data=create_pdf(data, currency, ticket_type="brief"),
+                file_name="bridgebuild_brief_summary.pdf",
                 mime="application/pdf",
                 use_container_width=True,
             )
         
         with col_action2:
-            st.markdown("#### Share with Team")
-            
-            # 1. Safely grab the summary name for the subject line
+            st.markdown("#### ✉️ Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-            if len(data.get('summary', '')) > 50: ticket_name += "..."
             
-            # 2. Build the FULL email body text
-            body_text = f"Hello Team,\n\n"
-            body_text += f"Please review the scoped technical requirements and phased approach from BridgeBuild AI:\n\n"
-            body_text += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
-            
-            body_text += f"PHASE 1: CORE MVP (Agile Stories)\n"
-            body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
-            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
-            
+            # --- EMAIL 1: ENGINEERING (Highly Technical) ---
+            eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements from BridgeBuild AI:\n\n"
+            eng_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+            eng_body += f"-> PHASE 1: CORE MVP (Agile Stories)\n"
+            eng_body += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
+            eng_body += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
             if "mvp_user_stories" in data:
                 for item in data.get('mvp_user_stories', []):
-                    body_text += f" {item.get('story')}\n"
+                    eng_body += f"~ {item.get('story')}\n"
                     for ac in item.get('acceptance_criteria', []):
-                        body_text += f"   * AC: {ac}\n"
-                    body_text += "\n"
+                        eng_body += f"   * AC: {ac}\n"
+                    eng_body += "\n"
             else:
                 for feat in data.get('mvp_features', []):
-                    body_text += f"  * {feat}\n"
+                    eng_body += f"  * {feat}\n"
+                    
+            eng_body += f"\n-> PHASE 2: FUTURE ENHANCEMENTS\n"
+            for feat in data.get('phase_2_features', []): eng_body += f"  * {feat}\n"
+            eng_body += f"\n-> OVERVIEW & STACK:\n- Complexity: {data.get('complexity_score', 'N/A')}\n- Stack: {', '.join(data.get('suggested_stack', []))}\n\n"
+            eng_body += f"-> KEY RISKS:\n"
+            for risk in data.get('technical_risks', [])[:3]: eng_body += f"- {risk}\n"
+            eng_body += "\nBest,\nProduct Management"
             
-            body_text += f"\n-> PHASE 2: FUTURE ENHANCEMENTS\n"
-            body_text += f"- Est. Extra Time: {data.get('phase_2_time', 'N/A')}\n"
-            body_text += f"- Est. Extra Budget: {p2_fmt_low} - {p2_fmt_high}\n"
-            for feat in data.get('phase_2_features', []):
-                body_text += f"  * {feat}\n"
+            eng_subj_enc = urllib.parse.quote(f"Eng Ticket: {ticket_name}")
+            eng_body_enc = urllib.parse.quote(eng_body)
+            eng_mailto = f"mailto:?subject={eng_subj_enc}&body={eng_body_enc}"
+            
+            # --- EMAIL 2: SALES (Client-Friendly) ---
+            sales_body = f"Hello Sales Team,\n\nGreat news—we have completed the initial feasibility scoping for the client request. Here is the high-level breakdown you can use to guide your conversation and manage expectations.\n\n"
+            sales_body += f"-> PROJECT GOAL:\n{data.get('summary', 'N/A')}\n\n"
+            sales_body += f"-> PHASE 1: CORE MVP (Initial Deliverable)\n"
+            sales_body += f"- Estimated Timeline: {data.get('development_time', 'N/A')}\n"
+            sales_body += f"- Estimated Budget: {fmt_low} - {fmt_high}\n\n"
+            sales_body += "Key Capabilities Included:\n"
+            if "mvp_user_stories" in data:
+                for item in data.get('mvp_user_stories', []): sales_body += f"  * {item.get('story')}\n"
+            else:
+                for feat in data.get('mvp_features', []): sales_body += f"  * {feat}\n"
                 
-            body_text += f"\n-> OVERVIEW & STACK:\n"
-            body_text += f"- Complexity: {data.get('complexity_score', 'N/A')}\n"
-            body_text += f"- Suggested Stack: {', '.join(data.get('suggested_stack', []))}\n\n"
+            sales_body += f"\n-> PHASE 2: FUTURE ENHANCEMENTS (Upsell Opportunities)\n"
+            sales_body += f"- Est. Extra Time: {data.get('phase_2_time', 'N/A')}\n"
+            sales_body += f"- Est. Extra Budget: {p2_fmt_low} - {p2_fmt_high}\n"
+            for feat in data.get('phase_2_features', []): sales_body += f"  * {feat}\n"
             
-            body_text += f"-> KEY RISKS:\n"
-            for risk in data.get('technical_risks', [])[:3]:
-                body_text += f"- {risk}\n"
+            sales_body += f"\n-> BUSINESS CONSIDERATIONS:\n"
+            for risk in data.get('technical_risks', [])[:2]: sales_body += f"- {risk}\n"
+            sales_body += "\nLet me know if the client approves this Phase 1 budget range so we can begin formal sprint planning!\n\nBest,\nProduct Management"
             
-            body_text += "\nFull data schema is attached in the PDF.\n\nBest,\nProduct Management"
+            sales_subj_enc = urllib.parse.quote(f"Sales Scoping: {ticket_name}")
+            sales_body_enc = urllib.parse.quote(sales_body)
+            sales_mailto = f"mailto:?subject={sales_subj_enc}&body={sales_body_enc}"
             
-            # 3. URL Encode
-            subject_encoded = urllib.parse.quote(f"Engineering Ticket: {ticket_name}")
-            body_encoded = urllib.parse.quote(body_text)
-            mailto_link = f"mailto:?subject={subject_encoded}&body={body_encoded}"
-            
-            # 4. Render Button
+            # Render Buttons
             st.markdown(
-                f"""<a href="{mailto_link}" target="_blank" style="text-decoration: none;">
-                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email to Engineering</button>
-                </a>""", unsafe_allow_html=True
+                f"""
+                <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">✉️ Email to Engineering</button>
+                </a>
+                <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">🤝 Email to Sales</button>
+                </a>
+                """, unsafe_allow_html=True
             )
             
             with st.expander("View Jira / Confluence Markup", expanded=False):
