@@ -199,7 +199,7 @@ def main_app():
         with col_text:
             st.markdown(
                 """
-                <h3 style='margin: 0; padding-top: 8px; padding-bottom: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
+                <h3 style='margin: 0; padding-top: 8px; padding-bottom: 5px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
                     BridgeBuild AI
                 </h3>
                 """, 
