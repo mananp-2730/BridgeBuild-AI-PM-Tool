@@ -518,10 +518,10 @@ def main_app():
             st.markdown(
                 f"""
                 <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
-                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">✉️ Email to Engineering</button>
+                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Email to Engineering</button>
                 </a>
                 <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
-                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">🤝 Email to Sales</button>
+                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">Email to Sales</button>
                 </a>
                 """, unsafe_allow_html=True
             )
