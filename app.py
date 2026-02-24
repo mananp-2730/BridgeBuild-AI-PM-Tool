@@ -197,7 +197,7 @@ def main_app():
             st.image("Logo_bg_removed.png", width=40) 
             
         with col_text:
-            st.markdown(
+            st.divider(
                 """
                 <h3 style='margin: 0; padding-top: 8px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
                     BridgeBuild AI
