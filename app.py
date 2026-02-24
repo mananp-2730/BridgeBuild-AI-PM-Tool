@@ -393,10 +393,19 @@ def main_app():
             st.subheader("Engineering Ticket")
             st.info(f"**Summary:** {data.get('summary')}")
             
-            # --- NEW: MVP PHASING UI ---
+            # --- NEW: AGILE MVP PHASING UI ---
             st.markdown("### Phase 1: Core MVP")
-            for feat in data.get("mvp_features", []):
-                st.markdown(f"- {feat}")
+            
+            # Smart Check: If it's a new Agile ticket, show stories. If it's an old ticket, show bullet points.
+            if "mvp_user_stories" in data:
+                for item in data.get("mvp_user_stories", []):
+                    with st.expander(f"~ {item.get('story', 'User Story')}", expanded=False):
+                        st.markdown("**Acceptance Criteria:**")
+                        for ac in item.get("acceptance_criteria", []):
+                            st.markdown(f"- {ac}")
+            else:
+                for feat in data.get("mvp_features", []):
+                    st.markdown(f"- {feat}")
                 
             st.markdown("### Phase 2: Future Enhancements")
             
@@ -451,11 +460,19 @@ def main_app():
             body_text += f"Please review the scoped technical requirements and phased approach from BridgeBuild AI:\n\n"
             body_text += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
             
-            body_text += f"-> PHASE 1: CORE MVP\n"
+            body_text += f"PHASE 1: CORE MVP (Agile Stories)\n"
             body_text += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
-            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n"
-            for feat in data.get('mvp_features', []):
-                body_text += f"  * {feat}\n"
+            body_text += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
+            
+            if "mvp_user_stories" in data:
+                for item in data.get('mvp_user_stories', []):
+                    body_text += f"~ {item.get('story')}\n"
+                    for ac in item.get('acceptance_criteria', []):
+                        body_text += f"   * AC: {ac}\n"
+                    body_text += "\n"
+            else:
+                for feat in data.get('mvp_features', []):
+                    body_text += f"  * {feat}\n"
             
             body_text += f"\n-> PHASE 2: FUTURE ENHANCEMENTS\n"
             body_text += f"- Est. Extra Time: {data.get('phase_2_time', 'N/A')}\n"
