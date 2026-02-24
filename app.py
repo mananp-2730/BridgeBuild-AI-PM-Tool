@@ -530,7 +530,7 @@ def main_app():
                 st.code(generate_jira_format(data, currency), language="jira")
                 
         # --- 4. THE ITERATION ENGINE (AI CHAT) ---
-        st.divider()
+        #st.divider()
         #st.subheader("🔄 Refine this Ticket")
         refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
         
