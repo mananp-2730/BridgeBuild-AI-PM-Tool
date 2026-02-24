@@ -399,7 +399,7 @@ def main_app():
             # Smart Check: If it's a new Agile ticket, show stories. If it's an old ticket, show bullet points.
             if "mvp_user_stories" in data:
                 for item in data.get("mvp_user_stories", []):
-                    with st.expander(f"~ {item.get('story', 'User Story')}", expanded=False):
+                    with st.expander(f" {item.get('story', 'User Story')}", expanded=False):
                         st.markdown("**Acceptance Criteria:**")
                         for ac in item.get("acceptance_criteria", []):
                             st.markdown(f"- {ac}")
@@ -466,7 +466,7 @@ def main_app():
             
             if "mvp_user_stories" in data:
                 for item in data.get('mvp_user_stories', []):
-                    body_text += f"~ {item.get('story')}\n"
+                    body_text += f" {item.get('story')}\n"
                     for ac in item.get('acceptance_criteria', []):
                         body_text += f"   * AC: {ac}\n"
                     body_text += "\n"
