@@ -466,8 +466,8 @@ def main_app():
             eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements from BridgeBuild AI:\n\n"
             eng_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
             eng_body += f"-> PHASE 1: CORE MVP (Agile Stories)\n"
-            eng_body += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
-            eng_body += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
+            #eng_body += f"- Est. Dev Time: {data.get('development_time', 'N/A')}\n"
+            #eng_body += f"- Est. Budget: {fmt_low} - {fmt_high}\n\n"
             if "mvp_user_stories" in data:
                 for item in data.get('mvp_user_stories', []):
                     eng_body += f"~ {item.get('story')}\n"
