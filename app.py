@@ -531,7 +531,7 @@ def main_app():
                 
         # --- 4. THE ITERATION ENGINE (AI CHAT) ---
         st.divider()
-        st.subheader("🔄 Refine this Ticket")
+        #st.subheader("🔄 Refine this Ticket")
         refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
         
         if refine_query:
