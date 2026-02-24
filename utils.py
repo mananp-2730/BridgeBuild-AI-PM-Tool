@@ -55,15 +55,22 @@ def generate_jira_format(data, currency="USD ($)"):
     
     jira_text = f"""
 h1. {data.get('ticket_name', 'Untitled Ticket')}
-
 h2. Overview
 * **Complexity:** {data.get('complexity_score', 'N/A')}
 
 h2. Phase 1: Core MVP
 * **Est. Time:** {data.get('development_time', 'N/A')}
 * **Est. Budget:** {p1_cost}
-{chr(10).join([f'* {feat}' for feat in data.get('mvp_features', [])])}
+"""
+    if "mvp_user_stories" in data:
+        for item in data.get('mvp_user_stories', []):
+            jira_text += f"\n*Story:* {item.get('story')}\n"
+            for ac in item.get('acceptance_criteria', []):
+                jira_text += f"** {ac}\n"
+    else:
+        jira_text += chr(10).join([f'* {feat}' for feat in data.get('mvp_features', [])]) + "\n"
 
+    jira_text += f"""
 h2. Phase 2: Future Enhancements
 * **Est. Extra Time:** {data.get('phase_2_time', 'N/A')}
 * **Est. Extra Budget:** {p2_cost}
