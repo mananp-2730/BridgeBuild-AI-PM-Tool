@@ -387,35 +387,28 @@ def main_app():
         with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
 
         st.divider()
-        col_left, col_right = st.columns([2, 1])
         
-        with col_left:
-            st.subheader("Engineering Ticket")
+        # --- PROGRESSIVE DISCLOSURE UI ---
+        with st.expander("Engineering Ticket Summary", expanded=True):
             st.info(f"**Summary:** {data.get('summary')}")
-            # --- NEW: AMBIGUITY DETECTOR UI ---
-            if data.get("ambiguity_flags"):
-                st.markdown("### PM Pre-Flight: Missing Context")
+            
+        if data.get("ambiguity_flags"):
+            with st.expander("PM Pre-Flight: Missing Context", expanded=False):
                 for flag in data.get("ambiguity_flags", []):
                     st.warning(f"{flag}")
-            # ----------------------------------
-            
-            # --- NEW: AGILE MVP PHASING UI ---
-            st.markdown("### Phase 1: Core MVP")
-            
-            # Smart Check: If it's a new Agile ticket, show stories. If it's an old ticket, show bullet points.
+                    
+        with st.expander("Phase 1: Core MVP", expanded=False):
             if "mvp_user_stories" in data:
                 for item in data.get("mvp_user_stories", []):
-                    with st.expander(f" {item.get('story', 'User Story')}", expanded=False):
-                        st.markdown("**Acceptance Criteria:**")
-                        for ac in item.get("acceptance_criteria", []):
-                            st.markdown(f"- {ac}")
+                    st.markdown(f"**{item.get('story', 'User Story')}**")
+                    for ac in item.get("acceptance_criteria", []):
+                        st.markdown(f"  * {ac}")
+                    st.write("") # Small visual spacer
             else:
                 for feat in data.get("mvp_features", []):
                     st.markdown(f"- {feat}")
-                
-            st.markdown("### Phase 2: Future Enhancements")
-            
-            # Convert Phase 2 Budget Currency
+                    
+        with st.expander("Phase 2: Future Enhancements", expanded=False):
             p2_raw = data.get("phase_2_budget_usd", "0-0")
             p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
             p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
@@ -425,22 +418,19 @@ def main_app():
             st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
             for feat in data.get("phase_2_features", []):
                 st.markdown(f"- {feat}")
-            # ---------------------------
-            
-            st.markdown("### Technical Risks")
+                
+        with st.expander("Technical Risks", expanded=False):
             for risk in data.get("technical_risks", []):
                 st.warning(f"- {risk}")
                 
-            st.markdown("### Suggested Tech Stack")
+        with st.expander("Suggested Tech Stack", expanded=False):
             st.code("\n".join(data.get("suggested_stack", [])), language="bash")
-
-        with col_right:
-            st.subheader("Data Schema")
-            st.write("Primary Entities:")
+            
+        with st.expander("Data Schema", expanded=False):
+            st.write("**Primary Entities:**")
             for entity in data.get("primary_entities", []):
                 st.success(f"🆔 {entity}")
-        
-        # --- EXPORT ACTIONS ---
+
         # --- EXPORT ACTIONS ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
