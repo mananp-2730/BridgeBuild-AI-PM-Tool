@@ -589,7 +589,7 @@ def main_app():
                     except Exception as e:
                         st.error(f"Failed to refine: {str(e)}")
 
-    # HISTORY SECTION
+    # --- HISTORY SECTION ---
     # --- HISTORY SECTION (Now fetching from Supabase!) ---
     st.divider()
     st.subheader("Saved Tickets History")
@@ -607,11 +607,32 @@ def main_app():
                     
                     past_data = json.loads(item['full_data'])
                     
-                    hist_col1, hist_col2 = st.columns(2)
-                    with hist_col1:
-                        st.write(f"**Est. Cost:** {item['cost']}")
-                    with hist_col2:
-                        st.write(f"**Timeline:** {item['time']}")
+                    # --- INDIVIDUAL HISTORY ACTIONS ---
+                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
+                    
+                    with hist_btn_col1:
+                        st.download_button(
+                            label="Download PDF",
+                            data=create_pdf(past_data, currency, ticket_type="detailed"),
+                            file_name=f"ticket_{item['id'][:8]}.pdf",
+                            mime="application/pdf",
+                            key=f"hist_pdf_{item['id']}",
+                            use_container_width=True
+                        )
+                    with hist_btn_col2:
+                        st.markdown(
+                            f"""<a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
+                                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email Team</button>
+                            </a>""", unsafe_allow_html=True
+                        )
+                    with hist_btn_col3:
+                        # The new Individual Delete Button!
+                        if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
+                            try:
+                                supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                st.rerun() # Instantly refresh the UI to remove the deleted ticket
+                            except Exception as e:
+                                st.error(f"Failed to delete ticket: {str(e)}")
                     
                     st.write("") 
                     
