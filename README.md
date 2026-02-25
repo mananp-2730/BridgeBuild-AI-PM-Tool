@@ -16,6 +16,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 * Technical Risk Analysis (Flagging scalability, compliance, or legacy integration risks)
 * Dynamic Budget Estimation (Calculates Dev Time & Cost in USD/INR)
 * **[NEW]** AI Co-Pilot Iteration (Refine tickets instantly via chat)
+* **[NEW]** Progressive Disclosure UI (Clean, collapsible data views to eliminate cognitive overload)
 
 ## Tech Stack
 * **Core Logic:** Python 3.11
@@ -26,6 +27,8 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 ## Key Features
 | Feature | Description |
 | :--- | :--- |
+| **Progressive Disclosure UI** | Organizes massive amounts of technical data into clean, collapsible sections so users are never overwhelmed by information density. |
+| **Granular History Management** | Securely stores past generated tickets with individual deletion controls and 1-click PDF/Email retrieval. |
 | **Ambiguity Detection** | Identifies vague terms like "seamless integration" and translates them into specific tech requirements (APIs, Webhooks). |
 | **Smart Costing** | Estimates development costs based on rate cards (US Agency vs. Freelancer) and complexity. |
 | **Risk Flagging** | Automatically detects compliance issues (GDPR, HIPAA) and infrastructure bottlenecks. |
@@ -38,9 +41,11 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
    ```bash
    git clone [https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git](https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git)
    cd BridgeBuild-AI-PM-Tool
-2. **Install dependencies**
+
+2. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
+
 3. **Set up your API Keys**
    Create a folder named .streamlit in the root directory and create a secrets.toml file inside it:
    ```toml
@@ -48,20 +53,20 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
    [supabase]
    SUPABASE_URL = "your_supabase_project_url"
    SUPABASE_KEY = "your_supabase_anon_key"
+
 4. **Run the application**
    ```bash
    streamlit run app.py
 
-
-Roadmap:
-
-Completed Milestones 
+## Roadmap
+Completed Milestones - 
+- [x] Progressive Disclosure UI: Streamlined interface to reduce cognitive load.
+- [x] Granular Database History: Save, manage, and specifically delete session history.
 - [x] User Authentication: Secure login for team collaboration.
-- [x] Persistent Database: Save session history to the cloud.
 - [x] Auto API Integration: Hidden backend keys for a seamless user experience.
 - [x] Advanced Workflows: 1-click email drafts and Jira markup generation.
-
-Upcoming Features 
+      
+Upcoming Features - 
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
 - [ ] Dark/Light Mode Toggle: Custom UI theme overrides for accessibility.
 - [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
