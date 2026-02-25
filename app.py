@@ -666,15 +666,18 @@ def main_app():
                     
                     hist_body += "\nFull data schema is attached in the PDF.\n\nBest,\nProduct Management"
                     
+                    # --- 1. DEFINE THE MAILTO VARIABLE HERE ---
                     hist_subj_enc = urllib.parse.quote(f"Engineering Ticket: {hist_ticket_name}")
                     hist_body_enc = urllib.parse.quote(hist_body)
                     hist_mailto = f"mailto:?subject={hist_subj_enc}&body={hist_body_enc}"
 
-                    hist_btn_col1, hist_btn_col2 = st.columns(2)
+                    # --- 2. INDIVIDUAL HISTORY ACTIONS ---
+                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
+                    
                     with hist_btn_col1:
                         st.download_button(
                             label="Download PDF",
-                            data=create_pdf(past_data, currency),
+                            data=create_pdf(past_data, currency, ticket_type="detailed"),
                             file_name=f"ticket_{item['id'][:8]}.pdf",
                             mime="application/pdf",
                             key=f"hist_pdf_{item['id']}",
@@ -686,7 +689,15 @@ def main_app():
                                 <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email Team</button>
                             </a>""", unsafe_allow_html=True
                         )
-                    
+                    with hist_btn_col3:
+                        # The new Individual Delete Button!
+                        if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
+                            try:
+                                supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                st.rerun() # Instantly refresh the UI to remove the deleted ticket
+                            except Exception as e:
+                                st.error(f"Failed to delete ticket: {str(e)}")
+                                
                     st.write("") 
                     with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
                         st.code(generate_jira_format(past_data, currency), language="jira")
