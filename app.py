@@ -396,7 +396,7 @@ def main_app():
             if data.get("ambiguity_flags"):
                 st.markdown("### PM Pre-Flight: Missing Context")
                 for flag in data.get("ambiguity_flags", []):
-                    st.warning(f"? {flag}")
+                    st.warning(f"{flag}")
             # ----------------------------------
             
             # --- NEW: AGILE MVP PHASING UI ---
