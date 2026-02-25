@@ -392,6 +392,12 @@ def main_app():
         with col_left:
             st.subheader("Engineering Ticket")
             st.info(f"**Summary:** {data.get('summary')}")
+            # --- NEW: AMBIGUITY DETECTOR UI ---
+            if data.get("ambiguity_flags"):
+                st.markdown("### PM Pre-Flight: Missing Context")
+                for flag in data.get("ambiguity_flags", []):
+                    st.warning(f"? {flag}")
+            # ----------------------------------
             
             # --- NEW: AGILE MVP PHASING UI ---
             st.markdown("### Phase 1: Core MVP")
