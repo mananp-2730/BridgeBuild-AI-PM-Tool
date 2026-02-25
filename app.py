@@ -657,7 +657,7 @@ def main_app():
                     with hist_btn_col2:
                         st.markdown(
                             f"""<a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
-                                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">✉️ Email Team</button>
+                                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">Email Team</button>
                             </a>""", unsafe_allow_html=True
                         )
                     with hist_btn_col3:
