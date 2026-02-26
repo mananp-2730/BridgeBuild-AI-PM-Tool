@@ -307,6 +307,12 @@ def main_app():
     # --- NEW: FILE UPLOADER UI ---
     uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
+    # --- UI POLISH: RENDER AUDIO PLAYER ---
+    if uploaded_file:
+        file_ext = uploaded_file.name.split('.')[-1].lower()
+        if file_ext in ['mp3', 'wav', 'm4a']:
+            st.audio(uploaded_file)
+            
     sales_input = st.text_area("Paste Text or Add Extra Context:", 
         value=st.session_state.sales_input,
         height=150, 
