@@ -16,6 +16,8 @@ from google.genai import types
 from supabase import create_client, Client
 import json
 import urllib.parse
+import tempfile
+import os
 
 # -------------------------------------------------------------
 # 1. PAGE CONFIG (Must absolutely be the first Streamlit command)
