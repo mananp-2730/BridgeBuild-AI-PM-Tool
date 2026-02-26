@@ -322,8 +322,8 @@ def main_app():
     if st.button("Generate Ticket & Budget"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline. Please contact support.")
-        elif not sales_input:
-            st.warning("Please enter a sales request.")
+        elif not sales_input and not uploaded_file: # Require at least one!
+            st.warning("Please enter text or upload a file to proceed.")
         else:
             try:
                 client = genai.Client(api_key=api_key)
@@ -331,6 +331,31 @@ def main_app():
                 
                 with st.spinner("Consulting Engineering & Finance Teams..."):
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+                    
+                    # --- MULTIMODAL INGESTION LOGIC ---
+                    prompt_contents = []
+                    
+                    # If user uploaded a file, safely send it to Gemini
+                    if uploaded_file:
+                        st.toast("Processing file...", icon="⏳")
+                        # Save Streamlit's UploadedFile to a temporary local file
+                        file_ext = f".{uploaded_file.name.split('.')[-1]}"
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
+                            tmp.write(uploaded_file.getvalue())
+                            tmp_path = tmp.name
+                        
+                        # Upload to Google Gemini's File API
+                        gemini_file = client.files.upload(file=tmp_path)
+                        prompt_contents.append(gemini_file)
+                        
+                        # Clean up our local temp file
+                        os.remove(tmp_path)
+                    
+                    # Add text prompt (either the main request or extra context for the audio)
+                    text_instruction = sales_input if sales_input else "Analyze this meeting recording/transcript and generate the standard engineering ticket."
+                    prompt_contents.append(text_instruction)
+                    
+                    # Generate the content
                     response = client.models.generate_content(
                         model=model_id, 
                         config=types.GenerateContentConfig(
@@ -338,8 +363,14 @@ def main_app():
                             temperature=0.0,
                             response_mime_type="application/json"
                         ),
-                        contents=sales_input
+                        contents=prompt_contents
                     )
+                    
+                    # Clean up the Gemini server file so we don't waste your quota
+                    if uploaded_file:
+                        client.files.delete(name=gemini_file.name)
+                    # ----------------------------------
+                    
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
 
@@ -366,6 +397,7 @@ def main_app():
                     "full_data": response.text
                 }
                 db_res = supabase.table("tickets").insert(new_ticket).execute()
+                
                 # Save the database ID so we can update it if the user iterates
                 st.session_state.active_ticket_id = db_res.data[0]['id']
                 
