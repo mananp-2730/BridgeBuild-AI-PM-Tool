@@ -334,7 +334,16 @@ def main_app():
             try:
                 client = genai.Client(api_key=api_key)
                 SYSTEM_PROMPT = get_system_prompt(rate_type)
-                
+
+                # --- UI POLISH: DYNAMIC LOADING MESSAGE ---
+                loading_msg = "Consulting Engineering & Finance Teams..."
+                if uploaded_file:
+                    file_ext = uploaded_file.name.split('.')[-1].lower()
+                    if file_ext in ['mp3', 'wav', 'm4a']:
+                        loading_msg = "Listening to meeting audio & extracting requirements..."
+                    else:
+                        loading_msg = "Reading transcript & extracting requirements..."
+                        
                 with st.spinner("Consulting Engineering & Finance Teams..."):
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     
