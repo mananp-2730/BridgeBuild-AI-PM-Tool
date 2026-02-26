@@ -304,10 +304,13 @@ def main_app():
     if "sales_input" not in st.session_state:
         st.session_state.sales_input = ""
 
-    sales_input = st.text_area("Paste the Client Requirement / Sales Email:", 
+    # --- NEW: FILE UPLOADER UI ---
+    uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
+    
+    sales_input = st.text_area("Paste Text or Add Extra Context:", 
         value=st.session_state.sales_input,
         height=150, 
-        placeholder="Example: Client wants to merge the weighbridge and gate system...")
+        placeholder="Example: Client wants to merge the weighbridge... OR upload an audio file above and type extra notes here.")
 
     # --- 1. SESSION STATE FOR ACTIVE TICKET ---
     if "active_ticket" not in st.session_state:
