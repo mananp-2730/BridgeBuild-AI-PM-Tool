@@ -11,37 +11,37 @@ In B2B software companies, a major source of friction is the "Expectation Gap" b
 3.  Cost Estimation is often a guess, leading to underpriced contracts.
 
 ## The Solution
-BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client emails or meeting notes and generates:
+BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client emails, meeting notes, or **raw audio recordings** and generates:
 * Structured Engineering Tickets (JSON & Jira Markup)
 * Technical Risk Analysis (Flagging scalability, compliance, or legacy integration risks)
 * Dynamic Budget Estimation (Calculates Dev Time & Cost in USD/INR)
+* **[NEW]** Multimodal Audio Ingestion (Directly upload `.mp3`/`.wav` meeting recordings)
 * **[NEW]** AI Co-Pilot Iteration (Refine tickets instantly via chat)
-* **[NEW]** Progressive Disclosure UI (Clean, collapsible data views to eliminate cognitive overload)
+* **[NEW]** Progressive Disclosure UI (Clean, collapsible data views)
 
 ## Tech Stack
 * **Core Logic:** Python 3.11
-* **AI Engine:** Google Gemini 1.5 Flash & Pro (via `google-genai` SDK)
+* **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
 * **Frontend:** Streamlit 
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
 
 ## Key Features
 | Feature | Description |
 | :--- | :--- |
-| **Progressive Disclosure UI** | Organizes massive amounts of technical data into clean, collapsible sections so users are never overwhelmed by information density. |
+| **Multimodal Audio Ingestion** | Skip typing entirely. Upload Zoom meeting audio or transcripts and let the AI listen to the client's raw request. |
+| **Progressive Disclosure UI** | Organizes massive amounts of technical data into clean, collapsible sections so users are never overwhelmed. |
 | **Granular History Management** | Securely stores past generated tickets with individual deletion controls and 1-click PDF/Email retrieval. |
-| **Ambiguity Detection** | Identifies vague terms like "seamless integration" and translates them into specific tech requirements (APIs, Webhooks). |
+| **Ambiguity Detection** | Identifies vague terms like "seamless integration" and translates them into specific tech requirements. |
 | **Smart Costing** | Estimates development costs based on rate cards (US Agency vs. Freelancer) and complexity. |
-| **Risk Flagging** | Automatically detects compliance issues (GDPR, HIPAA) and infrastructure bottlenecks. |
-| **Enterprise Auth & DB** | Secure user accounts with persistent cloud storage. Row Level Security (RLS) ensures users only see their own data. |
-| **AI Co-Pilot** | Don't like the first draft? Use the built-in chat to instruct the AI to refine the tech stack, risks, or timeline on the fly. |
-| **1-Click Workflows** | Export professional PDFs, copy Jira markdown, or instantly draft a pre-formatted email to your engineering team. |
+| **Enterprise Auth & DB** | Secure user accounts with persistent cloud storage. Row Level Security (RLS) ensures data privacy. |
+| **AI Co-Pilot** | Use the built-in chat to instruct the AI to refine the tech stack, risks, or timeline on the fly. |
 
 ## Steps to Run Locally
 1. **Clone the repo**
    ```bash
    git clone [https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git](https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git)
    cd BridgeBuild-AI-PM-Tool
-
+   
 2. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
@@ -68,5 +68,4 @@ Completed Milestones -
       
 Upcoming Features - 
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
-- [ ] Dark/Light Mode Toggle: Custom UI theme overrides for accessibility.
 - [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
