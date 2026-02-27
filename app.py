@@ -483,6 +483,14 @@ def main_app():
             for entity in data.get("primary_entities", []):
                 st.success(f"🆔 {entity}")
 
+        # --- NEW: ARCHITECTURE FLOWCHART ---
+        with st.expander("Architecture & Flowchart", expanded=False):
+            if data.get("mermaid_diagram"):
+                # Streamlit natively renders mermaid code blocks!
+                st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
+            else:
+                st.info("No architecture diagram generated for this specific request.")
+
         # --- EXPORT ACTIONS ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
