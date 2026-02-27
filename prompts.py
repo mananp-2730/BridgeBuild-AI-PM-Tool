@@ -31,5 +31,6 @@ def get_system_prompt(rate_type):
         "technical_risks": ["Risk 1", "Risk 2"],
         "suggested_stack": ["Tech 1", "Tech 2"],
         "primary_entities": ["DB Entity 1", "DB Entity 2"]
+        "mermaid_diagram": "Generate a valid Mermaid.js flowchart (graph TD) showing the high-level system architecture or entity relationships for this request. Only use valid Mermaid syntax, do not use markdown ticks in the JSON string."
     }}
     """
