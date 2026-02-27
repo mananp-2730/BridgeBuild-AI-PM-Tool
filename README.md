@@ -59,13 +59,16 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
    streamlit run app.py
 
 ## Roadmap
-Completed Milestones - 
+
+**Completed Milestones** 
+- [x] Architecture Flowchart Generation: AI-generated native Mermaid.js diagrams.
+- [x] Multimodal Audio Ingestion: Process `.mp3`, `.wav`, and `.pdf` transcripts natively.
 - [x] Progressive Disclosure UI: Streamlined interface to reduce cognitive load.
 - [x] Granular Database History: Save, manage, and specifically delete session history.
 - [x] User Authentication: Secure login for team collaboration.
-- [x] Auto API Integration: Hidden backend keys for a seamless user experience.
-- [x] Advanced Workflows: 1-click email drafts and Jira markup generation.
-      
-Upcoming Features - 
+
+**Upcoming Features** 
+- [ ] Fast vs. Scalable Toggle: Dynamic tech stack recommendations based on project constraints.
+- [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
+- [ ] Epic & Sub-Task Splitter: Automatically break down high-complexity scores into manageable child tickets.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
-- [ ] Multi-Language Support: Generate tickets in Spanish/French for international clients.
