@@ -449,6 +449,17 @@ def main_app():
                 for flag in data.get("ambiguity_flags", []):
                     st.warning(f"{flag}")
                     
+        # --- NEW: EPIC SPLITTER UI ---
+        if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
+            with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
+                st.markdown("This request is highly complex. The AI has automatically broken the MVP down into manageable sub-tickets:")
+                for i, task in enumerate(data.get("epic_sub_tasks")):
+                    st.markdown(f"**{i+1}. {task.get('task_name', 'Sub-Task')}**")
+                    st.caption(f"Est. Time: {task.get('estimated_days', 'N/A')}")
+                    st.markdown(f"> {task.get('description', '')}")
+                    st.write("")
+        # -----------------------------
+                    
         with st.expander("Phase 1: Core MVP", expanded=False):
             if "mvp_user_stories" in data:
                 for item in data.get("mvp_user_stories", []):
