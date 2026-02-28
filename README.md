@@ -35,6 +35,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 | **Smart Costing** | Estimates development costs based on rate cards (US Agency vs. Freelancer) and complexity. |
 | **Enterprise Auth & DB** | Secure user accounts with persistent cloud storage. Row Level Security (RLS) ensures data privacy. |
 | **AI Co-Pilot** | Use the built-in chat to instruct the AI to refine the tech stack, risks, or timeline on the fly. |
+| **Epic Splitter** | Dynamically detects high-complexity requests and automatically breaks monolithic projects into manageable Agile sub-tasks. |
 
 ## Steps to Run Locally
 1. **Clone the repo**
@@ -66,9 +67,9 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 - [x] Progressive Disclosure UI: Streamlined interface to reduce cognitive load.
 - [x] Granular Database History: Save, manage, and specifically delete session history.
 - [x] User Authentication: Secure login for team collaboration.
+- [x] Epic & Sub-Task Splitter: Automatically break down high-complexity scores into manageable child tickets.
 
 **Upcoming Features** 
 - [ ] Fast vs. Scalable Toggle: Dynamic tech stack recommendations based on project constraints.
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
-- [ ] Epic & Sub-Task Splitter: Automatically break down high-complexity scores into manageable child tickets.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
