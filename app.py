@@ -344,7 +344,7 @@ def main_app():
         else:
             try:
                 client = genai.Client(api_key=api_key)
-                SYSTEM_PROMPT = get_system_prompt(rate_type)
+                SYSTEM_PROMPT = get_system_prompt(rate_type, build_strategy)
 
                 # --- UI POLISH: DYNAMIC LOADING MESSAGE ---
                 loading_msg = "Consulting Engineering & Finance Teams..."
