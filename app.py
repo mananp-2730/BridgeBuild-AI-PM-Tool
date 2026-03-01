@@ -275,6 +275,7 @@ def main_app():
             value="Balanced",
             help="Instructs the AI whether to prioritize rapid deployment or long-term scalability for the tech stack."
         )
+        st.write("")
         # ------------------------------------------
         
         # --- SAVE SETTINGS BUTTON ---
