@@ -266,7 +266,7 @@ def main_app():
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
         
-        # --- NEW: ARCHITECTURAL STRATEGY TOGGLE ---
+        # --- ARCHITECTURAL STRATEGY TOGGLE ---
         st.write("")
         st.subheader("Architectural Strategy")
         build_strategy = st.select_slider(
