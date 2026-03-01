@@ -64,6 +64,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 ## Roadmap
 
 **Completed Milestones** 
+- [x] Fast vs. Scalable Toggle: Dynamic tech stack recommendations based on project constraints.
 - [x] Architecture Flowchart Generation: AI-generated native Mermaid.js diagrams.
 - [x] Multimodal Audio Ingestion: Process `.mp3`, `.wav`, and `.pdf` transcripts natively.
 - [x] Progressive Disclosure UI: Streamlined interface to reduce cognitive load.
