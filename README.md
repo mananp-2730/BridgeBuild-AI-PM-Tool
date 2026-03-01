@@ -15,6 +15,7 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 * Structured Engineering Tickets (JSON & Jira Markup)
 * Technical Risk Analysis (Flagging scalability, compliance, or legacy integration risks)
 * Dynamic Budget Estimation (Calculates Dev Time & Cost in USD/INR)
+* **[NEW]** Architectural Strategy Toggle (Fast vs. Scalable)
 * **[NEW]** Multimodal Audio Ingestion (Directly upload `.mp3`/`.wav` meeting recordings)
 * **[NEW]** AI Co-Pilot Iteration (Refine tickets instantly via chat)
 * **[NEW]** Progressive Disclosure UI (Clean, collapsible data views)
@@ -28,6 +29,8 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 ## Key Features
 | Feature | Description |
 | :--- | :--- |
+| **Strategic Tech Stack Toggle** | Force the AI to prioritize rapid low-code deployment ("Speed") or enterprise-grade microservices ("Scale") based on project constraints. |
+| **Epic Splitter** | Dynamically detects high-complexity requests and automatically breaks monolithic projects into manageable Agile sub-tasks. |
 | **Multimodal Audio Ingestion** | Skip typing entirely. Upload Zoom meeting audio or transcripts and let the AI listen to the client's raw request. |
 | **Progressive Disclosure UI** | Organizes massive amounts of technical data into clean, collapsible sections so users are never overwhelmed. |
 | **Granular History Management** | Securely stores past generated tickets with individual deletion controls and 1-click PDF/Email retrieval. |
@@ -35,7 +38,6 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 | **Smart Costing** | Estimates development costs based on rate cards (US Agency vs. Freelancer) and complexity. |
 | **Enterprise Auth & DB** | Secure user accounts with persistent cloud storage. Row Level Security (RLS) ensures data privacy. |
 | **AI Co-Pilot** | Use the built-in chat to instruct the AI to refine the tech stack, risks, or timeline on the fly. |
-| **Epic Splitter** | Dynamically detects high-complexity requests and automatically breaks monolithic projects into manageable Agile sub-tasks. |
 
 ## Steps to Run Locally
 1. **Clone the repo**
