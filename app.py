@@ -266,6 +266,17 @@ def main_app():
             help="Flash is faster/cheaper. Pro is better for complex logic."
         )
         
+        # --- NEW: ARCHITECTURAL STRATEGY TOGGLE ---
+        st.write("")
+        st.subheader("Architectural Strategy")
+        build_strategy = st.select_slider(
+            "Project Focus:",
+            options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"],
+            value="Balanced",
+            help="Instructs the AI whether to prioritize rapid deployment or long-term scalability for the tech stack."
+        )
+        # ------------------------------------------
+        
         # --- SAVE SETTINGS BUTTON ---
         if st.button("Save Settings", use_container_width=True):
             new_prefs = {
