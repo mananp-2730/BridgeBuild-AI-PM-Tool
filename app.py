@@ -277,6 +277,7 @@ def main_app():
         )
         st.write("")
         st.write("")
+        st.divider()
         # ------------------------------------------
         
         # --- SAVE SETTINGS BUTTON ---
