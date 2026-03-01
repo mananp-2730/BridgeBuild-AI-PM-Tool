@@ -73,7 +73,6 @@ BridgeBuild AI acts as an intelligent feasibility layer. It takes raw client ema
 - [x] Epic & Sub-Task Splitter: Automatically break down high-complexity scores into manageable child tickets.
 
 **Upcoming Features** 
-- [ ] Fast vs. Scalable Toggle: Dynamic tech stack recommendations based on project constraints.
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
 
