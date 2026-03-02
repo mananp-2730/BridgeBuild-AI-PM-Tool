@@ -178,6 +178,10 @@ def login_page():
                         response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state.user = response.user
                         st.session_state.logged_in = True
+                        
+                        # --- NEW: CAPTURE THEIR DEPARTMENT ROLE ---
+                        st.session_state.user_role = get_user_role(response.user.id)
+                        # ------------------------------------------
                         st.success("Success! Loading dashboard...")
                         st.rerun()
                     except Exception as e:
