@@ -46,6 +46,19 @@ if "history" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+# --- NEW: ROLE FETCHING FUNCTION ---
+def get_user_role(user_id):
+    """Fetches the user's department role from Supabase."""
+    try:
+        response = supabase.table("profiles").select("role").eq("id", user_id).execute()
+        if response.data and len(response.data) > 0:
+            return response.data[0]["role"]
+        return "pm" # Default fallback
+    except Exception as e:
+        print(f"Error fetching role: {e}")
+        return "pm"
+
+
 # -------------------------------------------------------------
 # 3. CUSTOM CSS
 # -------------------------------------------------------------
