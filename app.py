@@ -224,6 +224,10 @@ def main_app():
                 """, 
                 unsafe_allow_html=True
             )
+            
+        # --- NEW: VISUAL CONFIRMATION ---
+        st.caption(f"Department: {st.session_state.get('user_role', 'Unknown').upper()}")
+        # --------------------------------
         # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
         st.write("")
