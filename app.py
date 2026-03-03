@@ -20,7 +20,7 @@ import tempfile
 import os
 
 # -------------------------------------------------------------
-# 1. PAGE CONFIG (Must absolutely be the first Streamlit command)
+# 1. PAGE CONFIG
 # -------------------------------------------------------------
 st.set_page_config(
         page_title="BridgeBuild AI",
@@ -35,7 +35,7 @@ st.set_page_config(
 @st.cache_resource
 def init_supabase():
     url = st.secrets["supabase"]["SUPABASE_URL"]
-    key = st.secrets["supabase"]["SUPABASE_KEY"]
+    key = st.secrets["supabase"]["SUP0ABASE_KEY"]
     return create_client(url, key)
 
 supabase = init_supabase()
@@ -57,7 +57,7 @@ def get_user_role(user_id):
     except Exception as e:
         print(f"Error fetching role: {e}")
         return "pm"
-
+# -----------------------------------
 
 # -------------------------------------------------------------
 # 3. CUSTOM CSS
@@ -129,7 +129,7 @@ def setup_custom_styling():
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 4. LOGIN PAGE WITH ROLE INTEGRATION (LOCKED - COMPACT & BLUE)
+# 4. LOGIN PAGE (LOCKED - COMPACT & BLUE)
 # -------------------------------------------------------------
 def login_page():
     st.markdown("""
@@ -203,7 +203,7 @@ def login_page():
                         st.error(f"Signup failed: {str(e)}")
             
             st.markdown("<div style='text-align: center; color: grey; font-size: 11px; margin-top: 10px;'>Protected by Enterprise Security</div>", unsafe_allow_html=True)
-            
+
 # -------------------------------------------------------------
 # 5. PM DASHBOARD (Formerly MAIN APP)
 # -------------------------------------------------------------
@@ -225,10 +225,11 @@ def pm_dashboard():
                 """, 
                 unsafe_allow_html=True
             )
-            
+        
         # --- NEW: VISUAL CONFIRMATION ---
         st.caption(f"Department: {st.session_state.get('user_role', 'Unknown').upper()}")
         # --------------------------------
+
         # Load the API key for backend use
         api_key = st.secrets.get("GOOGLE_API_KEY")
         st.write("")
@@ -340,7 +341,7 @@ def pm_dashboard():
     if "sales_input" not in st.session_state:
         st.session_state.sales_input = ""
 
-    # --- NEW: FILE UPLOADER UI ---
+    # --- FILE UPLOADER UI ---
     uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
     # --- UI POLISH: RENDER AUDIO PLAYER ---
@@ -380,7 +381,7 @@ def pm_dashboard():
                     else:
                         loading_msg = "Reading transcript & extracting requirements..."
                         
-                with st.spinner("Consulting Engineering & Finance Teams..."):
+                with st.spinner(loading_msg):
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     
                     # --- MULTIMODAL INGESTION LOGIC ---
@@ -485,7 +486,7 @@ def pm_dashboard():
                 for flag in data.get("ambiguity_flags", []):
                     st.warning(f"{flag}")
                     
-        # --- NEW: EPIC SPLITTER UI ---
+        # --- EPIC SPLITTER UI ---
         if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
             with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
                 st.markdown("This request is highly complex. The AI has automatically broken the MVP down into manageable sub-tickets:")
@@ -530,7 +531,7 @@ def pm_dashboard():
             for entity in data.get("primary_entities", []):
                 st.success(f"🆔 {entity}")
 
-        # --- NEW: ARCHITECTURE FLOWCHART ---
+        # --- ARCHITECTURE FLOWCHART ---
         with st.expander("Architecture & Flowchart", expanded=False):
             if data.get("mermaid_diagram"):
                 # Streamlit natively renders mermaid code blocks!
@@ -813,7 +814,7 @@ def sales_dashboard():
     if st.button("Analyze Request"):
         # We will build the Gemini logic for this next time!
         st.info("Analysis triggered! (Logic to be implemented)")
-        
+
 # -------------------------------------------------------------
 # 7. ROUTING LOGIC
 # -------------------------------------------------------------
