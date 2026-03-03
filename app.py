@@ -205,9 +205,9 @@ def login_page():
             st.markdown("<div style='text-align: center; color: grey; font-size: 11px; margin-top: 10px;'>Protected by Enterprise Security</div>", unsafe_allow_html=True)
             
 # -------------------------------------------------------------
-# 5. MAIN APP
+# 5. PM DASHBOARD (Formerly MAIN APP)
 # -------------------------------------------------------------
-def main_app():
+def pm_dashboard():
     setup_custom_styling()
     
     with st.sidebar:
