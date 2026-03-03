@@ -790,7 +790,32 @@ def pm_dashboard():
     st.markdown(footer_html, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 6. ROUTING LOGIC
+# 6. SALES DASHBOARD (Simplified View)
+# -------------------------------------------------------------
+def sales_dashboard():
+    setup_custom_styling()
+    
+    with st.sidebar:
+        st.markdown("### Sales Portal")
+        st.write(f"Logged in as: {st.session_state.get('user_role', 'Unknown').upper()}")
+        
+        st.divider()
+        if st.button("Logout", key="sales_logout"):
+            st.session_state.logged_in = False
+            st.rerun()
+
+    st.title("BridgeBuild AI - Sales Intake")
+    st.markdown("### Quickly validate requirements and get estimated timelines.")
+
+    uploaded_file = st.file_uploader("Upload Client Audio (.mp3, .wav)", type=["mp3", "wav", "m4a"])
+    sales_input = st.text_area("Or Paste Notes:", height=150, placeholder="Example: Client needs a basic e-commerce site with Stripe integration.")
+
+    if st.button("Analyze Request"):
+        # We will build the Gemini logic for this next time!
+        st.info("Analysis triggered! (Logic to be implemented)")
+        
+# -------------------------------------------------------------
+# 7. ROUTING LOGIC
 # -------------------------------------------------------------
 if st.session_state.logged_in:
     main_app()
