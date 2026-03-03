@@ -818,6 +818,15 @@ def sales_dashboard():
 # 7. ROUTING LOGIC
 # -------------------------------------------------------------
 if st.session_state.logged_in:
-    main_app()
+    role = st.session_state.get("user_role", "pm") # Default to pm if missing
+    
+    if role == "sales":
+        sales_dashboard()
+    elif role == "pm":
+        pm_dashboard()
+    else:
+        # Fallback for unrecognized roles (design, engineering, freelancer)
+        st.warning(f"Dashboard for role '{role}' is currently under development. Loading PM Dashboard.")
+        pm_dashboard()
 else:
     login_page()
