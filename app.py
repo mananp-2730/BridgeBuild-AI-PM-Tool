@@ -129,7 +129,7 @@ def setup_custom_styling():
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 4. LOGIN PAGE (LOCKED - COMPACT & BLUE)
+# 4. LOGIN PAGE WITH ROLE INTEGRATION (LOCKED - COMPACT & BLUE)
 # -------------------------------------------------------------
 def login_page():
     st.markdown("""
@@ -179,9 +179,10 @@ def login_page():
                         st.session_state.user = response.user
                         st.session_state.logged_in = True
                         
-                        # --- NEW: CAPTURE THEIR DEPARTMENT ROLE ---
+                        # --- CAPTURE THEIR DEPARTMENT ROLE ---
                         st.session_state.user_role = get_user_role(response.user.id)
-                        # ------------------------------------------
+                        # -------------------------------------
+                        
                         st.success("Success! Loading dashboard...")
                         st.rerun()
                     except Exception as e:
