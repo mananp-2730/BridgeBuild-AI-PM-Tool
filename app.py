@@ -16,6 +16,7 @@ st.set_page_config(
 
 # 2. IMPORT OUR NEW DASHBOARDS
 from pm_dashboard import render_pm_dashboard
+from admin_dashboard import render_admin_dashboard
 from sales_dashboard import render_sales_dashboard
 from supabase import create_client
 
