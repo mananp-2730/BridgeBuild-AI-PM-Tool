@@ -113,10 +113,7 @@ if st.session_state.logged_in:
     elif role == "pm":
         render_pm_dashboard(supabase) # PM needs database access
     elif role == "admin":
-        st.title("Admin Portal Coming Soon! 🛠️")
-        if st.button("Logout"):
-            st.session_state.logged_in = False
-            st.rerun()
+        render_admin_dashboard(supabase)
     else:
         st.warning(f"Dashboard for role '{role}' is currently under development. Loading PM Dashboard.")
         render_pm_dashboard(supabase)
