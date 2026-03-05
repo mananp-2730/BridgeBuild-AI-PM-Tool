@@ -7,7 +7,7 @@ from google.genai import types
 from prompts import get_sales_prompt
 from utils import clean_json_output, convert_currency
 
-def render_sales_dashboard():
+def render_sales_dashboard(supabase):
     with st.sidebar:
         st.markdown("### Sales Portal")
         st.write(f"Logged in as: {st.session_state.get('user_role', 'Unknown').upper()}")
@@ -22,7 +22,6 @@ def render_sales_dashboard():
 
     uploaded_file = st.file_uploader("Upload Client Audio (.mp3, .wav)", type=["mp3", "wav", "m4a"])
     
-    # Render audio player if they upload a file
     if uploaded_file:
         file_ext = uploaded_file.name.split('.')[-1].lower()
         if file_ext in ['mp3', 'wav', 'm4a']:
@@ -79,6 +78,7 @@ def render_sales_dashboard():
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
 
+                # --- 1. RENDER THE RESULTS ---
                 st.write("")
                 score = data.get("feasibility_score", "Yellow")
                 if "Green" in score:
@@ -106,13 +106,51 @@ def render_sales_dashboard():
                 col_q, col_r = st.columns(2)
                 with col_q:
                     st.subheader("The 'Ask' List")
-                    st.caption("Critical missing info to ask the client:")
                     for q in data.get("client_questions", []): st.info(f"{q}")
                         
                 with col_r:
                     st.subheader("Deal Breakers")
-                    st.caption("Major risks to watch out for:")
                     for r in data.get("deal_breakers", []): st.error(f"{r}")
+
+                # --- 2. SAVE TO SUPABASE ---
+                new_ticket = {
+                    "user_id": st.session_state.user.id,
+                    "summary": data.get("project_summary", "Sales Intake"),
+                    "cost": f"{fmt_low} - {fmt_high}",
+                    "raw_cost": raw_cost,
+                    "complexity": score, 
+                    "time": data.get("estimated_timeline", "Unknown"),
+                    "full_data": response.text
+                }
+                supabase.table("tickets").insert(new_ticket).execute()
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
+
+    # --- 3. SALES HISTORY SECTION ---
+    st.divider()
+    st.subheader("Saved Sales Quotes")
+    
+    try:
+        db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
+        saved_tickets = db_response.data
+        
+        if saved_tickets:
+            for item in saved_tickets:
+                with st.expander(f"Quote: {item['summary'][:60]}..."):
+                    past_data = json.loads(item['full_data'])
+                    
+                    score = past_data.get('feasibility_score', 'Unknown')
+                    st.markdown(f"**Feasibility:** {score}")
+                    st.markdown(f"**Budget:** {item['cost']}")
+                    st.markdown(f"**Timeline:** {item['time']}")
+                    
+                    st.write("")
+                    if st.button("Delete Quote", key=f"del_sales_{item['id']}", use_container_width=True):
+                        supabase.table("tickets").delete().eq("id", item['id']).execute()
+                        st.rerun() 
+        else:
+            st.info("No saved quotes yet. Run an analysis above!")
+            
+    except Exception as e:
+        st.error(f"Could not load history: {str(e)}")
