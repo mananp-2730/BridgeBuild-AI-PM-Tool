@@ -42,7 +42,7 @@ def render_sales_dashboard(supabase):
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
     rate_type = st.session_state.get("user_prefs", {}).get("rate_standard", "US Agency ($150/hr)")
-    currency = st.session_state.get("user_prefs", {}).get("currency", "USD ($)")
+    currency = display_currency
     model_choice = st.session_state.get("user_prefs", {}).get("ai_model", "Gemini 1.5 Flash (Fast)")
 
     if st.button("Analyze Request", type="primary"):
