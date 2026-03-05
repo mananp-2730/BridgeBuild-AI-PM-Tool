@@ -153,11 +153,17 @@ def render_sales_dashboard(supabase):
                     
                     score = past_data.get('feasibility_score', 'Unknown')
                     
-                    # --- UPGRADED HISTORY UI ---
+                    # --- DYNAMIC CURRENCY RECALCULATION ---
+                    hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
+                    hist_low = hist_raw_cost.split("-")[0] if "-" in hist_raw_cost else hist_raw_cost
+                    hist_high = hist_raw_cost.split("-")[1] if "-" in hist_raw_cost else hist_raw_cost
+                    hist_fmt_low = convert_currency(hist_low, display_currency)
+                    hist_fmt_high = convert_currency(hist_high, display_currency)
+                    
                     # 1. Top Level Metrics
                     col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1: st.metric("Feasibility", score)
-                    with col_m2: st.metric("Budget", item['cost'])
+                    with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") # <-- Now it translates instantly!
                     with col_m3: st.metric("Timeline", item['time'])
                     
                     st.divider()
