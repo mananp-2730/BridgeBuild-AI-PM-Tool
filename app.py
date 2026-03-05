@@ -109,7 +109,7 @@ if st.session_state.logged_in:
     role = st.session_state.get("user_role", "pm") 
     
     if role == "sales":
-        render_sales_dashboard()
+        render_sales_dashboard(supabase)
     elif role == "pm":
         render_pm_dashboard(supabase) # PM needs database access
     elif role == "admin":
