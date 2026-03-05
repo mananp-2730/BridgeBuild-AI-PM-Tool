@@ -141,11 +141,29 @@ def render_sales_dashboard(supabase):
                     past_data = json.loads(item['full_data'])
                     
                     score = past_data.get('feasibility_score', 'Unknown')
-                    st.markdown(f"**Feasibility:** {score}")
-                    st.markdown(f"**Budget:** {item['cost']}")
-                    st.markdown(f"**Timeline:** {item['time']}")
+                    
+                    # --- UPGRADED HISTORY UI ---
+                    # 1. Top Level Metrics
+                    col_m1, col_m2, col_m3 = st.columns(3)
+                    with col_m1: st.metric("Feasibility", score)
+                    with col_m2: st.metric("Budget", item['cost'])
+                    with col_m3: st.metric("Timeline", item['time'])
+                    
+                    st.divider()
+                    
+                    # 2. The Missing Details!
+                    col_q, col_r = st.columns(2)
+                    with col_q:
+                        st.markdown("##### The 'Ask' List")
+                        for q in past_data.get("client_questions", []): st.info(f"{q}")
+                            
+                    with col_r:
+                        st.markdown("##### Deal Breakers")
+                        for r in past_data.get("deal_breakers", []): st.error(f"{r}")
                     
                     st.write("")
+                    
+                    # 3. Delete Action
                     if st.button("Delete Quote", key=f"del_sales_{item['id']}", use_container_width=True):
                         supabase.table("tickets").delete().eq("id", item['id']).execute()
                         st.rerun() 
