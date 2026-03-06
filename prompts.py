@@ -110,7 +110,7 @@ def get_design_prompt():
         "ui_components_needed": ["Primary CTA Button", "Data Table", "Profile Avatar", "Slide-out Modal"],
         "design_theme": {
             "vibe": "e.g., Minimalist, trustworthy, high-contrast",
-            "primary_color_suggestion": "e.g., Deep Trust Blue (#012169)"
+            "primary_color_suggestion": "ONLY a valid 6-character hex code, e.g., #012169"
         },
         "accessibility_a11y": ["High contrast text (WCAG AA)", "Touch-friendly tap targets (44x44px)"]
     }
