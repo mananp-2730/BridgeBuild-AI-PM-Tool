@@ -24,18 +24,11 @@ BridgeBuild AI acts as an intelligent, multi-tenant feasibility layer. A single 
 * **Frontend:** Streamlit 
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
 
-## Project Architecture
-The application uses a lightweight, modular routing system to prevent technical debt and allow infinite horizontal scaling for new roles:
-BridgeBuild-AI-PM-Tool/
-├── app.py                   # Router(Login, Auth, Routing)
-├── admin_dashboard.py       # RBAC & User Management UI
-├── pm_dashboard.py          # PM Agile & Architecture Logic
-├── sales_dashboard.py       # Sales Feasibility & Quoting Logic
-├── design_dashboard.py      # UX/UI Generation Logic
-├── prompts.py               # Centralized AI Personalities
-├── utils.py                 # Helper functions (JSON cleaning, currency, PDF)
-└── requirements.txt
-
+## Key value adding features:
+* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema and budget.
+* **Shape-Shifting AI Brains:** The application acts as four different SaaS products in one. The UI, logic, and core LLM system prompts dynamically rewrite themselves the exact moment a user logs into their specific department role.
+* **Generative Visuals & Flowcharts:** Moves beyond standard text generation by rendering native Mermaid.js architecture diagrams for Engineers and extracting/rendering live CSS Hex color swatches for Designers.
+* **Real-Time Dynamic Quoting:** Instantly toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical CRM records on the fly without database refreshes.
 
 ## Steps to Run Locally
 1. **Clone the repo**
