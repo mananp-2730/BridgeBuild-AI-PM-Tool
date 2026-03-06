@@ -6,6 +6,7 @@ from google import genai
 from google.genai import types
 from prompts import get_design_prompt
 from utils import clean_json_output
+import re
 
 def render_design_dashboard(supabase):
     with st.sidebar:
