@@ -113,6 +113,8 @@ if st.session_state.logged_in:
         render_sales_dashboard(supabase)
     elif role == "pm":
         render_pm_dashboard(supabase) # PM needs database access
+    elif role == "design":
+        render_design_dashboard(supabase)
     elif role == "admin":
         render_admin_dashboard(supabase)
     else:
