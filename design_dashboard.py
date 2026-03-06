@@ -83,12 +83,15 @@ def render_design_dashboard(supabase):
                 
                 theme = data.get("design_theme", {})
                 vibe = theme.get("vibe", "Modern & Clean")
-                hex_color = theme.get("primary_color_suggestion", "#012169")
+                raw_color_text = theme.get("primary_color_suggestion", "#012169")
                 
-                # Render a visual color block
+                # --- SAFETY NET: Extract just the hex code using regex ---
+                match = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', raw_color_text)
+                safe_hex = match.group(0) if match else "#012169"
+                
+                # Render a visual color block (Backticks removed, text shadow added for readability!)
                 st.markdown(f"### The Vibe: {vibe}")
-                st.markdown(f"**Suggested Primary Color:** `<span style='background-color: {hex_color}; color: white; padding: 4px 8px; border-radius: 4px;'>{hex_color}</span>`", unsafe_allow_html=True)
-                
+                st.markdown(f"**Suggested Primary Color:** <span style='background-color: {safe_hex}; color: white; padding: 6px 10px; border-radius: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);'>{raw_color_text}</span>", unsafe_allow_html=True)                
                 st.info(f"**Project Vision:** {data.get('project_vision')}")
                 st.write(f"**Target Audience:** {data.get('target_audience')}")
                 
