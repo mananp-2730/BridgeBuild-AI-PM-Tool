@@ -126,12 +126,14 @@ def render_pm_dashboard(supabase):
                 SYSTEM_PROMPT = get_system_prompt(rate_type, build_strategy)
                 loading_msg = "Consulting Engineering & Finance Teams..."
                 
-                with st.spinner(loading_msg):
+                # --- PREMIUM WAITING ROOM EXPERIENCE (PM) ---
+                with st.status("Consulting Engineering & Finance Teams...", expanded=True) as status:
+                    st.write("Parsing input and extracting requirements...")
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.toast("Processing file...", icon="⏳")
+                        st.write("Processing multi-modal audio/document file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
@@ -141,6 +143,7 @@ def render_pm_dashboard(supabase):
                         prompt_contents.append(gemini_file)
                         os.remove(tmp_path)
                     
+                    st.write(f"Generating Architecture (Strategy: {build_strategy})...")
                     text_instruction = sales_input if sales_input else "Analyze this meeting recording/transcript."
                     prompt_contents.append(text_instruction)
                     
@@ -150,11 +153,15 @@ def render_pm_dashboard(supabase):
                         contents=prompt_contents
                     )
                     
-                    if uploaded_file: client.files.delete(name=gemini_file.name)
+                    if uploaded_file:
+                        st.write("Cleaning up temporary files...")
+                        client.files.delete(name=gemini_file.name)
                     
+                    st.write("Structuring Epics, Stories, and Budgets...")
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
-
+                    
+                    status.update(label="Agile Ticket Generated!", state="complete", expanded=False)
                 st.session_state.active_ticket = data
                 st.success("Analysis Complete!")
 
