@@ -104,6 +104,52 @@ def login_page():
                     except Exception as e:
                         st.error(f"Signup failed: {str(e)}")
 
+def render_global_sidebar(supabase):
+    with st.sidebar:
+        col_logo, col_text = st.columns([0.2, 0.8])
+        with col_logo: st.image("Logo_bg_removed.png", width=40)
+        with col_text:
+            st.markdown("<h3 style='margin: 0; padding-top: 8px; font-size: 18px;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
+            
+        st.caption(f"Role: {st.session_state.get('user_role', 'Unknown').upper()}")
+        st.divider()
+
+        # Fetch Preferences
+        if "user_prefs" not in st.session_state:
+            try:
+                res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).execute()
+                st.session_state.user_prefs = res.data[0] if res.data else {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+            except:
+                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+
+        st.markdown("#### Global Settings")
+        curr_opts = ["USD ($)", "INR (₹)"]
+        rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
+        model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
+
+        # Safely get indexes
+        curr_idx = curr_opts.index(st.session_state.user_prefs.get("currency", "USD ($)")) if st.session_state.user_prefs.get("currency") in curr_opts else 0
+        rate_idx = rate_opts.index(st.session_state.user_prefs.get("rate_standard", "US Agency ($150/hr)")) if st.session_state.user_prefs.get("rate_standard") in rate_opts else 0
+        model_idx = model_opts.index(st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")) if st.session_state.user_prefs.get("ai_model") in model_opts else 0
+
+        new_curr = st.radio("Display Currency:", curr_opts, index=curr_idx, horizontal=True)
+        new_rate = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
+        new_model = st.radio("AI Engine:", model_opts, index=model_idx)
+
+        if st.button("Save Settings", use_container_width=True):
+            new_prefs = {"currency": new_curr, "rate_standard": new_rate, "ai_model": new_model}
+            try:
+                supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
+                st.session_state.user_prefs.update(new_prefs)
+                st.success("Global Settings Saved!")
+                st.rerun()
+            except Exception as e:
+                st.error("Failed to save.")
+
+        st.divider()
+        if st.button("Logout", use_container_width=True):
+            st.session_state.logged_in = False
+            st.rerun()
 # 5. THE ROUTER (Traffic Cop)
 if st.session_state.logged_in:
     setup_custom_styling() # Load styles once!
