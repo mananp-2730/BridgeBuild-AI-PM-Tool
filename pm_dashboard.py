@@ -9,7 +9,7 @@ from prompts import get_system_prompt
 from utils import clean_json_output, generate_jira_format, convert_currency, create_pdf
 
 def render_pm_dashboard(supabase):
-    # 1. PM-Specific Sidebar Tools (Global settings are handled in app.py)
+    # 1. PM-Specific Sidebar Tools
     with st.sidebar:
         st.markdown("#### Architecture Engine")
         build_strategy = st.select_slider(
@@ -29,13 +29,12 @@ def render_pm_dashboard(supabase):
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
 
-    if st.button("Load Sample Email"):
-        st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
-
-    if st.button("Load Sample Email"):
+    # Added a unique key here to prevent any duplicate errors!
+    if st.button("Load Sample Email", key="pm_load_sample_btn"):
         st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
     
-    if "sales_input" not in st.session_state: st.session_state.sales_input = ""
+    if "sales_input" not in st.session_state: 
+        st.session_state.sales_input = ""
 
     uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
