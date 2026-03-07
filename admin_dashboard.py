@@ -2,15 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def render_admin_dashboard(supabase):
-    with st.sidebar:
-        st.markdown("### Admin Workspace")
-        st.write(f"Logged in as: {st.session_state.get('user_role', 'Unknown').upper()}")
-        
-        st.divider()
-        if st.button("Logout", key="admin_logout"):
-            st.session_state.logged_in = False
-            st.rerun()
-
+    
     st.title("Team Role Management")
     st.markdown("### BridgeBuild AI Access Control")
     st.info("Assign department dashboards to users by clicking their 'Role' cell below, selecting a new department, and hitting Save.")
