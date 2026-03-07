@@ -35,12 +35,14 @@ def render_design_dashboard(supabase):
                 client = genai.Client(api_key=api_key)
                 DESIGN_PROMPT = get_design_prompt()
 
-                with st.spinner("Mapping user journeys and rendering UI components..."):
+                # --- PREMIUM WAITING ROOM EXPERIENCE (DESIGN) ---
+                with st.status("Initializing Design Studio...", expanded=True) as status:
+                    st.write("Empathizing with target audience...")
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.toast("Processing file...", icon="⏳")
+                        st.write("Listening to client vibe and requirements...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
@@ -50,6 +52,7 @@ def render_design_dashboard(supabase):
                         prompt_contents.append(gemini_file)
                         os.remove(tmp_path)
                     
+                    st.write("Sketching core user flows and wireframe layouts...")
                     text_instruction = design_input if design_input else "Extract UX/UI design requirements from this request."
                     prompt_contents.append(text_instruction)
                     
@@ -57,18 +60,21 @@ def render_design_dashboard(supabase):
                         model=model_id, 
                         config=types.GenerateContentConfig(
                             system_instruction=DESIGN_PROMPT,
-                            temperature=0.4, # Slightly higher temperature for more creative design choices!
+                            temperature=0.4,
                             response_mime_type="application/json"
                         ),
                         contents=prompt_contents
                     )
                     
                     if uploaded_file:
+                        st.write("Cleaning up workspace...")
                         client.files.delete(name=gemini_file.name)
                     
+                    st.write("Selecting color palettes and accessibility standards...")
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
-
+                    
+                    status.update(label="Design Architecture Complete!", state="complete", expanded=False)
                 # --- 1. RENDER THE DESIGN UI ---
                 st.write("")
                 st.success("Design Architecture Generated!")
