@@ -180,10 +180,15 @@ def render_sales_dashboard(supabase):
                     
                     st.write("")
                     
-                    # 3. Delete Action
-                    if st.button("Delete Quote", key=f"del_sales_{item['id']}", use_container_width=True):
-                        supabase.table("tickets").delete().eq("id", item['id']).execute()
-                        st.rerun() 
+                    # 3. Delete Action with Guardrail
+                    with st.popover("Delete Quote", use_container_width=True):
+                        st.warning("Are you sure? This cannot be undone.")
+                        if st.button("Yes, Delete Forever", key=f"confirm_del_sales_{item['id']}", type="primary"):
+                            try:
+                                supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Failed to delete: {str(e)}") 
         else:
             st.info("No saved quotes yet. Run an analysis above!")
             
