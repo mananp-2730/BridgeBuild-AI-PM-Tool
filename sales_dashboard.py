@@ -8,25 +8,9 @@ from prompts import get_sales_prompt
 from utils import clean_json_output, convert_currency
 
 def render_sales_dashboard(supabase):
-    with st.sidebar:
-        st.markdown("### Sales Portal")
-        st.write(f"Logged in as: {st.session_state.get('user_role', 'Unknown').upper()}")
-        
-        st.divider()
-        st.markdown("#### Settings")
-        
-        # --- NEW CURRENCY TOGGLE ---
-        curr_opts = ["USD ($)", "INR (₹)"]
-        saved_curr = st.session_state.get("user_prefs", {}).get("currency", "USD ($)")
-        default_idx = curr_opts.index(saved_curr) if saved_curr in curr_opts else 0
-        
-        display_currency = st.radio("Display Currency:", curr_opts, index=default_idx, horizontal=True)
-        # ---------------------------
-        
-        st.divider()
-        if st.button("Logout", key="sales_logout"):
-            st.session_state.logged_in = False
-            st.rerun()
+    if st.button("Logout", key="sales_logout"):
+        st.session_state.logged_in = False
+        st.rerun()
 
     st.title("BridgeBuild AI - Sales Intake")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
