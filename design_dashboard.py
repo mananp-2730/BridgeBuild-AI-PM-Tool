@@ -9,14 +9,6 @@ from utils import clean_json_output
 import re
 
 def render_design_dashboard(supabase):
-    with st.sidebar:
-        st.markdown("### Design Studio")
-        st.write(f"Logged in as: {st.session_state.get('user_role', 'Unknown').upper()}")
-        
-        st.divider()
-        if st.button("Logout", key="design_logout"):
-            st.session_state.logged_in = False
-            st.rerun()
 
     st.title("BridgeBuild AI - UX/UI Design Intake")
     st.markdown("### Transform messy client ideas into structured user flows and screen layouts.")
