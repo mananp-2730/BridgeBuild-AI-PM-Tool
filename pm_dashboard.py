@@ -28,39 +28,9 @@ def render_pm_dashboard(supabase):
 
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
-        build_strategy = st.select_slider(
-            "Project Focus:",
-            options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"],
-            value="Balanced"
-        )
-        st.write("")
-        st.write("")
-        st.divider()
-        
-        if st.button("Save Settings", use_container_width=True):
-            new_prefs = {"currency": currency, "rate_standard": rate_type, "ai_model": model_choice}
-            try:
-                supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
-                st.session_state.user_prefs.update(new_prefs)
-                st.success("Settings saved successfully!")
-            except Exception as e:
-                st.error(f"Failed to save settings: {str(e)}")
-                
-        st.divider()
-        if st.button("Logout"):
-            st.session_state.logged_in = False
-            st.rerun()
-            
-        if st.button("Clear History"):
-            try:
-                supabase.table("tickets").delete().eq("user_id", st.session_state.user.id).execute()
-                st.success("Database History Cleared!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Failed to clear history: {str(e)}")
 
-    st.title("BridgeBuild AI")
-    st.markdown("### Turn Sales Conversations into Engineering Tickets & Budgets")
+    if st.button("Load Sample Email"):
+        st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
 
     if st.button("Load Sample Email"):
         st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
