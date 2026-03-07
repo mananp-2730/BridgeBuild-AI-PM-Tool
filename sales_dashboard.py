@@ -44,7 +44,7 @@ def render_sales_dashboard(supabase):
 
                 # --- PREMIUM WAITING ROOM EXPERIENCE ---
                 with st.status("Initializing AI Engine...", expanded=True) as status:
-                    st.write("🔍 Parsing input and extracting requirements...")
+                    st.write("Parsing input and extracting requirements...")
                     
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     prompt_contents = []
