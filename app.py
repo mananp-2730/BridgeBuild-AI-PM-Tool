@@ -150,9 +150,11 @@ def render_global_sidebar(supabase):
         if st.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.rerun()
+            
 # 5. THE ROUTER (Traffic Cop)
 if st.session_state.logged_in:
     setup_custom_styling() # Load styles once!
+    render_global_sidebar(supabase)
     role = st.session_state.get("user_role", "pm") 
     
     if role == "sales":
