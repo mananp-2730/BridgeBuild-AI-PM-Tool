@@ -25,9 +25,12 @@ def render_sales_dashboard(supabase):
     sales_input = st.text_area("Or Paste Notes:", height=150, placeholder="Example: Client needs a basic e-commerce site with Stripe integration.")
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
-    rate_type = st.session_state.get("user_prefs", {}).get("rate_standard", "US Agency ($150/hr)")
-    currency = display_currency
-    model_choice = st.session_state.get("user_prefs", {}).get("ai_model", "Gemini 1.5 Flash (Fast)")
+    
+    # --- PULL FROM GLOBAL SETTINGS ---
+    user_prefs = st.session_state.get("user_prefs", {})
+    currency = user_prefs.get("currency", "USD ($)")
+    rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
+    model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
 
     if st.button("Analyze Request", type="primary"):
         if not api_key:
