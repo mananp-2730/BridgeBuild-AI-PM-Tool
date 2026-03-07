@@ -144,8 +144,8 @@ def render_sales_dashboard(supabase):
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
                     hist_low = hist_raw_cost.split("-")[0] if "-" in hist_raw_cost else hist_raw_cost
                     hist_high = hist_raw_cost.split("-")[1] if "-" in hist_raw_cost else hist_raw_cost
-                    hist_fmt_low = convert_currency(hist_low, display_currency)
-                    hist_fmt_high = convert_currency(hist_high, display_currency)
+                    hist_fmt_low = convert_currency(hist_low, currency)
+                    hist_fmt_high = convert_currency(hist_high, currency)
                     
                     # 1. Top Level Metrics
                     col_m1, col_m2, col_m3 = st.columns(3)
