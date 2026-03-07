@@ -42,12 +42,15 @@ def render_sales_dashboard(supabase):
                 client = genai.Client(api_key=api_key)
                 SALES_PROMPT = get_sales_prompt(rate_type)
 
-                with st.spinner("Analyzing feasibility & estimating budget..."):
+                # --- PREMIUM WAITING ROOM EXPERIENCE ---
+                with st.status("Initializing AI Engine...", expanded=True) as status:
+                    st.write("🔍 Parsing input and extracting requirements...")
+                    
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.toast("Processing file...", icon="⏳")
+                        st.write("Processing multi-modal audio/document file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
@@ -57,6 +60,7 @@ def render_sales_dashboard(supabase):
                         prompt_contents.append(gemini_file)
                         os.remove(tmp_path)
                     
+                    st.write("Consulting Sales & Engineering models...")
                     text_instruction = sales_input if sales_input else "Analyze this client request."
                     prompt_contents.append(text_instruction)
                     
@@ -71,11 +75,15 @@ def render_sales_dashboard(supabase):
                     )
                     
                     if uploaded_file:
+                        st.write("Cleaning up temporary files...")
                         client.files.delete(name=gemini_file.name)
                     
+                    st.write("Formatting budget and feasibility metrics...")
                     cleaned_text = clean_json_output(response.text)
                     data = json.loads(cleaned_text)
-
+                    
+                    # Close the status box with a success message!
+                    status.update(label="Analysis Complete!", state="complete", expanded=False)
                 # --- 1. RENDER THE RESULTS ---
                 st.write("")
                 score = data.get("feasibility_score", "Yellow")
