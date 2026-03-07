@@ -9,64 +9,25 @@ from prompts import get_system_prompt
 from utils import clean_json_output, generate_jira_format, convert_currency, create_pdf
 
 def render_pm_dashboard(supabase):
+    # 1. PM-Specific Sidebar Tools (Global settings are handled in app.py)
     with st.sidebar:
-        col_logo, col_text = st.columns([0.2, 0.8])
-        
-        with col_logo:
-            st.image("Logo_bg_removed.png", width=40) 
-            
-        with col_text:
-            st.markdown(
-                """
-                <h3 style='margin: 0; padding-top: 8px; padding-bottom: 10px; font-size: 18px; color: var(--text-color); font-weight: 600;'>
-                    BridgeBuild AI
-                </h3>
-                """, 
-                unsafe_allow_html=True
-            )
-        
-        st.caption(f"Department: {st.session_state.get('user_role', 'Unknown').upper()}")
+        st.markdown("#### Architecture Engine")
+        build_strategy = st.select_slider(
+            "Build Strategy:", 
+            options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"], 
+            value="Balanced"
+        )
 
-        api_key = st.secrets.get("GOOGLE_API_KEY")
-        st.write("")
-        
-        if "user_prefs" not in st.session_state:
-            try:
-                user_id = st.session_state.user.id
-                profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
-                
-                if profile_res.data:
-                    st.session_state.user_prefs = profile_res.data[0]
-                else:
-                    default_prefs = {
-                        "id": user_id, "currency": "USD ($)", 
-                        "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"
-                    }
-                    supabase.table("profiles").insert(default_prefs).execute()
-                    st.session_state.user_prefs = default_prefs
-            except Exception as e:
-                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+    # 2. Pull from Global Settings
+    user_prefs = st.session_state.get("user_prefs", {})
+    currency = user_prefs.get("currency", "USD ($)")
+    rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
+    model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
+    
+    api_key = st.secrets.get("GOOGLE_API_KEY")
 
-        curr_opts = ["USD ($)", "INR (₹)"]
-        rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
-        model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
-
-        curr_pref = st.session_state.user_prefs.get("currency", "USD ($)")
-        curr_idx = curr_opts.index(curr_pref) if curr_pref in curr_opts else 0
-        rate_pref = st.session_state.user_prefs.get("rate_standard", "US Agency ($150/hr)")
-        rate_idx = rate_opts.index(rate_pref) if rate_pref in rate_opts else 0
-        model_pref = st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
-        model_idx = model_opts.index(model_pref) if model_pref in model_opts else 0
-
-        st.divider()
-        st.header("Business Settings")
-        
-        currency = st.radio("Display Currency:", curr_opts, index=curr_idx)
-        rate_type = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
-        model_choice = st.radio("AI Model:", model_opts, index=model_idx)
-        
-        st.write("")
-        st.subheader("Architectural Strategy")
+    st.title("BridgeBuild AI - PM Hub")
+    st.markdown("### Translate vague sales requests into structured Agile tickets.")
         build_strategy = st.select_slider(
             "Project Focus:",
             options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"],
