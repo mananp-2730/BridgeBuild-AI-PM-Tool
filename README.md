@@ -17,6 +17,7 @@ BridgeBuild AI acts as an intelligent, multi-tenant feasibility layer. A single 
 2. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, the critical "Ask List" for clients, deal-breaker warnings, and dynamic MVP budgeting with a real-time USD/INR toggle.
 3. **Product Management (PM) Dashboard:** Breaks unstructured requirements down into Agile Epics, MVP User Stories, Technical Risk Analysis, and native Mermaid.js architecture flowcharts.
 4. **UX/UI Design Studio:** Strips away backend tech jargon to generate core user flows, key screen layouts, UI component lists, and automatically extracts and renders hex color swatches for the project's "vibe".
+5. Engineering Terminal: Translates business requirements into pure technical execution, providing structured database schemas, color-coded REST API endpoints, tech stack recommendations, and CI/CD pipeline strategies.
 
 ## Tech Stack
 * **Core Logic:** Python 3.11
