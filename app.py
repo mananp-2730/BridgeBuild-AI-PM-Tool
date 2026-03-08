@@ -166,6 +166,8 @@ if st.session_state.logged_in:
         render_design_dashboard(supabase)
     elif role == "admin":
         render_admin_dashboard(supabase)
+    elif role == "engineering":
+        render_engineering_dashboard(supabase)
     else:
         st.warning(f"Dashboard for role '{role}' is currently under development. Loading PM Dashboard.")
         render_pm_dashboard(supabase)
