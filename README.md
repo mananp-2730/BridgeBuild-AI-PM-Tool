@@ -66,11 +66,11 @@ BridgeBuild AI acts as an intelligent, multi-tenant feasibility layer. A single 
 - [x] Multi-tenant Modular Refactoring: Broke monolithic code into scalable, role-based dashboards.
 - [x] Super Admin & RBAC Integration: Dynamic assignment of Sales, PM, and Design roles.
 - [x] Sales & Design Portals: Shipped dedicated minimum viable products (MVPs) for non-technical departments.
+- [x] Engineering Portal: Pure technical execution, API schemas, JSON payloads, and CI/CD pipelines.
 
 **Upcoming Features** 
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
-- [ ] Engineering Portal: Pure technical execution, API schemas, JSON payloads, and CI/CD pipelines.
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
 
 ________
