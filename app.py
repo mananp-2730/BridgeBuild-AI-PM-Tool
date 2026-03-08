@@ -19,6 +19,7 @@ from pm_dashboard import render_pm_dashboard
 from admin_dashboard import render_admin_dashboard
 from sales_dashboard import render_sales_dashboard
 from design_dashboard import render_design_dashboard
+from engineering_dashboard import render_engineering_dashboard
 from supabase import create_client
 
 # 3. INITIALIZE SUPABASE
