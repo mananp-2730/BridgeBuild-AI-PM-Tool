@@ -19,7 +19,7 @@ def render_engineering_dashboard(supabase):
     api_key = st.secrets.get("GOOGLE_API_KEY")
 
     st.title("BridgeBuild AI - Engineering Terminal")
-    st.markdown("### 💻 Translate requirements into DB schemas, APIs, and CI/CD pipelines.")
+    st.markdown("### Translate requirements into DB schemas, APIs, and CI/CD pipelines.")
 
     uploaded_file = st.file_uploader("Upload Tech Specs / Audio (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
@@ -47,7 +47,7 @@ def render_engineering_dashboard(supabase):
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.write("🎧 Ingesting multi-modal requirements...")
+                        st.write("Ingesting multi-modal requirements...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
