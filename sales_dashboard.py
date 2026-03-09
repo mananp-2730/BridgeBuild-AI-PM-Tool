@@ -138,6 +138,7 @@ def render_sales_dashboard(supabase):
         fmt_low = convert_currency(low_end, currency)
         fmt_high = convert_currency(high_end, currency)
         
+        # This fixes the NameError completely!
         col1, col2 = st.columns(2)
         with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
         with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
@@ -172,9 +173,10 @@ def render_sales_dashboard(supabase):
             sales_body = f"Hello Team,\n\nFeasibility: {data.get('feasibility_score')}\nBudget: {data.get('budget_estimate_usd')}\n\nBest,\nSales"
             sales_mailto = f"mailto:?subject=Sales Quote&body={quote(sales_body)}"
             
+            # CSS Alignment Fix: Matched padding, font-size, line-height, and margin-top to Streamlit's native buttons
             st.markdown(f"""
                 <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
-                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 400; cursor: pointer; line-height: 1.6; font-size: 1rem; margin-top: 2px;">
                         Email Sales Summary
                     </button>
                 </a>
