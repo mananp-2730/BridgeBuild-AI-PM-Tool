@@ -226,11 +226,17 @@ def create_sales_pdf(ticket_data, currency="USD ($)"):
     
     y = height - 140
     c.setFillColor(colors.black)
-    y = draw_wrapped_text(c, f"Project: {ticket_data.get('summary', 'Untitled')[:60]}...", 40, y, 500, "Helvetica-Bold", 16)
+    
+    # Corrected Key: 'project_summary'
+    title = ticket_data.get('project_summary', 'Untitled Project')
+    title_clean = str(title)[:60] + "..." if len(str(title)) > 60 else str(title)
+    y = draw_wrapped_text(c, f"Project: {title_clean}", 40, y, 500, "Helvetica-Bold", 16)
     y -= 20
 
     y = draw_wrapped_text(c, f"Feasibility Score: {ticket_data.get('feasibility_score', 'N/A')}", 40, y, 500, "Helvetica-Bold", 12)
-    budget = format_cost_range(ticket_data.get('mvp_budget_usd', '0'), currency)
+    
+    # Corrected Key: 'budget_estimate_usd'
+    budget = format_cost_range(ticket_data.get('budget_estimate_usd', '0'), currency)
     y = draw_wrapped_text(c, f"Estimated Budget: {budget}", 40, y, 500, "Helvetica", 12)
     y -= 20
 
@@ -238,7 +244,9 @@ def create_sales_pdf(ticket_data, currency="USD ($)"):
     c.drawString(40, y, safe_text("Critical 'Ask' List for Client:"))
     y -= 20
     c.setFillColor(colors.black)
-    for q in ticket_data.get("ask_list", []):
+    
+    # Corrected Key: 'client_questions'
+    for q in ticket_data.get("client_questions", []):
         y = check_page_break(c, y, height)
         c.drawString(45, y, "*")
         y = draw_wrapped_text(c, q, 60, y, 480, "Helvetica", 11)
@@ -247,7 +255,7 @@ def create_sales_pdf(ticket_data, currency="USD ($)"):
     c.save()
     buffer.seek(0)
     return buffer
-
+    
 def create_engineering_pdf(ticket_data, currency="USD ($)"):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
