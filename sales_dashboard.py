@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import os
 import tempfile
-import urllib.parse
+from urllib.parse import quote
 from google import genai
 from google.genai import types
 from prompts import get_sales_prompt
@@ -33,13 +33,13 @@ def render_sales_dashboard(supabase):
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
 
-    # Initialize the session state so the UI doesn't disappear on rerun!
+    # Initialize the session state so the UI stays visible!
     if "active_sales_ticket" not in st.session_state: 
         st.session_state.active_sales_ticket = None
 
     if st.button("Analyze Request", type="primary"):
         if not api_key:
-            st.error("System Error: AI Engine is currently offline. Please contact support.")
+            st.error("System Error: AI Engine is currently offline.")
         elif not sales_input and not uploaded_file:
             st.warning("Please enter text or upload a file to proceed.")
         else:
@@ -92,8 +92,6 @@ def render_sales_dashboard(supabase):
                         st.stop()
                     else:
                         status.update(label="Analysis Complete!", state="complete", expanded=False)
-                        
-                        # Save the data to memory so the UI stays visible!
                         st.session_state.active_sales_ticket = data
 
                 # --- 2. SAVE TO SUPABASE ---
@@ -118,7 +116,7 @@ def render_sales_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
-    # --- 1. RENDER THE ACTIVE TICKET (OUTSIDE THE BUTTON!) ---
+    # --- 1. RENDER THE ACTIVE TICKET ---
     if st.session_state.active_sales_ticket:
         data = st.session_state.active_sales_ticket
         
@@ -171,8 +169,8 @@ def render_sales_dashboard(supabase):
             
         with col_action2:
             st.markdown("#### ✉️ Email Sales Team")
-            sales_body = f"Hello Team,\n\nFeasibility: {data.get('feasibility_score')}\nBudget: {data.get('mvp_budget_usd')}\n\nBest,\nSales"
-            sales_mailto = f"mailto:?subject=Sales Quote&body={urllib.parse.quote(sales_body)}"
+            sales_body = f"Hello Team,\n\nFeasibility: {data.get('feasibility_score')}\nBudget: {data.get('budget_estimate_usd')}\n\nBest,\nSales"
+            sales_mailto = f"mailto:?subject=Sales Quote&body={quote(sales_body)}"
             
             st.markdown(f"""
                 <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
@@ -194,17 +192,14 @@ def render_sales_dashboard(supabase):
             for item in saved_tickets:
                 with st.expander(f"Quote: {item['summary'][:60]}..."):
                     past_data = json.loads(item['full_data'])
-                    
                     score = past_data.get('feasibility_score', 'Unknown')
                     
-                    # --- DYNAMIC CURRENCY RECALCULATION ---
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
                     hist_low = hist_raw_cost.split("-")[0] if "-" in hist_raw_cost else hist_raw_cost
                     hist_high = hist_raw_cost.split("-")[1] if "-" in hist_raw_cost else hist_raw_cost
                     hist_fmt_low = convert_currency(hist_low, currency)
                     hist_fmt_high = convert_currency(hist_high, currency)
                     
-                    # 1. Top Level Metrics
                     col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1: st.metric("Feasibility", score)
                     with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
@@ -223,7 +218,6 @@ def render_sales_dashboard(supabase):
                     
                     st.write("")
                     
-                    # 3. Delete Action with Guardrail
                     with st.popover("Delete Quote", use_container_width=True):
                         st.warning("Are you sure? This cannot be undone.")
                         if st.button("Yes, Delete Forever", key=f"confirm_del_sales_{item['id']}", type="primary"):
