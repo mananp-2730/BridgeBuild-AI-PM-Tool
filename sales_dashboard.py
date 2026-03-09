@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 import tempfile
+import urllib.parse
 from google import genai
 from google.genai import types
 from prompts import get_sales_prompt
@@ -32,6 +33,10 @@ def render_sales_dashboard(supabase):
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
 
+    # Initialize the session state so the UI doesn't disappear on rerun!
+    if "active_sales_ticket" not in st.session_state: 
+        st.session_state.active_sales_ticket = None
+
     if st.button("Analyze Request", type="primary"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline. Please contact support.")
@@ -42,7 +47,6 @@ def render_sales_dashboard(supabase):
                 client = genai.Client(api_key=api_key)
                 SALES_PROMPT = get_sales_prompt(rate_type)
 
-                # --- PREMIUM WAITING ROOM EXPERIENCE ---
                 with st.status("Initializing AI Engine...", expanded=True) as status:
                     st.write("Parsing input and extracting requirements...")
                     
@@ -80,51 +84,26 @@ def render_sales_dashboard(supabase):
                     
                     st.write("Formatting budget and feasibility metrics...")
                     
-                    # --- NEW BULLETPROOF PARSING ---
                     data, error_msg = safe_parse_json(response.text)
                     
                     if error_msg:
                         status.update(label="Analysis Failed", state="error", expanded=True)
                         st.error(error_msg)
-                        st.stop() # Stops the rest of the code from running and crashing!
+                        st.stop()
                     else:
                         status.update(label="Analysis Complete!", state="complete", expanded=False)
                         
-                # --- 1. RENDER THE RESULTS ---
-                st.write("")
-                score = data.get("feasibility_score", "Yellow")
-                if "Green" in score:
-                    st.success(f"### 🟢 Feasibility: GREEN\n{data.get('feasibility_reason')}")
-                elif "Red" in score:
-                    st.error(f"### 🔴 Feasibility: RED\n**Warning:** {data.get('feasibility_reason')}")
-                else:
-                    st.warning(f"### 🟡 Feasibility: YELLOW\n{data.get('feasibility_reason')}")
-                    
-                st.markdown(f"**Project Summary:** {data.get('project_summary')}")
-                st.divider()
+                        # Save the data to memory so the UI stays visible!
+                        st.session_state.active_sales_ticket = data
 
+                # --- 2. SAVE TO SUPABASE ---
                 raw_cost = data.get("budget_estimate_usd", "0-0")
                 low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
                 high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
                 fmt_low = convert_currency(low_end, currency)
                 fmt_high = convert_currency(high_end, currency)
-                
-                col1, col2 = st.columns(2)
-                with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
-                with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
-                    
-                st.divider()
-                
-                col_q, col_r = st.columns(2)
-                with col_q:
-                    st.subheader("The 'Ask' List")
-                    for q in data.get("client_questions", []): st.info(f"{q}")
-                        
-                with col_r:
-                    st.subheader("Deal Breakers")
-                    for r in data.get("deal_breakers", []): st.error(f"{r}")
+                score = data.get("feasibility_score", "Yellow")
 
-                # --- 2. SAVE TO SUPABASE ---
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("project_summary", "Sales Intake"),
@@ -138,9 +117,71 @@ def render_sales_dashboard(supabase):
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
-# --- NEW UNIVERSAL EXPORT UI ---
-            render_universal_exports(data, role_name="Sales", currency=currency)
+
+    # --- 1. RENDER THE ACTIVE TICKET (OUTSIDE THE BUTTON!) ---
+    if st.session_state.active_sales_ticket:
+        data = st.session_state.active_sales_ticket
+        
+        st.write("")
+        score = data.get("feasibility_score", "Yellow")
+        if "Green" in score:
+            st.success(f"### 🟢 Feasibility: GREEN\n{data.get('feasibility_reason')}")
+        elif "Red" in score:
+            st.error(f"### 🔴 Feasibility: RED\n**Warning:** {data.get('feasibility_reason')}")
+        else:
+            st.warning(f"### 🟡 Feasibility: YELLOW\n{data.get('feasibility_reason')}")
+            
+        st.markdown(f"**Project Summary:** {data.get('project_summary')}")
+        st.divider()
+
+        raw_cost = data.get("budget_estimate_usd", "0-0")
+        low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+        high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+        fmt_low = convert_currency(low_end, currency)
+        fmt_high = convert_currency(high_end, currency)
+        
+        col1, col2 = st.columns(2)
+        with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
+        with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
+            
+        st.divider()
+        
+        col_q, col_r = st.columns(2)
+        with col_q:
+            st.subheader("The 'Ask' List")
+            for q in data.get("client_questions", []): st.info(f"{q}")
                 
+        with col_r:
+            st.subheader("Deal Breakers")
+            for r in data.get("deal_breakers", []): st.error(f"{r}")
+
+        # --- EXPLICIT SALES EXPORT UI ---
+        st.divider()
+        col_action1, col_action2 = st.columns([1, 1], gap="medium")
+        
+        with col_action1:
+            st.markdown("#### 📄 Export Sales Report")
+            st.download_button(
+                "Download Sales PDF", 
+                data=create_sales_pdf(data, currency), 
+                file_name="bridgebuild_sales_report.pdf", 
+                mime="application/pdf", 
+                use_container_width=True
+            )
+            
+        with col_action2:
+            st.markdown("#### ✉️ Email Sales Team")
+            sales_body = f"Hello Team,\n\nFeasibility: {data.get('feasibility_score')}\nBudget: {data.get('mvp_budget_usd')}\n\nBest,\nSales"
+            sales_mailto = f"mailto:?subject=Sales Quote&body={urllib.parse.quote(sales_body)}"
+            
+            st.markdown(f"""
+                <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Email Sales Summary
+                    </button>
+                </a>
+                """, unsafe_allow_html=True)
+            
     # --- 3. SALES HISTORY SECTION ---
     st.divider()
     st.subheader("Saved Sales Quotes")
@@ -166,12 +207,11 @@ def render_sales_dashboard(supabase):
                     # 1. Top Level Metrics
                     col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1: st.metric("Feasibility", score)
-                    with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") # <-- Now it translates instantly!
+                    with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
                     with col_m3: st.metric("Timeline", item['time'])
                     
                     st.divider()
                     
-                    # 2. The Missing Details!
                     col_q, col_r = st.columns(2)
                     with col_q:
                         st.markdown("##### The 'Ask' List")
