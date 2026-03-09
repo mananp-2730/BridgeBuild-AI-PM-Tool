@@ -138,16 +138,16 @@ def create_pm_pdf(ticket_data, currency="USD ($)"):
     y = height - 140
     c.setFillColor(colors.black)
 
+    # Summary
     name = ticket_data.get("ticket_name", ticket_data.get("summary", "Untitled"))
     y = draw_wrapped_text(c, f"Project: {name}", 40, y, 500, "Helvetica-Bold", 16)
     y -= 15
-    
     y = draw_wrapped_text(c, ticket_data.get("summary", "No summary provided."), 40, y, 520, "Helvetica", 11)
     y -= 20
 
+    # Phase 1
     p1_budget = format_cost_range(ticket_data.get('budget_estimate_usd', '0'), currency)
     y = check_page_break(c, y, height)
-    
     c.setFillColorRGB(0.004, 0.129, 0.412)
     c.drawString(40, y, safe_text("Phase 1: Core MVP"))
     y -= 20
@@ -155,6 +155,7 @@ def create_pm_pdf(ticket_data, currency="USD ($)"):
     c.drawString(40, y, safe_text(f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}"))
     y -= 20
     
+    # MVP Stories & ACs
     if "mvp_user_stories" in ticket_data:
         for item in ticket_data.get("mvp_user_stories", []):
             y = check_page_break(c, y, height)
@@ -164,7 +165,31 @@ def create_pm_pdf(ticket_data, currency="USD ($)"):
                 c.drawString(50, y, "-")
                 y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
             y -= 10
+    else:
+        for feat in ticket_data.get("mvp_features", []):
+            y = check_page_break(c, y, height)
+            c.drawString(45, y, "-")
+            y = draw_wrapped_text(c, feat, 60, y, 480, "Helvetica", 11)
     
+    # Phase 2
+    y -= 10
+    y = check_page_break(c, y, height)
+    p2_budget = format_cost_range(ticket_data.get('phase_2_budget_usd', '0'), currency)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, safe_text("Phase 2: Future Enhancements"))
+    y -= 20
+    c.setFillColor(colors.black)
+    c.drawString(40, y, safe_text(f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_budget}"))
+    y -= 20
+    
+    for feat in ticket_data.get("phase_2_features", []):
+        y = check_page_break(c, y, height)
+        c.drawString(45, y, "-")
+        y = draw_wrapped_text(c, feat, 60, y, 480, "Helvetica", 11)
+        y -= 5
+
+    # Risks
+    y -= 10
     y = check_page_break(c, y, height)
     c.setFillColorRGB(0.004, 0.129, 0.412)
     c.drawString(40, y, safe_text("Technical Risks"))
@@ -176,10 +201,23 @@ def create_pm_pdf(ticket_data, currency="USD ($)"):
         y = draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
         y -= 5
 
+    # Tech Stack
+    y -= 10
+    y = check_page_break(c, y, height)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, safe_text("Suggested Tech Stack"))
+    y -= 20
+    c.setFillColor(colors.black)
+    for item in ticket_data.get("suggested_stack", []):
+        y = check_page_break(c, y, height)
+        c.drawString(45, y, "-")
+        y = draw_wrapped_text(c, item, 60, y, 490, "Helvetica", 11)
+        y -= 5
+
     c.save()
     buffer.seek(0)
     return buffer
-
+    
 def create_sales_pdf(ticket_data, currency="USD ($)"):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
