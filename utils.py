@@ -5,19 +5,14 @@ import io
 import re
 import os
 from datetime import datetime, timezone, timedelta
-import streamlit as st
-import urllib.parse
 import json
-from fpdf import FPDF
-import io
 
-# --- 1. HELPER FUNCTIONS ---
+# --- 1. TEXT & JSON HELPER FUNCTIONS ---
+
 def convert_currency(amount, currency_type):
     try:
-        # Extract only the digits from the first part of the range
         clean_str = ''.join(c for c in str(amount).split('-')[0] if c.isdigit())
         clean_amount = int(clean_str) if clean_str else 0
-
         if "USD" in currency_type:
             return f"USD {clean_amount:,}"
         else:
@@ -45,6 +40,16 @@ def clean_json_output(raw_text):
     text = re.sub(r"```\s*$", "", text, flags=re.MULTILINE)
     return text.strip()
 
+def safe_parse_json(raw_text):
+    """Catches AI hallucinations or broken formatting gracefully."""
+    try:
+        cleaned = clean_json_output(raw_text)
+        return json.loads(cleaned), None
+    except json.JSONDecodeError:
+        return None, "⚠️ The AI Engine returned a malformed response. Please click 'Generate' again to retry."
+    except Exception as e:
+        return None, f"⚠️ An unexpected error occurred: {str(e)}"
+
 def format_cost_range(raw_cost, currency):
     raw_cost = str(raw_cost)
     if "-" in raw_cost:
@@ -58,15 +63,10 @@ def generate_jira_format(data, currency="USD ($)"):
     p1_cost = format_cost_range(data.get('budget_estimate_usd', '0'), currency)
     p2_cost = format_cost_range(data.get('phase_2_budget_usd', '0'), currency)
     
-    jira_text = f"""
-h1. {data.get('ticket_name', 'Untitled Ticket')}
-h2. Overview
-* **Complexity:** {data.get('complexity_score', 'N/A')}
-
-h2. Phase 1: Core MVP
-* **Est. Time:** {data.get('development_time', 'N/A')}
-* **Est. Budget:** {p1_cost}
-"""
+    jira_text = f"h1. {data.get('ticket_name', 'Untitled Ticket')}\n"
+    jira_text += f"h2. Overview\n* **Complexity:** {data.get('complexity_score', 'N/A')}\n\n"
+    jira_text += f"h2. Phase 1: Core MVP\n* **Est. Time:** {data.get('development_time', 'N/A')}\n* **Est. Budget:** {p1_cost}\n"
+    
     if "mvp_user_stories" in data:
         for item in data.get('mvp_user_stories', []):
             jira_text += f"\n*Story:* {item.get('story')}\n"
@@ -75,66 +75,46 @@ h2. Phase 1: Core MVP
     else:
         jira_text += chr(10).join([f'* {feat}' for feat in data.get('mvp_features', [])]) + "\n"
 
-    jira_text += f"""
-h2. Phase 2: Future Enhancements
-* **Est. Extra Time:** {data.get('phase_2_time', 'N/A')}
-* **Est. Extra Budget:** {p2_cost}
-{chr(10).join([f'* {feat}' for feat in data.get('phase_2_features', [])])}
-
-h2. Technical Risks
-{{panel:title=Risks|borderStyle=dashed|borderColor=#ff0000}}
-{chr(10).join([f'- {risk}' for risk in data.get('technical_risks', [])])}
-{{panel}}
-
-h2. Tech Stack
-{{code:bash}}
-{chr(10).join(data.get('suggested_stack', []))}
-{{code}}
-    """
+    jira_text += f"\nh2. Technical Risks\n{{panel:title=Risks|borderStyle=dashed|borderColor=#ff0000}}\n"
+    jira_text += chr(10).join([f'- {risk}' for risk in data.get('technical_risks', [])]) + "\n{panel}\n"
+    
     return jira_text
 
-# --- 2. THE PRO PDF GENERATOR ---
-# ADDED 'ticket_type' parameter!
-def create_pdf(ticket_data, currency="USD ($)", ticket_type="detailed"):
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    
-    # THE ULTIMATE SANITIZER: Stops black squares permanently
-    def safe_text(text):
-        return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
-    
-    def draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
-        c.setFont(font_name, font_size)
-        words = safe_text(text).split(' ')
-        line = ""
-        for word in words:
-            if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
-                line += word + " "
-            else:
-                c.drawString(x, y, line.strip())
-                y -= line_height
-                line = word + " "
-        if line:
+
+# --- 2. REPORTLAB PDF DRAWING HELPERS ---
+
+def safe_text(text):
+    """Sanitizes text to prevent reportlab black square rendering errors."""
+    return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
+
+def draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
+    c.setFont(font_name, font_size)
+    words = safe_text(text).split(' ')
+    line = ""
+    for word in words:
+        if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
+            line += word + " "
+        else:
             c.drawString(x, y, line.strip())
             y -= line_height
-        return y
+            line = word + " "
+    if line:
+        c.drawString(x, y, line.strip())
+        y -= line_height
+    return y
 
-    def check_page_break(c, current_y, threshold=100):
-        if current_y < threshold:
-            c.showPage()
-            return height - 50
-        return current_y
+def check_page_break(c, current_y, height, threshold=100):
+    if current_y < threshold:
+        c.showPage()
+        return height - 50
+    return current_y
 
-    # HEADER SECTION
+def draw_pdf_header(c, width, height, report_title):
     c.setFillColorRGB(0.004, 0.129, 0.412) 
     c.rect(0, height - 100, width, 100, fill=1, stroke=0)
     
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 22)
-    
-    # Change title based on Brief vs Detailed
-    report_title = "Executive Scoping Report" if ticket_type == "brief" else "Engineering Ticket Report"
     c.drawString(40, height - 60, report_title)
     
     ist = timezone(timedelta(hours=5, minutes=30))
@@ -146,192 +126,140 @@ def create_pdf(ticket_data, currency="USD ($)", ticket_type="detailed"):
     if os.path.exists("Logo_bg_removed.png"):
         c.drawImage("Logo_bg_removed.png", width - 100, height - 90, width=80, height=80, mask='auto')
 
-    # CONTENT SECTION
+
+# --- 3. DEDICATED PDF ENGINES ---
+
+def create_pm_pdf(ticket_data, currency="USD ($)"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    draw_pdf_header(c, width, height, "Engineering Ticket Report")
+    
     y = height - 140
     c.setFillColor(colors.black)
 
     name = ticket_data.get("ticket_name", ticket_data.get("summary", "Untitled"))
-    c.setFont("Helvetica-Bold", 16)
-    c.setFillColorRGB(0.004, 0.129, 0.412)
     y = draw_wrapped_text(c, f"Project: {name}", 40, y, 500, "Helvetica-Bold", 16)
     y -= 15
     
-    c.setFillColor(colors.black)
-    description = ticket_data.get("summary", "No summary provided.")
-    y = draw_wrapped_text(c, description, 40, y, 520, "Helvetica", 11)
+    y = draw_wrapped_text(c, ticket_data.get("summary", "No summary provided."), 40, y, 520, "Helvetica", 11)
     y -= 20
 
-    c.setStrokeColor(colors.lightgrey)
-    c.line(40, y, width-40, y)
-    y -= 25
-
     p1_budget = format_cost_range(ticket_data.get('budget_estimate_usd', '0'), currency)
-    p2_budget = format_cost_range(ticket_data.get('phase_2_budget_usd', '0'), currency)
-
-    # 1. Phase 1: MVP
-    y = check_page_break(c, y)
-    c.setFont("Helvetica-Bold", 14)
+    y = check_page_break(c, y, height)
+    
     c.setFillColorRGB(0.004, 0.129, 0.412)
     c.drawString(40, y, safe_text("Phase 1: Core MVP"))
     y -= 20
-    
     c.setFillColor(colors.black)
-    c.setFont("Helvetica-Bold", 11)
     c.drawString(40, y, safe_text(f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}"))
     y -= 20
     
-    # SMART LOGIC: Show ACs only if Detailed!
     if "mvp_user_stories" in ticket_data:
         for item in ticket_data.get("mvp_user_stories", []):
-            y = check_page_break(c, y)
-            
-            if ticket_type == "detailed":
-                c.setFont("Helvetica-Bold", 10)
-                y = draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
-                c.setFont("Helvetica", 10)
-                for ac in item.get("acceptance_criteria", []):
-                    y = check_page_break(c, y)
-                    c.drawString(50, y, "-")
-                    y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
-                y -= 10
-            else:
-                # Brief Version: Just print the story as a bullet point
-                c.setFont("Helvetica", 11)
-                c.drawString(45, y, "-")
-                y = draw_wrapped_text(c, item.get('story', ''), 60, y, 490, "Helvetica", 11)
-                y -= 5
-    else:
-        c.setFont("Helvetica", 11)
-        for feat in ticket_data.get("mvp_features", []):
-            y = check_page_break(c, y)
-            c.drawString(45, y, "-")
-            y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
-            y -= 5
-    y -= 15
-
-    # 2. Phase 2: Enhancements
-    y = check_page_break(c, y)
-    c.setFont("Helvetica-Bold", 14)
-    c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, safe_text("Phase 2: Future Enhancements"))
-    y -= 20
+            y = check_page_break(c, y, height)
+            y = draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
+            for ac in item.get("acceptance_criteria", []):
+                y = check_page_break(c, y, height)
+                c.drawString(50, y, "-")
+                y = draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
+            y -= 10
     
-    c.setFillColor(colors.black)
-    c.setFont("Helvetica-Bold", 11)
-    c.drawString(40, y, safe_text(f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_budget}"))
-    y -= 20
-    
-    c.setFont("Helvetica", 11)
-    for feat in ticket_data.get("phase_2_features", []):
-        y = check_page_break(c, y)
-        c.drawString(45, y, "-")
-        y = draw_wrapped_text(c, feat, 60, y, 490, "Helvetica", 11)
-        y -= 5
-    y -= 20
-
-    c.setStrokeColor(colors.lightgrey)
-    c.line(40, y, width-40, y)
-    y -= 25
-
-    # 3. Technical Risks
-    y = check_page_break(c, y)
-    c.setFont("Helvetica-Bold", 14)
+    y = check_page_break(c, y, height)
     c.setFillColorRGB(0.004, 0.129, 0.412)
     c.drawString(40, y, safe_text("Technical Risks"))
     y -= 20
-    
     c.setFillColor(colors.black)
     for risk in ticket_data.get("technical_risks", []):
-        y = check_page_break(c, y)
+        y = check_page_break(c, y, height)
         c.drawString(45, y, "-")
         y = draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
-        y -= 5
-    y -= 15
-
-    # 4. Tech Stack
-    y = check_page_break(c, y)
-    c.setFont("Helvetica-Bold", 14)
-    c.setFillColorRGB(0.004, 0.129, 0.412)
-    c.drawString(40, y, safe_text("Suggested Tech Stack"))
-    y -= 20
-    
-    c.setFillColor(colors.black)
-    for item in ticket_data.get("suggested_stack", []):
-        y = check_page_break(c, y)
-        c.drawString(45, y, "-")
-        y = draw_wrapped_text(c, item, 60, y, 490, "Helvetica", 11)
         y -= 5
 
     c.save()
     buffer.seek(0)
     return buffer
 
-# ==========================================
-# TICKET 1: BULLETPROOF JSON PARSING
-# ==========================================
-def safe_parse_json(raw_text):
-    """
-    Catches AI hallucinations or broken formatting gracefully
-    instead of crashing the entire Streamlit application.
-    """
-    try:
-        # Assuming you already have clean_json_output in this file
-        cleaned = clean_json_output(raw_text)
-        return json.loads(cleaned), None
-    except json.JSONDecodeError:
-        return None, "⚠️ The AI Engine returned a malformed response. Please click 'Generate' again to retry."
-    except Exception as e:
-        return None, f"⚠️ An unexpected error occurred: {str(e)}"
+def create_sales_pdf(ticket_data, currency="USD ($)"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    draw_pdf_header(c, width, height, "Sales & Feasibility Report")
+    
+    y = height - 140
+    c.setFillColor(colors.black)
+    y = draw_wrapped_text(c, f"Project: {ticket_data.get('summary', 'Untitled')[:60]}...", 40, y, 500, "Helvetica-Bold", 16)
+    y -= 20
 
-# ==========================================
-# TICKET 2: UNIVERSAL (BUT SMART) EXPORT ENGINE
-# ==========================================
-def render_universal_exports(data, role_name, currency="USD ($)"):
-    """
-    Creates a standardized UI block, but dynamically changes the 
-    Email contents and PDF payload based on the user's role!
-    """
-    st.divider()
-    col_action1, col_action2 = st.columns([1, 1], gap="medium")
+    y = draw_wrapped_text(c, f"Feasibility Score: {ticket_data.get('feasibility_score', 'N/A')}", 40, y, 500, "Helvetica-Bold", 12)
+    budget = format_cost_range(ticket_data.get('mvp_budget_usd', '0'), currency)
+    y = draw_wrapped_text(c, f"Estimated Budget: {budget}", 40, y, 500, "Helvetica", 12)
+    y -= 20
+
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, safe_text("Critical 'Ask' List for Client:"))
+    y -= 20
+    c.setFillColor(colors.black)
+    for q in ticket_data.get("ask_list", []):
+        y = check_page_break(c, y, height)
+        c.drawString(45, y, "*")
+        y = draw_wrapped_text(c, q, 60, y, 480, "Helvetica", 11)
+        y -= 10
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+def create_engineering_pdf(ticket_data, currency="USD ($)"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    draw_pdf_header(c, width, height, "Engineering Architecture Report")
     
-    with col_action1:
-        st.markdown(f"#### 📄 Export {role_name} Report")
-        try:
-            # Notice we are now passing 'role_name' into the PDF generator!
-            pdf_data = create_pdf(data, currency, ticket_type="role_specific", role=role_name) 
-            st.download_button(
-                label=f"Download {role_name} PDF", 
-                data=pdf_data, 
-                file_name=f"bridgebuild_{role_name.lower()}_report.pdf", 
-                mime="application/pdf", 
-                use_container_width=True
-            )
-        except Exception as e:
-            st.error("PDF Engine needs more data to generate a report.")
+    y = height - 140
+    c.setFillColor(colors.black)
+    y = draw_wrapped_text(c, "System Architecture", 40, y, 500, "Helvetica-Bold", 16)
+    y -= 10
+    y = draw_wrapped_text(c, ticket_data.get("system_architecture", "N/A"), 40, y, 500, "Helvetica", 11)
+    y -= 20
+
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, safe_text("Database Schema"))
+    y -= 20
+    c.setFillColor(colors.black)
+    for table in ticket_data.get("database_schema", []):
+        y = check_page_break(c, y, height)
+        y = draw_wrapped_text(c, f"Table: {table.get('table_name', 'Unknown')}", 40, y, 500, "Helvetica-Bold", 12)
+        for col in table.get("columns", []):
+            y = check_page_break(c, y, height)
+            y = draw_wrapped_text(c, f"- {col}", 60, y, 480, "Helvetica", 11)
+        y -= 10
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+def create_design_pdf(ticket_data, currency="USD ($)"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    draw_pdf_header(c, width, height, "UX/UI Design Specification")
     
-    with col_action2:
-        st.markdown(f"#### ✉️ Email {role_name} Team")
-        
-        # --- DYNAMIC EMAIL CONTENT ---
-        ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-        
-        if role_name == "Sales":
-            snippet = f"Feasibility Score: {data.get('feasibility_score', 'N/A')}\nBudget: {data.get('mvp_budget_usd', 'N/A')}"
-        elif role_name == "Engineering":
-            snippet = f"Architecture: {data.get('system_architecture', 'N/A')}\nTech Stack: {data.get('tech_stack_recommendation', {}).get('backend', 'N/A')}"
-        elif role_name == "Design":
-            snippet = f"Core Vibe: {data.get('core_vibe', 'N/A')}\nKey Flows: {len(data.get('core_user_flows', []))} flows mapped."
-        else: # PM
-            snippet = f"Complexity: {data.get('complexity_score', 'N/A')}\nDev Time: {data.get('development_time', 'N/A')}"
-            
-        body = f"Hello {role_name} Team,\n\nPlease review the latest requirements generated by BridgeBuild AI:\n\n-> QUICK SUMMARY:\n{snippet}\n\n(See the attached PDF for full technical details).\n\nBest,\nBridgeBuild Platform"
-        
-        mailto_link = f"mailto:?subject={urllib.parse.quote(f'{role_name} Update: {ticket_name}')}&body={urllib.parse.quote(body)}"
-        
-        st.markdown(f"""
-            <a href="{mailto_link}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
-                    Send {role_name} Email
-                </button>
-            </a>
-        """, unsafe_allow_html=True)
+    y = height - 140
+    c.setFillColor(colors.black)
+    y = draw_wrapped_text(c, "Core Vibe & Direction", 40, y, 500, "Helvetica-Bold", 16)
+    y -= 10
+    y = draw_wrapped_text(c, ticket_data.get("core_vibe", "N/A"), 40, y, 500, "Helvetica", 11)
+    y -= 20
+
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, safe_text("Color Palette (Hex Codes)"))
+    y -= 20
+    c.setFillColor(colors.black)
+    for color in ticket_data.get("color_palette_hex", []):
+        y = check_page_break(c, y, height)
+        y = draw_wrapped_text(c, f"- {color}", 60, y, 480, "Helvetica", 11)
+    
+    c.save()
+    buffer.seek(0)
+    return buffer
