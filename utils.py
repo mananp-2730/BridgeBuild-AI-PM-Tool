@@ -8,6 +8,8 @@ from datetime import datetime, timezone, timedelta
 import streamlit as st
 import urllib.parse
 import json
+from fpdf import FPDF
+import io
 
 # --- 1. HELPER FUNCTIONS ---
 def convert_currency(amount, currency_type):
