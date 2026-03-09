@@ -6,7 +6,7 @@ import os
 from google import genai
 from google.genai import types
 from prompts import get_system_prompt
-from utils import clean_json_output, generate_jira_format, convert_currency, create_pdf
+from utils import clean_json_output, generate_jira_format, convert_currency, create_pm_pdf, safe_parse_json
 
 def render_pm_dashboard(supabase):
     # 1. PM-Specific Sidebar Tools
@@ -29,7 +29,6 @@ def render_pm_dashboard(supabase):
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
 
-    # Added a unique key here to prevent any duplicate errors!
     if st.button("Load Sample Email", key="pm_load_sample_btn"):
         st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
     
@@ -47,16 +46,14 @@ def render_pm_dashboard(supabase):
     if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
     if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
 
-    if st.button("Generate Ticket & Budget"):
+    if st.button("Generate Ticket & Budget", type="primary"):
         if not api_key: st.error("System Error: AI Engine is currently offline.")
         elif not sales_input and not uploaded_file: st.warning("Please enter text or upload a file.")
         else:
             try:
                 client = genai.Client(api_key=api_key)
                 SYSTEM_PROMPT = get_system_prompt(rate_type, build_strategy)
-                loading_msg = "Consulting Engineering & Finance Teams..."
                 
-                # --- PREMIUM WAITING ROOM EXPERIENCE (PM) ---
                 with st.status("Consulting Engineering & Finance Teams...", expanded=True) as status:
                     st.write("Parsing input and extracting requirements...")
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
@@ -88,10 +85,17 @@ def render_pm_dashboard(supabase):
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Structuring Epics, Stories, and Budgets...")
-                    cleaned_text = clean_json_output(response.text)
-                    data = json.loads(cleaned_text)
                     
-                    status.update(label="Agile Ticket Generated!", state="complete", expanded=False)
+                    # --- TICKET 1: BULLETPROOF JSON PARSING ---
+                    data, error_msg = safe_parse_json(response.text)
+                    
+                    if error_msg:
+                        status.update(label="Analysis Failed", state="error", expanded=True)
+                        st.error(error_msg)
+                        st.stop()
+                    else:
+                        status.update(label="Agile Ticket Generated!", state="complete", expanded=False)
+                        
                 st.session_state.active_ticket = data
                 st.success("Analysis Complete!")
 
@@ -174,31 +178,36 @@ def render_pm_dashboard(supabase):
             if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
             else: st.info("No architecture diagram generated.")
 
+        # --- EXPLICIT PM EXPORT UI ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### Export PDF Reports")
-            st.download_button("Download Detailed Ticket (Engineering)", data=create_pdf(data, currency, ticket_type="detailed"), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
-            st.download_button("Download Brief Summary (Sales / Client)", data=create_pdf(data, currency, ticket_type="brief"), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
+            st.markdown("#### 📄 Export Engineering Ticket")
+            st.download_button(
+                "Download PDF", 
+                data=create_pm_pdf(data, currency), 
+                file_name="bridgebuild_pm_ticket.pdf", 
+                mime="application/pdf", 
+                use_container_width=True
+            )
         
         with col_action2:
-            st.markdown("#### Share with Stakeholders")
+            st.markdown("#### ✉️ Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
-            
             eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements...\n\n-> SUMMARY:\n{data.get('summary', 'N/A')}\n\nBest,\nProduct Management"
             eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
             
-            sales_body = f"Hello Sales Team,\n\nGreat news—we have completed the initial feasibility scoping...\n\nBest,\nProduct Management"
-            sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
-            
             st.markdown(f"""
-                <a href="{eng_mailto}" target="_blank" style="text-decoration: none;"><button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Email to Engineering</button></a>
-                <a href="{sales_mailto}" target="_blank" style="text-decoration: none;"><button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">Email to Sales</button></a>
+                <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Email to Engineering
+                    </button>
+                </a>
                 """, unsafe_allow_html=True)
             
-            with st.expander("View Jira / Confluence Markup", expanded=False):
-                st.code(generate_jira_format(data, currency), language="jira")
+        with st.expander("View Jira / Confluence Markup", expanded=False):
+            st.code(generate_jira_format(data, currency), language="jira")
                 
         refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
         if refine_query:
@@ -239,7 +248,14 @@ def render_pm_dashboard(supabase):
                     hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
                     
                     with hist_btn_col1:
-                        st.download_button(label="Download PDF", data=create_pdf(past_data, currency, ticket_type="detailed"), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
+                        st.download_button(
+                            label="Download PDF", 
+                            data=create_pm_pdf(past_data, currency), 
+                            file_name=f"ticket_{item['id'][:8]}.pdf", 
+                            mime="application/pdf", 
+                            key=f"hist_pdf_{item['id']}", 
+                            use_container_width=True
+                        )
                     with hist_btn_col3:
                         if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
                             try:
