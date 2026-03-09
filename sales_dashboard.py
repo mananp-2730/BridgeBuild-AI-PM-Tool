@@ -5,7 +5,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from prompts import get_sales_prompt
-from utils import clean_json_output, convert_currency
+from utils import clean_json_output, convert_currency, safe_parse_json, render_universal_exports
 
 def render_sales_dashboard(supabase):
     if st.button("Logout", key="sales_logout"):
