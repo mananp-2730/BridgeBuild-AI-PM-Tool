@@ -5,6 +5,9 @@ import io
 import re
 import os
 from datetime import datetime, timezone, timedelta
+import streamlit as st
+import urllib.parse
+import json
 
 # --- 1. HELPER FUNCTIONS ---
 def convert_currency(amount, currency_type):
