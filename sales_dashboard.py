@@ -139,7 +139,7 @@ def render_sales_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 # --- NEW UNIVERSAL EXPORT UI ---
-                render_universal_exports(data, role_name="Sales", currency=currency)
+            render_universal_exports(data, role_name="Sales", currency=currency)
                 
     # --- 3. SALES HISTORY SECTION ---
     st.divider()
