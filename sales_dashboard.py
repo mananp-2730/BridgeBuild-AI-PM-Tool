@@ -79,11 +79,17 @@ def render_sales_dashboard(supabase):
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Formatting budget and feasibility metrics...")
-                    cleaned_text = clean_json_output(response.text)
-                    data = json.loads(cleaned_text)
                     
-                    # Close the status box with a success message!
-                    status.update(label="Analysis Complete!", state="complete", expanded=False)
+                    # --- NEW BULLETPROOF PARSING ---
+                    data, error_msg = safe_parse_json(response.text)
+                    
+                    if error_msg:
+                        status.update(label="Analysis Failed", state="error", expanded=True)
+                        st.error(error_msg)
+                        st.stop() # Stops the rest of the code from running and crashing!
+                    else:
+                        status.update(label="Analysis Complete!", state="complete", expanded=False)
+                        
                 # --- 1. RENDER THE RESULTS ---
                 st.write("")
                 score = data.get("feasibility_score", "Yellow")
