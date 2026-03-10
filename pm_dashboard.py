@@ -56,7 +56,6 @@ def _draw_header(c, width, height, title):
         c.drawImage("Logo_bg_removed.png", width - 100, height - 90, width=80, height=80, mask='auto')
 
 def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
-    """Generates either the highly detailed Eng Ticket or the brief Sales summary."""
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -91,15 +90,38 @@ def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
             y = _check_page_break(c, y, height)
             y = _draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
             
-            # Only print Acceptance Criteria if it's the detailed report
             if is_detailed:
                 for ac in item.get("acceptance_criteria", []):
                     y = _check_page_break(c, y, height)
                     c.drawString(50, y, "-")
                     y = _draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
             y -= 10
-    
+    else:
+        for feat in ticket_data.get("mvp_features", []):
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "-")
+            y = _draw_wrapped_text(c, feat, 60, y, 480, "Helvetica", 11)
+            y -= 5
+
     if is_detailed:
+        y -= 10
+        y = _check_page_break(c, y, height)
+        p2_raw = ticket_data.get("phase_2_budget_usd", "0-0")
+        p2_low = convert_currency(p2_raw.split("-")[0] if "-" in p2_raw else p2_raw, currency)
+        p2_high = convert_currency(p2_raw.split("-")[1] if "-" in p2_raw else p2_raw, currency)
+        c.setFillColorRGB(0.004, 0.129, 0.412)
+        c.drawString(40, y, _safe_text("Phase 2: Future Enhancements"))
+        y -= 20
+        c.setFillColor(colors.black)
+        c.drawString(40, y, _safe_text(f"Est. Extra Time: {ticket_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low} - {p2_high}"))
+        y -= 20
+        
+        for feat in ticket_data.get("phase_2_features", []):
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "-")
+            y = _draw_wrapped_text(c, feat, 60, y, 480, "Helvetica", 11)
+            y -= 5
+
         y -= 10
         y = _check_page_break(c, y, height)
         c.setFillColorRGB(0.004, 0.129, 0.412)
@@ -112,12 +134,24 @@ def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
             y = _draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
             y -= 5
 
+        y -= 10
+        y = _check_page_break(c, y, height)
+        c.setFillColorRGB(0.004, 0.129, 0.412)
+        c.drawString(40, y, _safe_text("Suggested Tech Stack"))
+        y -= 20
+        c.setFillColor(colors.black)
+        for item in ticket_data.get("suggested_stack", []):
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "-")
+            y = _draw_wrapped_text(c, item, 60, y, 490, "Helvetica", 11)
+            y -= 5
+
     c.save()
     buffer.seek(0)
     return buffer
 
 # ==========================================
-# DASHBOARD RENDERER
+# PM DASHBOARD RENDERER
 # ==========================================
 def render_pm_dashboard(supabase):
     with st.sidebar:
@@ -169,6 +203,7 @@ def render_pm_dashboard(supabase):
                     prompt_contents = []
                     
                     if uploaded_file:
+                        st.write("Processing multi-modal audio/document file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
@@ -189,9 +224,11 @@ def render_pm_dashboard(supabase):
                     )
                     
                     if uploaded_file:
+                        st.write("Cleaning up temporary files...")
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Structuring Epics, Stories, and Budgets...")
+                    
                     data, error_msg = safe_parse_json(response.text)
                     
                     if error_msg:
@@ -236,8 +273,13 @@ def render_pm_dashboard(supabase):
         with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
 
         st.divider()
+        
         with st.expander("Engineering Ticket Summary", expanded=True): st.info(f"**Summary:** {data.get('summary')}")
             
+        if data.get("ambiguity_flags"):
+            with st.expander("PM Pre-Flight: Missing Context", expanded=False):
+                for flag in data.get("ambiguity_flags", []): st.warning(f"{flag}")
+                    
         if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
             with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
                 for i, task in enumerate(data.get("epic_sub_tasks")):
@@ -252,11 +294,32 @@ def render_pm_dashboard(supabase):
                     st.markdown(f"**{item.get('story', 'User Story')}**")
                     for ac in item.get("acceptance_criteria", []): st.markdown(f"  * {ac}")
                     st.write("")
+            else:
+                for feat in data.get("mvp_features", []): st.markdown(f"- {feat}")
                     
+        with st.expander("Phase 2: Future Enhancements", expanded=False):
+            p2_raw = data.get("phase_2_budget_usd", "0-0")
+            p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
+            p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
+            p2_fmt_low = convert_currency(p2_low, currency)
+            p2_fmt_high = convert_currency(p2_high, currency)
+            
+            st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
+            for feat in data.get("phase_2_features", []): st.markdown(f"- {feat}")
+                
         with st.expander("Technical Risks", expanded=False):
             for risk in data.get("technical_risks", []): st.warning(f"- {risk}")
+                
+        with st.expander("Suggested Tech Stack", expanded=False):
+            st.code("\n".join(data.get("suggested_stack", [])), language="bash")
+            
+        with st.expander("Data Schema", expanded=False):
+            for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
 
-        # --- RESTORED DUAL EXPORT UI ---
+        with st.expander("Architecture & Flowchart", expanded=False):
+            if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
+            else: st.info("No architecture diagram generated.")
+
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
@@ -299,5 +362,76 @@ def render_pm_dashboard(supabase):
                     </button>
                 </a>
                 """, unsafe_allow_html=True)
+            
+        with st.expander("View Jira / Confluence Markup", expanded=False):
+            st.code(generate_jira_format(data, currency), language="jira")
+                
+        refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
+        if refine_query:
+            if not api_key: st.error("API Key missing.")
+            else:
+                with st.spinner("AI is updating the ticket..."):
+                    try:
+                        client = genai.Client(api_key=api_key)
+                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+                        update_prompt = f"You are a Technical Product Manager. Update the JSON ticket based on request.\nCURRENT TICKET:\n{json.dumps(data)}\nUSER REQUEST:\n{refine_query}"
+                        
+                        update_response = client.models.generate_content(
+                            model=model_id, 
+                            config=types.GenerateContentConfig(temperature=0.1, response_mime_type="application/json"),
+                            contents=update_prompt
+                        )
+                        
+                        updated_data = json.loads(clean_json_output(update_response.text))
+                        st.session_state.active_ticket = updated_data
+                        
+                        if st.session_state.active_ticket_id:
+                            supabase.table("tickets").update({"summary": updated_data.get("summary"), "complexity": updated_data.get("complexity_score"), "time": updated_data.get("development_time"), "full_data": update_response.text}).eq("id", st.session_state.active_ticket_id).execute()
+                            
+                        st.rerun() 
+                    except Exception as e:
+                        st.error(f"Failed to refine: {str(e)}")
 
-    # --- HISTORY SECTION REMOVED FOR BREVITY (Keep your existing history block here) ---
+    st.divider()
+    st.subheader("Saved Tickets History")
+    try:
+        db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
+        saved_tickets = db_response.data
+        
+        if saved_tickets:
+            for i, item in enumerate(saved_tickets):
+                with st.expander(f"Ticket: {item['summary'][:60]}..."):
+                    past_data = json.loads(item['full_data'])
+                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
+                    
+                    with hist_btn_col1:
+                        st.download_button(
+                            label="Download PDF", 
+                            data=generate_local_pm_pdf(past_data, currency, is_detailed=True), 
+                            file_name=f"ticket_{item['id'][:8]}.pdf", 
+                            mime="application/pdf", 
+                            key=f"hist_pdf_{item['id']}", 
+                            use_container_width=True
+                        )
+                    with hist_btn_col3:
+                        if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
+                            try:
+                                supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                st.rerun() 
+                            except Exception as e:
+                                st.error(f"Failed to delete ticket: {str(e)}")
+                    st.write("") 
+                    with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
+                        st.code(generate_jira_format(past_data, currency), language="jira")
+        else:
+            st.info("No saved tickets yet. Generate your first one above!")
+    except Exception as e:
+        st.error(f"Could not load history: {str(e)}")
+    
+    st.markdown("---")
+    footer_html = """
+    <div style='text-align: center; color: #666666; font-size: 0.8em; font-family: sans-serif;'>
+        <p>Built by <a href='https://github.com/mananp-2730' target='_blank' style='text-decoration: none; color: #0366d6;'>Manan Patel</a></p>
+    </div>
+    """
+    st.markdown(footer_html, unsafe_allow_html=True)
