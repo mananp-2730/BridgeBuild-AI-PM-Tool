@@ -322,17 +322,24 @@ def render_sales_dashboard(supabase):
                     hist_fmt_low = convert_currency(hist_low, currency)
                     hist_fmt_high = convert_currency(hist_high, currency)
                     
-                    # Add localized PDF download to History block!
+                    # --- BUILD HISTORICAL SALES EMAIL PAYLOAD ---
+                    ticket_name = past_data.get('project_summary', 'New Project Request')[:50] + "..."
+                    sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
+                    sales_body += f"-> FEASIBILITY SCORE: {score}\n"
+                    sales_body += f"-> EST. TIMELINE: {past_data.get('estimated_timeline', 'N/A')}\n"
+                    sales_body += f"-> EST. BUDGET: {hist_fmt_low} - {hist_fmt_high}\n\n"
+                    sales_body += f"-> PROJECT SUMMARY:\n{past_data.get('project_summary', 'N/A')}\n\n"
+                    sales_body += f"-> CRITICAL 'ASK' LIST:\n"
+                    for q in past_data.get("client_questions", []): sales_body += f"  - {q}\n"
+                    sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
+                    for r in past_data.get("deal_breakers", []): sales_body += f"  - {r}\n"
+                    sales_body += "\nBest,\nBridgeBuild Sales Hub"
+                    sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
+
+                    # --- RENDER HISTORY UI BLOCKS ---
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
-                        st.download_button(
-                            label="Download PDF", 
-                            data=generate_local_sales_pdf(past_data, currency), 
-                            file_name=f"sales_quote_{item['id'][:8]}.pdf", 
-                            mime="application/pdf", 
-                            key=f"hist_pdf_sales_{item['id']}", 
-                            use_container_width=True
-                        )
+                        st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
                     with hist_btn_col2:
                         with st.popover("Delete", use_container_width=True):
                             st.warning("Are you sure?")
@@ -342,6 +349,17 @@ def render_sales_dashboard(supabase):
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"Failed to delete: {str(e)}")
+                    
+                    # Embed Sales Email Button below the PDF/Delete row
+                    st.markdown(f"""
+                        <div style="margin-top: 5px; margin-bottom: 15px;">
+                            <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
+                                <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                                    Email Sales Summary
+                                </button>
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
                     
                     st.divider()
                     
