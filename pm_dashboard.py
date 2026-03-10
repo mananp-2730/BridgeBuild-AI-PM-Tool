@@ -344,12 +344,66 @@ def render_pm_dashboard(supabase):
             st.markdown("#### ✉️ Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
             
-            eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements...\n\n-> SUMMARY:\n{data.get('summary', 'N/A')}\n\nBest,\nProduct Management"
+            # --- CALCULATE PHASE 2 BUDGET FOR EMAILS ---
+            p2_raw_email = data.get("phase_2_budget_usd", "0-0")
+            p2_low_email = convert_currency(p2_raw_email.split("-")[0].strip() if "-" in p2_raw_email else p2_raw_email, currency)
+            p2_high_email = convert_currency(p2_raw_email.split("-")[1].strip() if "-" in p2_raw_email else p2_raw_email, currency)
+
+            # ==========================================
+            # 1. ENGINEERING EMAIL PAYLOAD (Ultra-Detailed)
+            # ==========================================
+            eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements for: {ticket_name}\n\n"
+            eng_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+            eng_body += f"-> PHASE 1: CORE MVP\nEst. Time: {data.get('development_time', 'N/A')} | Est. Budget: {fmt_low} - {fmt_high}\n"
+            
+            if "mvp_user_stories" in data:
+                for item in data.get("mvp_user_stories", []):
+                    eng_body += f"\nStory: {item.get('story')}\n"
+                    for ac in item.get("acceptance_criteria", []):
+                        eng_body += f"  - AC: {ac}\n"
+            else:
+                for feat in data.get("mvp_features", []):
+                    eng_body += f"  - {feat}\n"
+
+            eng_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
+            for feat in data.get("phase_2_features", []):
+                eng_body += f"  - {feat}\n"
+
+            eng_body += f"\n\n-> TECHNICAL RISKS\n"
+            for risk in data.get("technical_risks", []):
+                eng_body += f"  - {risk}\n"
+
+            eng_body += f"\n\n-> SUGGESTED TECH STACK\n"
+            for tech in data.get("suggested_stack", []):
+                eng_body += f"  - {tech}\n"
+                
+            eng_body += "\n\nBest,\nProduct Management"
             eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
             
-            sales_body = f"Hello Sales Team,\n\nGreat news—we have completed the initial feasibility scoping...\n\nBest,\nProduct Management"
+            # ==========================================
+            # 2. SALES EMAIL PAYLOAD (High-Level MVP Focus)
+            # ==========================================
+            sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
+            sales_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
+            sales_body += f"-> PHASE 1: CORE MVP\nEst. Time: {data.get('development_time', 'N/A')} | Est. Budget: {fmt_low} - {fmt_high}\n"
+            
+            if "mvp_user_stories" in data:
+                for item in data.get("mvp_user_stories", []):
+                    sales_body += f"  - {item.get('story')}\n"
+            else:
+                for feat in data.get("mvp_features", []):
+                    sales_body += f"  - {feat}\n"
+
+            sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
+            for feat in data.get("phase_2_features", []):
+                sales_body += f"  - {feat}\n"
+
+            sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
             sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
             
+            # ==========================================
+            # 3. RENDER BUTTONS
+            # ==========================================
             st.markdown(f"""
                 <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
                     <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
@@ -362,7 +416,7 @@ def render_pm_dashboard(supabase):
                     </button>
                 </a>
                 """, unsafe_allow_html=True)
-            
+                
         with st.expander("View Jira / Confluence Markup", expanded=False):
             st.code(generate_jira_format(data, currency), language="jira")
                 
