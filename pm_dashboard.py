@@ -456,17 +456,55 @@ def render_pm_dashboard(supabase):
             for i, item in enumerate(saved_tickets):
                 with st.expander(f"Ticket: {item['summary'][:60]}..."):
                     past_data = json.loads(item['full_data'])
-                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
                     
+                    # --- RECALCULATE CURRENCY FOR HISTORY EMAILS ---
+                    hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
+                    hist_low = convert_currency(hist_raw_cost.split("-")[0].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
+                    hist_high = convert_currency(hist_raw_cost.split("-")[1].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
+                    
+                    p2_raw_email = past_data.get("phase_2_budget_usd", "0-0")
+                    p2_low_email = convert_currency(p2_raw_email.split("-")[0].strip() if "-" in p2_raw_email else p2_raw_email, currency)
+                    p2_high_email = convert_currency(p2_raw_email.split("-")[1].strip() if "-" in p2_raw_email else p2_raw_email, currency)
+                    
+                    # --- BUILD HISTORICAL EMAIL PAYLOADS ---
+                    ticket_name = past_data.get('ticket_name', past_data.get('summary', 'New Project'))[:50]
+                    
+                    # Eng Payload
+                    eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements for: {ticket_name}\n\n"
+                    eng_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
+                    eng_body += f"-> PHASE 1: CORE MVP\nEst. Time: {past_data.get('development_time', 'N/A')} | Est. Budget: {hist_low} - {hist_high}\n"
+                    if "mvp_user_stories" in past_data:
+                        for story in past_data.get("mvp_user_stories", []):
+                            eng_body += f"\nStory: {story.get('story')}\n"
+                            for ac in story.get("acceptance_criteria", []): eng_body += f"  - AC: {ac}\n"
+                    else:
+                        for feat in past_data.get("mvp_features", []): eng_body += f"  - {feat}\n"
+                    eng_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {past_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
+                    for feat in past_data.get("phase_2_features", []): eng_body += f"  - {feat}\n"
+                    eng_body += f"\n\n-> TECHNICAL RISKS\n"
+                    for risk in past_data.get("technical_risks", []): eng_body += f"  - {risk}\n"
+                    eng_body += f"\n\n-> SUGGESTED TECH STACK\n"
+                    for tech in past_data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
+                    eng_body += "\n\nBest,\nProduct Management"
+                    eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
+
+                    # Sales Payload
+                    sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
+                    sales_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
+                    sales_body += f"-> PHASE 1: CORE MVP\nEst. Time: {past_data.get('development_time', 'N/A')} | Est. Budget: {hist_low} - {hist_high}\n"
+                    if "mvp_user_stories" in past_data:
+                        for story in past_data.get("mvp_user_stories", []): sales_body += f"  - {story.get('story')}\n"
+                    else:
+                        for feat in past_data.get("mvp_features", []): sales_body += f"  - {feat}\n"
+                    sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {past_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
+                    for feat in past_data.get("phase_2_features", []): sales_body += f"  - {feat}\n"
+                    sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
+                    sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
+
+                    # --- RENDER HISTORY UI BLOCKS ---
+                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
                     with hist_btn_col1:
-                        st.download_button(
-                            label="Download PDF", 
-                            data=generate_local_pm_pdf(past_data, currency, is_detailed=True), 
-                            file_name=f"ticket_{item['id'][:8]}.pdf", 
-                            mime="application/pdf", 
-                            key=f"hist_pdf_{item['id']}", 
-                            use_container_width=True
-                        )
+                        st.download_button("Download PDF", data=generate_local_pm_pdf(past_data, currency, is_detailed=True), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
                     with hist_btn_col3:
                         if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
                             try:
@@ -474,11 +512,28 @@ def render_pm_dashboard(supabase):
                                 st.rerun() 
                             except Exception as e:
                                 st.error(f"Failed to delete ticket: {str(e)}")
-                    st.write("") 
+                    
+                    # Embed Email Buttons below the PDF/Delete row
+                    st.markdown(f"""
+                        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;">
+                            <a href="{eng_mailto}" target="_blank" style="text-decoration: none; flex: 1;">
+                                <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                                    Email Eng
+                                </button>
+                            </a>
+                            <a href="{sales_mailto}" target="_blank" style="text-decoration: none; flex: 1;">
+                                <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                                    Email Sales
+                                </button>
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
+
                     with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
                         st.code(generate_jira_format(past_data, currency), language="jira")
         else:
             st.info("No saved tickets yet. Generate your first one above!")
+            
     except Exception as e:
         st.error(f"Could not load history: {str(e)}")
     
