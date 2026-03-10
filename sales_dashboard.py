@@ -2,14 +2,129 @@ import streamlit as st
 import json
 import os
 import tempfile
+import io
 from urllib.parse import quote
+from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
 from prompts import get_sales_prompt
-from utils import clean_json_output, convert_currency, safe_parse_json, create_sales_pdf
+from utils import clean_json_output, convert_currency, safe_parse_json
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 
-def render_sales_dashboard(supabase):
+# ==========================================
+# LOCALIZED SALES PDF ENGINE
+# ==========================================
+def _safe_text(text):
+    return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
+
+def _draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
+    c.setFont(font_name, font_size)
+    words = _safe_text(text).split(' ')
+    line = ""
+    for word in words:
+        if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
+            line += word + " "
+        else:
+            c.drawString(x, y, line.strip())
+            y -= line_height
+            line = word + " "
+    if line:
+        c.drawString(x, y, line.strip())
+        y -= line_height
+    return y
+
+def _check_page_break(c, current_y, height, threshold=100):
+    if current_y < threshold:
+        c.showPage()
+        return height - 50
+    return current_y
+
+def _draw_header(c, width, height, title):
+    c.setFillColorRGB(0.004, 0.129, 0.412) 
+    c.rect(0, height - 100, width, 100, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(40, height - 60, title)
     
+    ist = timezone(timedelta(hours=5, minutes=30))
+    date_str = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
+    c.setFont("Helvetica", 10)
+    c.drawString(40, height - 80, _safe_text(f"Generated on: {date_str} | BridgeBuild AI"))
+    if os.path.exists("Logo_bg_removed.png"):
+        c.drawImage("Logo_bg_removed.png", width - 100, height - 90, width=80, height=80, mask='auto')
+
+def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    _draw_header(c, width, height, "Sales & Feasibility Report")
+    y = height - 140
+    c.setFillColor(colors.black)
+    
+    # Fully wrapped summary instead of cutting it off!
+    y = _draw_wrapped_text(c, "Project Summary:", 40, y, 500, "Helvetica-Bold", 14)
+    y -= 5
+    y = _draw_wrapped_text(c, ticket_data.get('project_summary', 'Untitled Project'), 40, y, 500, "Helvetica", 11)
+    y -= 15
+
+    y = _check_page_break(c, y, height)
+    score = ticket_data.get('feasibility_score', 'N/A')
+    y = _draw_wrapped_text(c, f"Feasibility Score: {score}", 40, y, 500, "Helvetica-Bold", 12)
+    y -= 5
+    y = _draw_wrapped_text(c, ticket_data.get('feasibility_reason', ''), 40, y, 500, "Helvetica", 10)
+    y -= 15
+
+    raw_budget = ticket_data.get('budget_estimate_usd', '0')
+    low = convert_currency(raw_budget.split("-")[0].strip() if "-" in raw_budget else raw_budget, currency)
+    high = convert_currency(raw_budget.split("-")[1].strip() if "-" in raw_budget else raw_budget, currency)
+    budget = f"{low} - {high}"
+
+    y = _draw_wrapped_text(c, f"Estimated Timeline: {ticket_data.get('estimated_timeline', 'N/A')}", 40, y, 500, "Helvetica-Bold", 12)
+    y = _draw_wrapped_text(c, f"Estimated Budget: {budget}", 40, y, 500, "Helvetica-Bold", 12)
+    y -= 20
+
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, _safe_text("Critical 'Ask' List for Client:"))
+    y -= 20
+    c.setFillColor(colors.black)
+    
+    for q in ticket_data.get("client_questions", []):
+        if q.strip(): # Prevents empty bullet points
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "*")
+            y = _draw_wrapped_text(c, q, 60, y, 480, "Helvetica", 11)
+            y -= 10
+
+    y -= 10
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.7, 0.1, 0.1) # Red headers for deal breakers
+    c.drawString(40, y, _safe_text("Deal Breakers & Risks:"))
+    y -= 20
+    c.setFillColor(colors.black)
+    
+    for r in ticket_data.get("deal_breakers", []):
+        if r.strip():
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "!")
+            y = _draw_wrapped_text(c, r, 60, y, 480, "Helvetica", 11)
+            y -= 10
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# ==========================================
+# SALES DASHBOARD RENDERER
+# ==========================================
+def render_sales_dashboard(supabase):
+    if st.button("Logout", key="sales_logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+
     st.title("BridgeBuild AI - Sales Intake")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
 
@@ -24,13 +139,11 @@ def render_sales_dashboard(supabase):
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
     
-    # --- PULL FROM GLOBAL SETTINGS ---
     user_prefs = st.session_state.get("user_prefs", {})
     currency = user_prefs.get("currency", "USD ($)")
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
 
-    # Initialize the session state so the UI stays visible!
     if "active_sales_ticket" not in st.session_state: 
         st.session_state.active_sales_ticket = None
 
@@ -46,7 +159,6 @@ def render_sales_dashboard(supabase):
 
                 with st.status("Initializing AI Engine...", expanded=True) as status:
                     st.write("Parsing input and extracting requirements...")
-                    
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
                     prompt_contents = []
                     
@@ -80,7 +192,6 @@ def render_sales_dashboard(supabase):
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Formatting budget and feasibility metrics...")
-                    
                     data, error_msg = safe_parse_json(response.text)
                     
                     if error_msg:
@@ -91,7 +202,6 @@ def render_sales_dashboard(supabase):
                         status.update(label="Analysis Complete!", state="complete", expanded=False)
                         st.session_state.active_sales_ticket = data
 
-                # --- 2. SAVE TO SUPABASE ---
                 raw_cost = data.get("budget_estimate_usd", "0-0")
                 low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
                 high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
@@ -113,7 +223,6 @@ def render_sales_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
-    # --- 1. RENDER THE ACTIVE TICKET ---
     if st.session_state.active_sales_ticket:
         data = st.session_state.active_sales_ticket
         
@@ -135,7 +244,6 @@ def render_sales_dashboard(supabase):
         fmt_low = convert_currency(low_end, currency)
         fmt_high = convert_currency(high_end, currency)
         
-        # This fixes the NameError completely!
         col1, col2 = st.columns(2)
         with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
         with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
@@ -151,7 +259,6 @@ def render_sales_dashboard(supabase):
             st.subheader("Deal Breakers")
             for r in data.get("deal_breakers", []): st.error(f"{r}")
 
-        # --- EXPLICIT SALES EXPORT UI ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
@@ -159,7 +266,7 @@ def render_sales_dashboard(supabase):
             st.markdown("#### 📄 Export Sales Report")
             st.download_button(
                 "Download Sales PDF", 
-                data=create_sales_pdf(data, currency), 
+                data=generate_local_sales_pdf(data, currency), 
                 file_name="bridgebuild_sales_report.pdf", 
                 mime="application/pdf", 
                 use_container_width=True
@@ -167,10 +274,27 @@ def render_sales_dashboard(supabase):
             
         with col_action2:
             st.markdown("#### ✉️ Email Sales Team")
-            sales_body = f"Hello Team,\n\nFeasibility: {data.get('feasibility_score')}\nBudget: {data.get('budget_estimate_usd')}\n\nBest,\nSales"
-            sales_mailto = f"mailto:?subject=Sales Quote&body={quote(sales_body)}"
             
-            # CSS Alignment Fix: Matched padding, font-size, line-height, and margin-top to Streamlit's native buttons
+            # --- FULL-FLEDGED SALES EMAIL PAYLOAD ---
+            ticket_name = data.get('project_summary', 'New Project Request')[:50] + "..."
+            sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
+            sales_body += f"-> FEASIBILITY SCORE: {score}\n"
+            sales_body += f"-> EST. TIMELINE: {data.get('estimated_timeline', 'N/A')}\n"
+            sales_body += f"-> EST. BUDGET: {fmt_low} - {fmt_high}\n\n"
+            
+            sales_body += f"-> PROJECT SUMMARY:\n{data.get('project_summary', 'N/A')}\n\n"
+            
+            sales_body += f"-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
+            for q in data.get("client_questions", []):
+                sales_body += f"  - {q}\n"
+                
+            sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
+            for r in data.get("deal_breakers", []):
+                sales_body += f"  - {r}\n"
+                
+            sales_body += "\nBest,\nBridgeBuild Sales Hub"
+            sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
+            
             st.markdown(f"""
                 <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
                     <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 400; cursor: pointer; line-height: 1.6; font-size: 1rem; margin-top: 2px;">
@@ -179,7 +303,6 @@ def render_sales_dashboard(supabase):
                 </a>
                 """, unsafe_allow_html=True)
             
-    # --- 3. SALES HISTORY SECTION ---
     st.divider()
     st.subheader("Saved Sales Quotes")
     
@@ -199,6 +322,29 @@ def render_sales_dashboard(supabase):
                     hist_fmt_low = convert_currency(hist_low, currency)
                     hist_fmt_high = convert_currency(hist_high, currency)
                     
+                    # Add localized PDF download to History block!
+                    hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
+                    with hist_btn_col1:
+                        st.download_button(
+                            label="Download PDF", 
+                            data=generate_local_sales_pdf(past_data, currency), 
+                            file_name=f"sales_quote_{item['id'][:8]}.pdf", 
+                            mime="application/pdf", 
+                            key=f"hist_pdf_sales_{item['id']}", 
+                            use_container_width=True
+                        )
+                    with hist_btn_col2:
+                        with st.popover("Delete", use_container_width=True):
+                            st.warning("Are you sure?")
+                            if st.button("Confirm Delete", key=f"confirm_del_sales_{item['id']}", type="primary"):
+                                try:
+                                    supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Failed to delete: {str(e)}")
+                    
+                    st.divider()
+                    
                     col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1: st.metric("Feasibility", score)
                     with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
@@ -214,17 +360,6 @@ def render_sales_dashboard(supabase):
                     with col_r:
                         st.markdown("##### Deal Breakers")
                         for r in past_data.get("deal_breakers", []): st.error(f"{r}")
-                    
-                    st.write("")
-                    
-                    with st.popover("Delete Quote", use_container_width=True):
-                        st.warning("Are you sure? This cannot be undone.")
-                        if st.button("Yes, Delete Forever", key=f"confirm_del_sales_{item['id']}", type="primary"):
-                            try:
-                                supabase.table("tickets").delete().eq("id", item['id']).execute()
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Failed to delete: {str(e)}") 
         else:
             st.info("No saved quotes yet. Run an analysis above!")
             
