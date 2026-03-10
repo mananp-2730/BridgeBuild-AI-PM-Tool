@@ -9,10 +9,7 @@ from prompts import get_sales_prompt
 from utils import clean_json_output, convert_currency, safe_parse_json, create_sales_pdf
 
 def render_sales_dashboard(supabase):
-    if st.button("Logout", key="sales_logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
+    
     st.title("BridgeBuild AI - Sales Intake")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
 
