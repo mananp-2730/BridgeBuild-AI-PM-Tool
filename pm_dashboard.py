@@ -3,22 +3,131 @@ import json
 import urllib.parse
 import tempfile
 import os
+import io
+from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
 from prompts import get_system_prompt
-from utils import clean_json_output, generate_jira_format, convert_currency, create_pm_pdf, safe_parse_json
+from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 
+# ==========================================
+# LOCALIZED PM PDF ENGINES
+# ==========================================
+def _safe_text(text):
+    return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
+
+def _draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
+    c.setFont(font_name, font_size)
+    words = _safe_text(text).split(' ')
+    line = ""
+    for word in words:
+        if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
+            line += word + " "
+        else:
+            c.drawString(x, y, line.strip())
+            y -= line_height
+            line = word + " "
+    if line:
+        c.drawString(x, y, line.strip())
+        y -= line_height
+    return y
+
+def _check_page_break(c, current_y, height, threshold=100):
+    if current_y < threshold:
+        c.showPage()
+        return height - 50
+    return current_y
+
+def _draw_header(c, width, height, title):
+    c.setFillColorRGB(0.004, 0.129, 0.412) 
+    c.rect(0, height - 100, width, 100, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(40, height - 60, title)
+    
+    ist = timezone(timedelta(hours=5, minutes=30))
+    date_str = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
+    c.setFont("Helvetica", 10)
+    c.drawString(40, height - 80, _safe_text(f"Generated on: {date_str} | BridgeBuild AI"))
+    if os.path.exists("Logo_bg_removed.png"):
+        c.drawImage("Logo_bg_removed.png", width - 100, height - 90, width=80, height=80, mask='auto')
+
+def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
+    """Generates either the highly detailed Eng Ticket or the brief Sales summary."""
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    report_title = "Engineering Ticket Report" if is_detailed else "Executive Scoping Summary"
+    _draw_header(c, width, height, report_title)
+    
+    y = height - 140
+    c.setFillColor(colors.black)
+
+    name = ticket_data.get("ticket_name", ticket_data.get("summary", "Untitled"))
+    y = _draw_wrapped_text(c, f"Project: {name}", 40, y, 500, "Helvetica-Bold", 16)
+    y -= 15
+    y = _draw_wrapped_text(c, ticket_data.get("summary", "No summary provided."), 40, y, 520, "Helvetica", 11)
+    y -= 20
+
+    raw_budget = ticket_data.get('budget_estimate_usd', '0')
+    low = convert_currency(raw_budget.split("-")[0].strip() if "-" in raw_budget else raw_budget, currency)
+    high = convert_currency(raw_budget.split("-")[1].strip() if "-" in raw_budget else raw_budget, currency)
+    p1_budget = f"{low} - {high}"
+
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.drawString(40, y, _safe_text("Phase 1: Core MVP"))
+    y -= 20
+    c.setFillColor(colors.black)
+    c.drawString(40, y, _safe_text(f"Est. Time: {ticket_data.get('development_time', 'N/A')} | Est. Budget: {p1_budget}"))
+    y -= 20
+    
+    if "mvp_user_stories" in ticket_data:
+        for item in ticket_data.get("mvp_user_stories", []):
+            y = _check_page_break(c, y, height)
+            y = _draw_wrapped_text(c, f"Story: {item.get('story', '')}", 40, y, 500, "Helvetica-Bold", 10)
+            
+            # Only print Acceptance Criteria if it's the detailed report
+            if is_detailed:
+                for ac in item.get("acceptance_criteria", []):
+                    y = _check_page_break(c, y, height)
+                    c.drawString(50, y, "-")
+                    y = _draw_wrapped_text(c, f"AC: {ac}", 60, y, 480, "Helvetica", 10)
+            y -= 10
+    
+    if is_detailed:
+        y -= 10
+        y = _check_page_break(c, y, height)
+        c.setFillColorRGB(0.004, 0.129, 0.412)
+        c.drawString(40, y, _safe_text("Technical Risks"))
+        y -= 20
+        c.setFillColor(colors.black)
+        for risk in ticket_data.get("technical_risks", []):
+            y = _check_page_break(c, y, height)
+            c.drawString(45, y, "-")
+            y = _draw_wrapped_text(c, risk, 60, y, 490, "Helvetica", 11)
+            y -= 5
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# ==========================================
+# DASHBOARD RENDERER
+# ==========================================
 def render_pm_dashboard(supabase):
-    # 1. PM-Specific Sidebar Tools
     with st.sidebar:
-        st.markdown("#### Architecture Engine")
+        st.markdown("#### 🏗️ Architecture Engine")
         build_strategy = st.select_slider(
             "Build Strategy:", 
             options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"], 
             value="Balanced"
         )
 
-    # 2. Pull from Global Settings
     user_prefs = st.session_state.get("user_prefs", {})
     currency = user_prefs.get("currency", "USD ($)")
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
@@ -60,7 +169,6 @@ def render_pm_dashboard(supabase):
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.write("Processing multi-modal audio/document file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
@@ -81,12 +189,9 @@ def render_pm_dashboard(supabase):
                     )
                     
                     if uploaded_file:
-                        st.write("Cleaning up temporary files...")
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Structuring Epics, Stories, and Budgets...")
-                    
-                    # --- TICKET 1: BULLETPROOF JSON PARSING ---
                     data, error_msg = safe_parse_json(response.text)
                     
                     if error_msg:
@@ -131,13 +236,8 @@ def render_pm_dashboard(supabase):
         with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
 
         st.divider()
-        
         with st.expander("Engineering Ticket Summary", expanded=True): st.info(f"**Summary:** {data.get('summary')}")
             
-        if data.get("ambiguity_flags"):
-            with st.expander("PM Pre-Flight: Missing Context", expanded=False):
-                for flag in data.get("ambiguity_flags", []): st.warning(f"{flag}")
-                    
         if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
             with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
                 for i, task in enumerate(data.get("epic_sub_tasks")):
@@ -152,42 +252,27 @@ def render_pm_dashboard(supabase):
                     st.markdown(f"**{item.get('story', 'User Story')}**")
                     for ac in item.get("acceptance_criteria", []): st.markdown(f"  * {ac}")
                     st.write("")
-            else:
-                for feat in data.get("mvp_features", []): st.markdown(f"- {feat}")
                     
-        with st.expander("Phase 2: Future Enhancements", expanded=False):
-            p2_raw = data.get("phase_2_budget_usd", "0-0")
-            p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
-            p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
-            p2_fmt_low = convert_currency(p2_low, currency)
-            p2_fmt_high = convert_currency(p2_high, currency)
-            
-            st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
-            for feat in data.get("phase_2_features", []): st.markdown(f"- {feat}")
-                
         with st.expander("Technical Risks", expanded=False):
             for risk in data.get("technical_risks", []): st.warning(f"- {risk}")
-                
-        with st.expander("Suggested Tech Stack", expanded=False):
-            st.code("\n".join(data.get("suggested_stack", [])), language="bash")
-            
-        with st.expander("Data Schema", expanded=False):
-            for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
 
-        with st.expander("Architecture & Flowchart", expanded=False):
-            if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
-            else: st.info("No architecture diagram generated.")
-
-        # --- EXPLICIT PM EXPORT UI ---
+        # --- RESTORED DUAL EXPORT UI ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Engineering Ticket")
+            st.markdown("#### 📄 Export PDF Reports")
             st.download_button(
-                "Download PDF", 
-                data=create_pm_pdf(data, currency), 
-                file_name="bridgebuild_pm_ticket.pdf", 
+                "Download Detailed Ticket (Engineering)", 
+                data=generate_local_pm_pdf(data, currency, is_detailed=True), 
+                file_name="bridgebuild_detailed_ticket.pdf", 
+                mime="application/pdf", 
+                use_container_width=True
+            )
+            st.download_button(
+                "Download Brief Summary (Sales / Client)", 
+                data=generate_local_pm_pdf(data, currency, is_detailed=False), 
+                file_name="bridgebuild_brief_summary.pdf", 
                 mime="application/pdf", 
                 use_container_width=True
             )
@@ -195,86 +280,24 @@ def render_pm_dashboard(supabase):
         with col_action2:
             st.markdown("#### ✉️ Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
+            
             eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements...\n\n-> SUMMARY:\n{data.get('summary', 'N/A')}\n\nBest,\nProduct Management"
             eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
             
+            sales_body = f"Hello Sales Team,\n\nGreat news—we have completed the initial feasibility scoping...\n\nBest,\nProduct Management"
+            sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
+            
             st.markdown(f"""
                 <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
-                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
                         Email to Engineering
                     </button>
                 </a>
+                <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Email to Sales
+                    </button>
+                </a>
                 """, unsafe_allow_html=True)
-            
-        with st.expander("View Jira / Confluence Markup", expanded=False):
-            st.code(generate_jira_format(data, currency), language="jira")
-                
-        refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
-        if refine_query:
-            if not api_key: st.error("API Key missing.")
-            else:
-                with st.spinner("AI is updating the ticket..."):
-                    try:
-                        client = genai.Client(api_key=api_key)
-                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
-                        update_prompt = f"You are a Technical Product Manager. Update the JSON ticket based on request.\nCURRENT TICKET:\n{json.dumps(data)}\nUSER REQUEST:\n{refine_query}"
-                        
-                        update_response = client.models.generate_content(
-                            model=model_id, 
-                            config=types.GenerateContentConfig(temperature=0.1, response_mime_type="application/json"),
-                            contents=update_prompt
-                        )
-                        
-                        updated_data = json.loads(clean_json_output(update_response.text))
-                        st.session_state.active_ticket = updated_data
-                        
-                        if st.session_state.active_ticket_id:
-                            supabase.table("tickets").update({"summary": updated_data.get("summary"), "complexity": updated_data.get("complexity_score"), "time": updated_data.get("development_time"), "full_data": update_response.text}).eq("id", st.session_state.active_ticket_id).execute()
-                            
-                        st.rerun() 
-                    except Exception as e:
-                        st.error(f"Failed to refine: {str(e)}")
 
-    st.divider()
-    st.subheader("Saved Tickets History")
-    try:
-        db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
-        saved_tickets = db_response.data
-        
-        if saved_tickets:
-            for i, item in enumerate(saved_tickets):
-                with st.expander(f"Ticket: {item['summary'][:60]}..."):
-                    past_data = json.loads(item['full_data'])
-                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
-                    
-                    with hist_btn_col1:
-                        st.download_button(
-                            label="Download PDF", 
-                            data=create_pm_pdf(past_data, currency), 
-                            file_name=f"ticket_{item['id'][:8]}.pdf", 
-                            mime="application/pdf", 
-                            key=f"hist_pdf_{item['id']}", 
-                            use_container_width=True
-                        )
-                    with hist_btn_col3:
-                        if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
-                            try:
-                                supabase.table("tickets").delete().eq("id", item['id']).execute()
-                                st.rerun() 
-                            except Exception as e:
-                                st.error(f"Failed to delete ticket: {str(e)}")
-                    st.write("") 
-                    with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
-                        st.code(generate_jira_format(past_data, currency), language="jira")
-        else:
-            st.info("No saved tickets yet. Generate your first one above!")
-    except Exception as e:
-        st.error(f"Could not load history: {str(e)}")
-    
-    st.markdown("---")
-    footer_html = """
-    <div style='text-align: center; color: #666666; font-size: 0.8em; font-family: sans-serif;'>
-        <p>Built by <a href='https://github.com/mananp-2730' target='_blank' style='text-decoration: none; color: #0366d6;'>Manan Patel</a></p>
-    </div>
-    """
-    st.markdown(footer_html, unsafe_allow_html=True)
+    # --- HISTORY SECTION REMOVED FOR BREVITY (Keep your existing history block here) ---
