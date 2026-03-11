@@ -147,8 +147,8 @@ def render_global_sidebar(supabase):
             except Exception as e:
                 st.error("Failed to save.")
 
-        st.divider()
-        if st.button("Logout", use_container_width=True):
+        st.sidebar.divider()
+        if st.sidebar.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.rerun()
             
