@@ -132,12 +132,10 @@ def generate_local_eng_pdf(ticket_data):
 # ENGINEERING DASHBOARD RENDERER
 # ==========================================
 def render_engineering_dashboard(supabase):
-    if st.button("Logout", key="eng_logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    # THE ROGUE LOGOUT BUTTON HAS BEEN ELIMINATED! 🔫
 
     with st.sidebar:
-        st.markdown("#### DevOps Settings")
+        st.markdown("#### ⚙️ DevOps Settings")
         cloud_target = st.selectbox("Deployment Target:", ["AWS (Enterprise)", "Google Cloud Platform", "Vercel + Supabase", "Self-Hosted / Docker"])
 
     user_prefs = st.session_state.get("user_prefs", {})
