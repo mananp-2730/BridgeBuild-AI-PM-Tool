@@ -2,18 +2,144 @@ import streamlit as st
 import json
 import os
 import tempfile
+import io
+from urllib.parse import quote
+from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
 from prompts import get_engineering_prompt
-from utils import clean_json_output
+from utils import clean_json_output, safe_parse_json
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 
+# ==========================================
+# LOCALIZED ENGINEERING PDF ENGINE
+# ==========================================
+def _safe_text(text):
+    return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
+
+def _draw_wrapped_text(c, text, x, y, max_width, font_name="Helvetica", font_size=11, line_height=14):
+    c.setFont(font_name, font_size)
+    words = _safe_text(text).split(' ')
+    line = ""
+    for word in words:
+        if c.stringWidth(line + word + " ", font_name, font_size) < max_width:
+            line += word + " "
+        else:
+            c.drawString(x, y, line.strip())
+            y -= line_height
+            line = word + " "
+    if line:
+        c.drawString(x, y, line.strip())
+        y -= line_height
+    return y
+
+def _check_page_break(c, current_y, height, threshold=100):
+    if current_y < threshold:
+        c.showPage()
+        return height - 50
+    return current_y
+
+def _draw_header(c, width, height, title):
+    c.setFillColorRGB(0.2, 0.2, 0.2) # Dark grey/black header for Engineering
+    c.rect(0, height - 100, width, 100, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(40, height - 60, title)
+    
+    ist = timezone(timedelta(hours=5, minutes=30))
+    date_str = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
+    c.setFont("Helvetica", 10)
+    c.drawString(40, height - 80, _safe_text(f"Generated on: {date_str} | BridgeBuild AI"))
+    if os.path.exists("Logo_bg_removed.png"):
+        c.drawImage("Logo_bg_removed.png", width - 100, height - 90, width=80, height=80, mask='auto')
+
+def generate_local_eng_pdf(ticket_data):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    _draw_header(c, width, height, "Technical Architecture Report")
+    y = height - 140
+    c.setFillColor(colors.black)
+    
+    y = _draw_wrapped_text(c, "System Architecture:", 40, y, 500, "Helvetica-Bold", 14)
+    y -= 5
+    y = _draw_wrapped_text(c, ticket_data.get('system_architecture', 'N/A'), 40, y, 500, "Helvetica", 11)
+    y -= 15
+
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawString(40, y, _safe_text("Tech Stack Recommendation"))
+    y -= 20
+    c.setFillColor(colors.black)
+    
+    tech_stack = ticket_data.get("tech_stack_recommendation", {})
+    y = _draw_wrapped_text(c, f"Frontend: {tech_stack.get('frontend', 'N/A')}", 40, y, 500, "Helvetica", 11)
+    y = _draw_wrapped_text(c, f"Backend: {tech_stack.get('backend', 'N/A')}", 40, y, 500, "Helvetica", 11)
+    y = _draw_wrapped_text(c, f"Database: {tech_stack.get('database', 'N/A')}", 40, y, 500, "Helvetica", 11)
+    y = _draw_wrapped_text(c, f"Infrastructure: {tech_stack.get('infrastructure', 'N/A')}", 40, y, 500, "Helvetica", 11)
+    y -= 15
+
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawString(40, y, _safe_text("Database Schema"))
+    y -= 20
+    c.setFillColor(colors.black)
+    
+    for table in ticket_data.get("database_schema", []):
+        y = _check_page_break(c, y, height)
+        y = _draw_wrapped_text(c, f"Table: {table.get('table_name', 'Unknown')}", 40, y, 480, "Helvetica-Bold", 11)
+        for col in table.get("columns", []):
+            y = _check_page_break(c, y, height)
+            c.drawString(50, y, "-")
+            y = _draw_wrapped_text(c, col, 60, y, 460, "Helvetica", 10)
+        y -= 5
+
+    y -= 10
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawString(40, y, _safe_text("API Endpoints"))
+    y -= 20
+    c.setFillColor(colors.black)
+    
+    for api in ticket_data.get("api_endpoints", []):
+        y = _check_page_break(c, y, height)
+        method_route = f"[{api.get('method', 'GET')}] {api.get('route', '/route')}"
+        y = _draw_wrapped_text(c, method_route, 40, y, 480, "Helvetica-Bold", 11)
+        y = _draw_wrapped_text(c, f"Purpose: {api.get('purpose', 'N/A')}", 60, y, 460, "Helvetica", 10)
+        y -= 5
+
+    y -= 10
+    y = _check_page_break(c, y, height)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawString(40, y, _safe_text("Security & CI/CD"))
+    y -= 20
+    c.setFillColor(colors.black)
+    y = _draw_wrapped_text(c, f"Pipeline: {ticket_data.get('ci_cd_pipeline', 'N/A')}", 40, y, 500, "Helvetica", 11)
+    y -= 5
+    for sec in ticket_data.get("security_and_compliance", []):
+        y = _check_page_break(c, y, height)
+        c.drawString(45, y, "*")
+        y = _draw_wrapped_text(c, sec, 60, y, 480, "Helvetica", 10)
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# ==========================================
+# ENGINEERING DASHBOARD RENDERER
+# ==========================================
 def render_engineering_dashboard(supabase):
-    # 1. Engineering-Specific Sidebar Tools
+    if st.button("Logout", key="eng_logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+
     with st.sidebar:
         st.markdown("#### DevOps Settings")
         cloud_target = st.selectbox("Deployment Target:", ["AWS (Enterprise)", "Google Cloud Platform", "Vercel + Supabase", "Self-Hosted / Docker"])
 
-    # 2. Pull from Global Settings
     user_prefs = st.session_state.get("user_prefs", {})
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
     api_key = st.secrets.get("GOOGLE_API_KEY")
@@ -30,6 +156,10 @@ def render_engineering_dashboard(supabase):
             
     eng_input = st.text_area("Or Paste Raw Requirements:", height=150, placeholder="Example: We need a backend for a food delivery app. Drivers need to update location in real-time, users place orders, and restaurants accept them.")
 
+    # Initialize State Management
+    if "active_eng_ticket" not in st.session_state: 
+        st.session_state.active_eng_ticket = None
+
     if st.button("Generate Technical Architecture", type="primary"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline.")
@@ -40,7 +170,6 @@ def render_engineering_dashboard(supabase):
                 client = genai.Client(api_key=api_key)
                 ENG_PROMPT = get_engineering_prompt()
 
-                # --- PREMIUM WAITING ROOM EXPERIENCE ---
                 with st.status("Booting up Engineering Architecture...", expanded=True) as status:
                     st.write("Analyzing technical constraints...")
                     model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
@@ -65,7 +194,7 @@ def render_engineering_dashboard(supabase):
                         model=model_id, 
                         config=types.GenerateContentConfig(
                             system_instruction=ENG_PROMPT,
-                            temperature=0.1, # Very low temperature for strict, predictable engineering outputs
+                            temperature=0.1, 
                             response_mime_type="application/json"
                         ),
                         contents=prompt_contents
@@ -76,67 +205,17 @@ def render_engineering_dashboard(supabase):
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Mapping database schemas and API endpoints...")
-                    cleaned_text = clean_json_output(response.text)
-                    data = json.loads(cleaned_text)
+                    data, error_msg = safe_parse_json(response.text)
                     
-                    status.update(label="System Architecture Compiled!", state="complete", expanded=False)
+                    if error_msg:
+                        status.update(label="Architecture Failed", state="error", expanded=True)
+                        st.error(error_msg)
+                        st.stop()
+                    else:
+                        status.update(label="System Architecture Compiled!", state="complete", expanded=False)
+                        st.session_state.active_eng_ticket = data
 
-                # --- 1. RENDER THE ENGINEERING UI ---
-                st.write("")
-                st.success("Technical Execution Plan Ready")
-                
-                st.markdown("### System Architecture")
-                st.info(data.get("system_architecture", "No architecture overview provided."))
-                
-                st.divider()
-                
-                col_tech1, col_tech2 = st.columns(2)
-                tech_stack = data.get("tech_stack_recommendation", {})
-                with col_tech1:
-                    st.markdown("**Frontend:**")
-                    st.code(tech_stack.get("frontend", "N/A"), language="bash")
-                    st.markdown("**Backend:**")
-                    st.code(tech_stack.get("backend", "N/A"), language="bash")
-                with col_tech2:
-                    st.markdown("**Database:**")
-                    st.code(tech_stack.get("database", "N/A"), language="bash")
-                    st.markdown("**Infrastructure:**")
-                    st.code(tech_stack.get("infrastructure", "N/A"), language="bash")
-                
-                st.divider()
-                
-                col_schema, col_api = st.columns(2)
-                
-                with col_schema:
-                    st.subheader("Database Schema")
-                    for table in data.get("database_schema", []):
-                        with st.expander(f"Table: {table.get('table_name', 'Unknown')}"):
-                            st.caption(f"**Relations:** {table.get('relationships', 'None')}")
-                            st.markdown("**Columns:**")
-                            for col in table.get("columns", []):
-                                st.markdown(f"- `{col}`")
-                                
-                with col_api:
-                    st.subheader("API Endpoints")
-                    for api in data.get("api_endpoints", []):
-                        method = api.get('method', 'GET')
-                        route = api.get('route', '/route')
-                        
-                        # Color code the methods for visual flair
-                        color = "green" if method == "GET" else "blue" if method == "POST" else "orange" if method == "PUT" else "red"
-                        
-                        st.markdown(f"**:{color}[[{method}]]** `{route}`")
-                        st.caption(f"↳ {api.get('purpose', 'No description.')}")
-                        st.write("")
-                
-                st.divider()
-                
-                st.subheader("Security & CI/CD")
-                st.markdown(f"**Deployment Pipeline:** {data.get('ci_cd_pipeline', 'Standard deployment.')}")
-                for sec in data.get("security_and_compliance", []):
-                    st.warning(f"🔒 {sec}")
-
-                # --- 2. SAVE TO SUPABASE ---
+                # SAVE TO SUPABASE
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("system_architecture", "Technical Architecture")[:200],
@@ -151,6 +230,103 @@ def render_engineering_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
+    # --- 1. RENDER THE ACTIVE ENGINEERING UI ---
+    if st.session_state.active_eng_ticket:
+        data = st.session_state.active_eng_ticket
+        
+        st.write("")
+        st.success("Technical Execution Plan Ready")
+        
+        st.markdown("### System Architecture")
+        st.info(data.get("system_architecture", "No architecture overview provided."))
+        
+        st.divider()
+        
+        col_tech1, col_tech2 = st.columns(2)
+        tech_stack = data.get("tech_stack_recommendation", {})
+        with col_tech1:
+            st.markdown("**Frontend:**")
+            st.code(tech_stack.get("frontend", "N/A"), language="bash")
+            st.markdown("**Backend:**")
+            st.code(tech_stack.get("backend", "N/A"), language="bash")
+        with col_tech2:
+            st.markdown("**Database:**")
+            st.code(tech_stack.get("database", "N/A"), language="bash")
+            st.markdown("**Infrastructure:**")
+            st.code(tech_stack.get("infrastructure", "N/A"), language="bash")
+        
+        st.divider()
+        
+        col_schema, col_api = st.columns(2)
+        
+        with col_schema:
+            st.subheader("Database Schema")
+            for table in data.get("database_schema", []):
+                with st.expander(f"Table: {table.get('table_name', 'Unknown')}"):
+                    st.caption(f"**Relations:** {table.get('relationships', 'None')}")
+                    st.markdown("**Columns:**")
+                    for col in table.get("columns", []):
+                        st.markdown(f"- `{col}`")
+                        
+        with col_api:
+            st.subheader("API Endpoints")
+            for api in data.get("api_endpoints", []):
+                method = api.get('method', 'GET')
+                route = api.get('route', '/route')
+                
+                color = "green" if method == "GET" else "blue" if method == "POST" else "orange" if method == "PUT" else "red"
+                st.markdown(f"**:{color}[[{method}]]** `{route}`")
+                st.caption(f"↳ {api.get('purpose', 'No description.')}")
+                st.write("")
+        
+        st.divider()
+        
+        st.subheader("Security & CI/CD")
+        st.markdown(f"**Deployment Pipeline:** {data.get('ci_cd_pipeline', 'Standard deployment.')}")
+        for sec in data.get("security_and_compliance", []):
+            st.warning(f"🔒 {sec}")
+
+        # --- EXPLICIT ENGINEERING EXPORT & EMAIL UI ---
+        st.divider()
+        col_action1, col_action2 = st.columns([1, 1], gap="medium")
+        
+        with col_action1:
+            st.markdown("#### 📄 Export Technical Specs")
+            st.download_button(
+                "Download Engineering PDF", 
+                data=generate_local_eng_pdf(data), 
+                file_name="bridgebuild_technical_architecture.pdf", 
+                mime="application/pdf", 
+                use_container_width=True
+            )
+            
+        with col_action2:
+            st.markdown("#### ✉️ Share with Dev Team")
+            
+            eng_body = f"Hello Dev Team,\n\nPlease review the generated System Architecture for our upcoming build.\n\n"
+            eng_body += f"-> ARCHITECTURE OVERVIEW:\n{data.get('system_architecture', 'N/A')}\n\n"
+            
+            eng_body += f"-> TECH STACK:\n"
+            eng_body += f"  - Frontend: {tech_stack.get('frontend', 'N/A')}\n"
+            eng_body += f"  - Backend: {tech_stack.get('backend', 'N/A')}\n"
+            eng_body += f"  - Database: {tech_stack.get('database', 'N/A')}\n"
+            eng_body += f"  - Infrastructure: {tech_stack.get('infrastructure', 'N/A')}\n\n"
+            
+            eng_body += f"-> REQUIRED API ENDPOINTS:\n"
+            for api in data.get("api_endpoints", []):
+                eng_body += f"  - [{api.get('method')}] {api.get('route')}\n"
+                
+            eng_body += "\nPlease see the attached PDF for the full Database Schema breakdown, CI/CD pipeline, and Security requirements.\n\nBest,\nBridgeBuild Engineering Hub"
+            eng_mailto = f"mailto:?subject={quote('Technical Architecture Specs')}&body={quote(eng_body)}"
+            
+            st.markdown(f"""
+                <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
+                    <button style="width: 100%; background-color: #333333; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 400; cursor: pointer; line-height: 1.6; font-size: 1rem; margin-top: 2px;">
+                        Email Architecture Specs
+                    </button>
+                </a>
+                """, unsafe_allow_html=True)
+
     # --- 3. ENGINEERING HISTORY SECTION ---
     st.divider()
     st.subheader("Saved Architecture Schemas")
@@ -164,7 +340,48 @@ def render_engineering_dashboard(supabase):
                 with st.expander(f"Arch: {item['summary'][:60]}..."):
                     past_data = json.loads(item['full_data'])
                     
+                    # History Email Payload
+                    hist_tech_stack = past_data.get("tech_stack_recommendation", {})
+                    hist_body = f"Hello Dev Team,\n\nPlease review the generated System Architecture for a previous concept.\n\n"
+                    hist_body += f"-> ARCHITECTURE OVERVIEW:\n{past_data.get('system_architecture', 'N/A')}\n\n"
+                    hist_body += f"-> TECH STACK:\n"
+                    hist_body += f"  - Frontend: {hist_tech_stack.get('frontend', 'N/A')}\n"
+                    hist_body += f"  - Backend: {hist_tech_stack.get('backend', 'N/A')}\n"
+                    hist_body += f"  - Database: {hist_tech_stack.get('database', 'N/A')}\n"
+                    hist_body += f"  - Infrastructure: {hist_tech_stack.get('infrastructure', 'N/A')}\n\n"
+                    hist_body += f"-> REQUIRED API ENDPOINTS:\n"
+                    for api in past_data.get("api_endpoints", []): hist_body += f"  - [{api.get('method')}] {api.get('route')}\n"
+                    hist_body += "\nSee the attached PDF for the full DB Schema.\n\nBest,\nBridgeBuild Engineering Hub"
+                    hist_mailto = f"mailto:?subject={quote('Historical Technical Architecture Specs')}&body={quote(hist_body)}"
+
                     st.markdown(f"**Pipeline:** {past_data.get('ci_cd_pipeline', 'N/A')}")
+                    
+                    # Render localized PDF and Delete inside History
+                    hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
+                    with hist_btn_col1:
+                        st.download_button("Download PDF", data=generate_local_eng_pdf(past_data), file_name=f"architecture_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_eng_{item['id']}", use_container_width=True)
+                    with hist_btn_col2:
+                        with st.popover("Delete Schema", use_container_width=True):
+                            st.warning("Are you sure? This cannot be undone.")
+                            if st.button("Yes, Delete Forever", key=f"confirm_del_eng_{item['id']}", type="primary"):
+                                try:
+                                    supabase.table("tickets").delete().eq("id", item['id']).execute()
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Failed to delete: {str(e)}")
+                    
+                    # Embed Email Button
+                    st.markdown(f"""
+                        <div style="margin-top: 5px; margin-bottom: 15px;">
+                            <a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
+                                <button style="width: 100%; background-color: #333333; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                                    Email Architecture Specs
+                                </button>
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.divider()
                     
                     col_hf1, col_hf2 = st.columns(2)
                     with col_hf1:
@@ -173,20 +390,9 @@ def render_engineering_dashboard(supabase):
                             st.caption(f"- `{table.get('table_name')}`")
                     with col_hf2:
                         st.markdown("**Key Routes:**")
-                        for api in past_data.get("api_endpoints", [])[:3]: # Show first 3
+                        for api in past_data.get("api_endpoints", [])[:3]: 
                             st.caption(f"- {api.get('method')} `{api.get('route')}`")
                             
-                    st.write("")
-                    
-                    # 3. Delete Action with our Saturday Guardrail!
-                    with st.popover("Delete Schema", use_container_width=True):
-                        st.warning("Are you sure? This cannot be undone.")
-                        if st.button("Yes, Delete Forever", key=f"confirm_del_eng_{item['id']}", type="primary"):
-                            try:
-                                supabase.table("tickets").delete().eq("id", item['id']).execute()
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Failed to delete: {str(e)}")
         else:
             st.info("No saved architectures yet. Initialize a build above!")
             
