@@ -135,7 +135,7 @@ def render_engineering_dashboard(supabase):
     # THE ROGUE LOGOUT BUTTON HAS BEEN ELIMINATED! 🔫
 
     with st.sidebar:
-        st.markdown("#### ⚙️ DevOps Settings")
+        st.markdown("#### DevOps Settings")
         cloud_target = st.selectbox("Deployment Target:", ["AWS (Enterprise)", "Google Cloud Platform", "Vercel + Supabase", "Self-Hosted / Docker"])
 
     user_prefs = st.session_state.get("user_prefs", {})
