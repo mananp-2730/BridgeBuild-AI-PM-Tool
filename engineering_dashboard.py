@@ -132,7 +132,7 @@ def generate_local_eng_pdf(ticket_data):
 # ENGINEERING DASHBOARD RENDERER
 # ==========================================
 def render_engineering_dashboard(supabase):
-    # THE ROGUE LOGOUT BUTTON HAS BEEN ELIMINATED! 🔫
+    # THE ROGUE LOGOUT BUTTON HAS BEEN ELIMINATED! 
 
     with st.sidebar:
         st.markdown("#### DevOps Settings")
