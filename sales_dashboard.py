@@ -42,7 +42,6 @@ def _check_page_break(c, current_y, height, threshold=100):
     return current_y
 
 def _draw_header(c, width, height, title):
-    # Forest Green for Sales!
     c.setFillColorRGB(0.133, 0.545, 0.133) 
     c.rect(0, height - 100, width, 100, fill=1, stroke=0)
     c.setFillColor(colors.white)
@@ -87,7 +86,7 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     y -= 20
 
     y = _check_page_break(c, y, height)
-    c.setFillColorRGB(0.133, 0.545, 0.133) # Forest Green
+    c.setFillColorRGB(0.133, 0.545, 0.133)
     c.drawString(40, y, _safe_text("Critical 'Ask' List for Client:"))
     y -= 20
     c.setFillColor(colors.black)
@@ -95,13 +94,12 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     for q in ticket_data.get("client_questions", []):
         if q.strip(): 
             y = _check_page_break(c, y, height)
-            # Unified bullet point format fixes the formatting bug!
             y = _draw_wrapped_text(c, f"• {q}", 40, y, 500, "Helvetica", 11)
             y -= 5
 
     y -= 10
     y = _check_page_break(c, y, height)
-    c.setFillColorRGB(0.7, 0.1, 0.1) # Red headers for deal breakers
+    c.setFillColorRGB(0.7, 0.1, 0.1)
     c.drawString(40, y, _safe_text("Deal Breakers & Risks:"))
     y -= 20
     c.setFillColor(colors.black)
@@ -139,8 +137,8 @@ def render_sales_dashboard(supabase):
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
 
-    if "active_sales_ticket" not in st.session_state: 
-        st.session_state.active_sales_ticket = None
+    if "active_sales_ticket" not in st.session_state: st.session_state.active_sales_ticket = None
+    if "active_sales_ticket_id" not in st.session_state: st.session_state.active_sales_ticket_id = None
 
     if st.button("Analyze Request", type="primary"):
         if not api_key:
@@ -158,12 +156,10 @@ def render_sales_dashboard(supabase):
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.write("Processing multi-modal audio/document file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
                             tmp_path = tmp.name
-                        
                         gemini_file = client.files.upload(file=tmp_path)
                         prompt_contents.append(gemini_file)
                         os.remove(tmp_path)
@@ -174,16 +170,11 @@ def render_sales_dashboard(supabase):
                     
                     response = client.models.generate_content(
                         model=model_id, 
-                        config=types.GenerateContentConfig(
-                            system_instruction=SALES_PROMPT,
-                            temperature=0.0,
-                            response_mime_type="application/json"
-                        ),
+                        config=types.GenerateContentConfig(system_instruction=SALES_PROMPT, temperature=0.0, response_mime_type="application/json"),
                         contents=prompt_contents
                     )
                     
                     if uploaded_file:
-                        st.write("Cleaning up temporary files...")
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Formatting budget and feasibility metrics...")
@@ -204,7 +195,6 @@ def render_sales_dashboard(supabase):
                 fmt_high = convert_currency(high_end, currency)
                 score = data.get("feasibility_score", "Yellow")
 
-                # SAVING AS json.dumps(data) FIXES FUTURE HISTORY PDF BUGS!
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("project_summary", "Sales Intake"),
@@ -212,9 +202,13 @@ def render_sales_dashboard(supabase):
                     "raw_cost": raw_cost,
                     "complexity": score, 
                     "time": data.get("estimated_timeline", "Unknown"),
-                    "full_data": json.dumps(data) 
+                    "full_data": json.dumps(data),
+                    "status": "Draft",               # NEW COLUMNS ADDED HERE!
+                    "target_department": "None"      # NEW COLUMNS ADDED HERE!
                 }
-                supabase.table("tickets").insert(new_ticket).execute()
+                # CAPTURE THE ID FOR THE HANDOFF BUTTON!
+                db_res = supabase.table("tickets").insert(new_ticket).execute()
+                st.session_state.active_sales_ticket_id = db_res.data[0]['id']
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
@@ -224,12 +218,9 @@ def render_sales_dashboard(supabase):
         
         st.write("")
         score = data.get("feasibility_score", "Yellow")
-        if "Green" in score:
-            st.success(f"### 🟢 Feasibility: GREEN\n{data.get('feasibility_reason')}")
-        elif "Red" in score:
-            st.error(f"### 🔴 Feasibility: RED\n**Warning:** {data.get('feasibility_reason')}")
-        else:
-            st.warning(f"### 🟡 Feasibility: YELLOW\n{data.get('feasibility_reason')}")
+        if "Green" in score: st.success(f"### 🟢 Feasibility: GREEN\n{data.get('feasibility_reason')}")
+        elif "Red" in score: st.error(f"### 🔴 Feasibility: RED\n**Warning:** {data.get('feasibility_reason')}")
+        else: st.warning(f"### 🟡 Feasibility: YELLOW\n{data.get('feasibility_reason')}")
             
         st.markdown(f"**Project Summary:** {data.get('project_summary')}")
         st.divider()
@@ -245,12 +236,10 @@ def render_sales_dashboard(supabase):
         with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
             
         st.divider()
-        
         col_q, col_r = st.columns(2)
         with col_q:
             st.subheader("The 'Ask' List")
             for q in data.get("client_questions", []): st.info(f"{q}")
-                
         with col_r:
             st.subheader("Deal Breakers")
             for r in data.get("deal_breakers", []): st.error(f"{r}")
@@ -260,36 +249,16 @@ def render_sales_dashboard(supabase):
         
         with col_action1:
             st.markdown("#### 📄 Export Sales Report")
-            st.download_button(
-                "Download Sales PDF", 
-                data=generate_local_sales_pdf(data, currency), 
-                file_name="bridgebuild_sales_report.pdf", 
-                mime="application/pdf", 
-                use_container_width=True
-            )
+            st.download_button("Download Sales PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_sales_report.pdf", mime="application/pdf", use_container_width=True)
             
         with col_action2:
             st.markdown("#### ✉️ Email Sales Team")
-            
-            # --- FULL-FLEDGED SALES EMAIL PAYLOAD (MATCHES SCREENSHOT EXACTLY) ---
             ticket_name = data.get('project_summary', 'New Project Request')[:50] + "..."
-            
-            sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
-            sales_body += f"-> FEASIBILITY SCORE: {score}\n"
-            sales_body += f"-> EST. TIMELINE: {data.get('estimated_timeline', 'N/A')}\n"
-            sales_body += f"-> EST. BUDGET: {fmt_low} - {fmt_high}\n\n"
-            sales_body += f"-> PROJECT SUMMARY:\n{data.get('project_summary', 'N/A')}\n\n"
-            
-            sales_body += f"-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
-            for q in data.get("client_questions", []):
-                sales_body += f"- {q}\n"
-                
+            sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n-> FEASIBILITY SCORE: {score}\n-> EST. TIMELINE: {data.get('estimated_timeline', 'N/A')}\n-> EST. BUDGET: {fmt_low} - {fmt_high}\n\n-> PROJECT SUMMARY:\n{data.get('project_summary', 'N/A')}\n\n-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
+            for q in data.get("client_questions", []): sales_body += f"- {q}\n"
             sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
-            for r in data.get("deal_breakers", []):
-                sales_body += f"- {r}\n"
-                
+            for r in data.get("deal_breakers", []): sales_body += f"- {r}\n"
             sales_body += "\nBest,\nBridgeBuild Sales Hub"
-            
             sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
             
             st.markdown(f"""
@@ -300,6 +269,22 @@ def render_sales_dashboard(supabase):
                 </a>
                 """, unsafe_allow_html=True)
             
+        # ==========================================
+        # NEW: THE HANDOFF BUTTON!
+        # ==========================================
+        st.divider()
+        st.markdown("#### Department Handoff")
+        st.info("Client approved the quote? Send this locked scope directly to the Product Management team to build the Agile Ticket.")
+        
+        # We check if we have the ID to update
+        if st.session_state.active_sales_ticket_id:
+            if st.button("Approve Quote & Send to PM Hub", type="primary", use_container_width=True):
+                try:
+                    supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", st.session_state.active_sales_ticket_id).execute()
+                    st.success("Successfully routed to the PM Inbox.")
+                except Exception as e:
+                    st.error(f"Failed to handoff ticket: {str(e)}")
+            
     st.divider()
     st.subheader("Saved Sales Quotes")
     
@@ -309,42 +294,39 @@ def render_sales_dashboard(supabase):
         
         if saved_tickets:
             for item in saved_tickets:
-                with st.expander(f"Quote: {item['summary'][:60]}..."):
-                    
-                    # THIS FIXES THE BLANK HISTORY PDF BUG FOR OLD RECORDS!
+                
+                # Dynamic expander title based on status
+                status_icon = "🟢" if item.get('status') == 'Awaiting PM Scoping' else "📝"
+                expander_title = f"{status_icon} Quote: {item['summary'][:55]}..."
+                
+                with st.expander(expander_title):
                     try:
                         past_data = json.loads(clean_json_output(item['full_data']))
                     except:
                         past_data = {}
                         
                     score = past_data.get('feasibility_score', 'Unknown')
-                    
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
                     hist_low = hist_raw_cost.split("-")[0] if "-" in hist_raw_cost else hist_raw_cost
                     hist_high = hist_raw_cost.split("-")[1] if "-" in hist_raw_cost else hist_raw_cost
                     hist_fmt_low = convert_currency(hist_low, currency)
                     hist_fmt_high = convert_currency(hist_high, currency)
                     
-                    # --- BUILD HISTORICAL SALES EMAIL PAYLOAD ---
                     ticket_name = past_data.get('project_summary', 'New Project Request')[:50] + "..."
-                    
-                    sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
-                    sales_body += f"-> FEASIBILITY SCORE: {score}\n"
-                    sales_body += f"-> EST. TIMELINE: {past_data.get('estimated_timeline', 'N/A')}\n"
-                    sales_body += f"-> EST. BUDGET: {hist_fmt_low} - {hist_fmt_high}\n\n"
-                    sales_body += f"-> PROJECT SUMMARY:\n{past_data.get('project_summary', 'N/A')}\n\n"
-                    
-                    sales_body += f"-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
-                    for q in past_data.get("client_questions", []):
-                        sales_body += f"- {q}\n"
-                        
+                    sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n-> FEASIBILITY SCORE: {score}\n-> EST. TIMELINE: {past_data.get('estimated_timeline', 'N/A')}\n-> EST. BUDGET: {hist_fmt_low} - {hist_fmt_high}\n\n-> PROJECT SUMMARY:\n{past_data.get('project_summary', 'N/A')}\n\n-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
+                    for q in past_data.get("client_questions", []): sales_body += f"- {q}\n"
                     sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
-                    for r in past_data.get("deal_breakers", []):
-                        sales_body += f"- {r}\n"
-                        
+                    for r in past_data.get("deal_breakers", []): sales_body += f"- {r}\n"
                     sales_body += "\nBest,\nBridgeBuild Sales Hub"
                     sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
 
+                    # --- STATUS BADGE IN HISTORY ---
+                    current_status = item.get('status', 'Draft')
+                    if current_status == 'Draft':
+                        st.caption("Status: **Draft (Not Sent)**")
+                    else:
+                        st.caption(f"Status: **{current_status}** 🚀")
+                        
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
@@ -359,7 +341,7 @@ def render_sales_dashboard(supabase):
                                     st.error(f"Failed to delete: {str(e)}")
                     
                     st.markdown(f"""
-                        <div style="margin-top: 5px; margin-bottom: 15px;">
+                        <div style="margin-top: 5px; margin-bottom: 5px;">
                             <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
                                 <button style="width: 100%; background-color: #2E7D32; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                                     Email Sales Summary
@@ -367,7 +349,13 @@ def render_sales_dashboard(supabase):
                             </a>
                         </div>
                         """, unsafe_allow_html=True)
-                    
+
+                    # --- HISTORY HANDOFF BUTTON ---
+                    if current_status == 'Draft':
+                        if st.button("Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
+                            supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", item['id']).execute()
+                            st.rerun()
+                            
                     st.divider()
                     
                     col_m1, col_m2, col_m3 = st.columns(3)
@@ -376,12 +364,10 @@ def render_sales_dashboard(supabase):
                     with col_m3: st.metric("Timeline", item.get('time', 'N/A'))
                     
                     st.divider()
-                    
                     col_q, col_r = st.columns(2)
                     with col_q:
                         st.markdown("##### The 'Ask' List")
                         for q in past_data.get("client_questions", []): st.info(f"{q}")
-                            
                     with col_r:
                         st.markdown("##### Deal Breakers")
                         for r in past_data.get("deal_breakers", []): st.error(f"{r}")
