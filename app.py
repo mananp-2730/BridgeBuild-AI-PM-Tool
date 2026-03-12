@@ -134,11 +134,18 @@ with master_container.container():
                             st.session_state.logged_in = True
                             st.session_state.user_role = user_role
                             
-                            # THE IRONCLAD SAVE: Convert dict to pure JSON string!
+                            # THE IRONCLAD SAVE: Attach the Streamlit Cloud Security Badges!
                             cookie_payload = json.dumps({"user_id": response.user.id, "role": user_role})
-                            controller.set("bridgebuild_auth", cookie_payload, max_age=604800)
+                            controller.set(
+                                "bridgebuild_auth", 
+                                cookie_payload, 
+                                max_age=604800,
+                                secure=True,        # MANDATORY FOR STREAMLIT CLOUD
+                                same_site="none"    # MANDATORY FOR IFRAMES
+                            )
                             
                             st.rerun()
+                            
                         except Exception as e:
                             st.error(f"Login failed: {str(e)}")
                 else:
