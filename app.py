@@ -2,9 +2,10 @@
 BridgeBuild AI - Agile Operating System
 ----------------------------------------------------
 Author: Manan Patel
-Version: 1.4.0 (Modular Architecture)
+Version: 1.5.0 (Cookie Persistence & Auto-Login)
 """
 import streamlit as st
+from streamlit_cookies_controller import CookieController
 
 # 1. PAGE CONFIG (Must absolute be first)
 st.set_page_config(
@@ -13,6 +14,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# INITIALIZE COOKIE CONTROLLER
+controller = CookieController()
 
 # 2. IMPORT OUR NEW DASHBOARDS
 from pm_dashboard import render_pm_dashboard
@@ -31,9 +35,26 @@ def init_supabase():
 
 supabase = init_supabase()
 
+# Lightweight class to rebuild the user object from the cookie
+class MockUser:
+    def __init__(self, uid):
+        self.id = uid
+
 # INITIALIZE SESSION STATE
 if "history" not in st.session_state: st.session_state.history = []
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
+
+# --- THE AUTO-LOGIN COOKIE CHECK ---
+if "cookie_checked" not in st.session_state:
+    saved_session = controller.get("bridgebuild_auth")
+    
+    if saved_session and isinstance(saved_session, dict):
+        # If the browser remembers them, instantly restore the session!
+        st.session_state.logged_in = True
+        st.session_state.user = MockUser(saved_session.get("user_id"))
+        st.session_state.user_role = saved_session.get("role")
+    
+    st.session_state.cookie_checked = True
 
 def get_user_role(user_id):
     """Fetches the user's department role from Supabase."""
@@ -91,9 +112,18 @@ def login_page():
                 if st.button("Log In", use_container_width=True, type="primary", key="login_btn"):
                     try:
                         response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                        user_role = get_user_role(response.user.id)
+                        
                         st.session_state.user = response.user
                         st.session_state.logged_in = True
-                        st.session_state.user_role = get_user_role(response.user.id)
+                        st.session_state.user_role = user_role
+                        
+                        # Save the VIP Pass to the browser! (Lasts for 7 days)
+                        controller.set("bridgebuild_auth", {
+                            "user_id": response.user.id,
+                            "role": user_role
+                        }, max_age=604800)
+                        
                         st.rerun()
                     except Exception as e:
                         st.error(f"Login failed: {str(e)}")
@@ -150,6 +180,7 @@ def render_global_sidebar(supabase):
         st.sidebar.divider()
         if st.sidebar.button("Logout", use_container_width=True):
             st.session_state.logged_in = False
+            controller.remove("bridgebuild_auth") # Destroy the cookie!
             st.rerun()
             
 # 5. THE ROUTER (Traffic Cop)
