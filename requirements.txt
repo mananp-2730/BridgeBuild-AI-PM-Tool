@@ -2,3 +2,4 @@ streamlit
 google-genai
 supabase
 reportlab
+streamlit-cookies-controller
