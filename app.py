@@ -2,10 +2,11 @@
 BridgeBuild AI - Agile Operating System
 ----------------------------------------------------
 Author: Manan Patel
-Version: 1.6.0 (Flawless Cookie Persistence)
+Version: 1.7.0 (The 0-or-1 Bulletproof Cookie Fix)
 """
 import streamlit as st
 import json
+import time
 from streamlit_cookies_controller import CookieController
 
 # 1. PAGE CONFIG (Must absolute be first)
@@ -36,7 +37,6 @@ def init_supabase():
 
 supabase = init_supabase()
 
-# Lightweight class to rebuild the user object from the cookie
 class MockUser:
     def __init__(self, uid):
         self.id = uid
@@ -44,22 +44,29 @@ class MockUser:
 # INITIALIZE SESSION STATE
 if "history" not in st.session_state: st.session_state.history = []
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "cookie_loaded" not in st.session_state: st.session_state.cookie_loaded = False
 
 # ==========================================
-# THE AUTO-LOGIN COOKIE LISTENER
+# THE IRONCLAD COOKIE READER
 # ==========================================
-saved_session = controller.get("bridgebuild_auth")
+# We give the React component one single pass to mount and send the cookie safely
+if not st.session_state.cookie_loaded:
+    time.sleep(0.3) # 300ms micro-pause to let the browser hand over the text file
+    st.session_state.cookie_loaded = True
 
-# If we aren't logged in, but the browser has a cookie, log us in instantly!
-if not st.session_state.logged_in and saved_session:
-    # Failsafe: Convert string to dict if needed
-    if isinstance(saved_session, str):
-        saved_session = json.loads(saved_session)
-        
-    st.session_state.logged_in = True
-    st.session_state.user = MockUser(saved_session.get("user_id"))
-    st.session_state.user_role = saved_session.get("role")
-    st.rerun() # This rerun is safe because we are READING, not WRITING!
+saved_cookie_string = controller.get("bridgebuild_auth")
+
+if not st.session_state.logged_in and saved_cookie_string:
+    try:
+        # We must unpack the pure text string back into a Python dictionary
+        session_data = json.loads(saved_cookie_string)
+        st.session_state.logged_in = True
+        st.session_state.user = MockUser(session_data.get("user_id"))
+        st.session_state.user_role = session_data.get("role")
+        st.rerun()
+    except Exception as e:
+        print(f"Cookie parsing error: {e}")
+        pass
 
 def get_user_role(user_id):
     try:
@@ -87,14 +94,13 @@ def setup_custom_styling():
 
 
 # ==========================================
-# THE ROUTER (TRAFFIC COP)
+# THE MASTER ROUTER
 # ==========================================
+# Wrapping the entire app logic inside a master container controls the UI flow perfectly
+master_container = st.empty()
 
-# 1. THE LOGIN CONTAINER
-login_container = st.empty()
-
-if not st.session_state.logged_in:
-    with login_container.container():
+with master_container.container():
+    if not st.session_state.logged_in:
         st.markdown("""
             <style>
                 [data-testid="stSidebar"] { display: none; }
@@ -126,14 +132,11 @@ if not st.session_state.logged_in:
                             st.session_state.logged_in = True
                             st.session_state.user_role = user_role
                             
-                            # THE FIX: Set the cookie, and DO NOT call st.rerun()!
-                            controller.set("bridgebuild_auth", {
-                                "user_id": response.user.id,
-                                "role": user_role
-                            }, max_age=604800)
+                            # THE IRONCLAD SAVE: Convert dict to pure JSON string!
+                            cookie_payload = json.dumps({"user_id": response.user.id, "role": user_role})
+                            controller.set("bridgebuild_auth", cookie_payload, max_age=604800)
                             
-                            # Magically wipe the login screen away so the dashboard can draw underneath!
-                            login_container.empty()
+                            st.rerun()
                         except Exception as e:
                             st.error(f"Login failed: {str(e)}")
                 else:
@@ -144,59 +147,54 @@ if not st.session_state.logged_in:
                         except Exception as e:
                             st.error(f"Signup failed: {str(e)}")
 
+    else:
+        # THE USER IS SECURELY LOGGED IN - DRAW THE APP
+        setup_custom_styling()
+        
+        with st.sidebar:
+            col_logo, col_text = st.columns([0.2, 0.8])
+            with col_logo: st.image("Logo_bg_removed.png", width=40)
+            with col_text:
+                st.markdown("<h3 style='margin: 0; padding-top: 8px; font-size: 18px;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
+                
+            st.caption(f"Role: {st.session_state.get('user_role', 'Unknown').upper()}")
+            st.divider()
 
-# 2. THE DASHBOARD RENDERER
-if st.session_state.logged_in:
-    setup_custom_styling()
-    
-    # Wrap the sidebar in a container so we can wipe it on logout!
-    sidebar_container = st.sidebar.empty()
-    with sidebar_container.container():
-        col_logo, col_text = st.columns([0.2, 0.8])
-        with col_logo: st.image("Logo_bg_removed.png", width=40)
-        with col_text:
-            st.markdown("<h3 style='margin: 0; padding-top: 8px; font-size: 18px;'>BridgeBuild AI</h3>", unsafe_allow_html=True)
-            
-        st.caption(f"Role: {st.session_state.get('user_role', 'Unknown').upper()}")
-        st.divider()
+            if "user_prefs" not in st.session_state:
+                try:
+                    res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).execute()
+                    st.session_state.user_prefs = res.data[0] if res.data else {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+                except:
+                    st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
 
-        if "user_prefs" not in st.session_state:
-            try:
-                res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).execute()
-                st.session_state.user_prefs = res.data[0] if res.data else {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
-            except:
-                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
+            st.markdown("#### Global Settings")
+            curr_opts = ["USD ($)", "INR (₹)"]
+            rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
+            model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
 
-        st.markdown("#### Global Settings")
-        curr_opts = ["USD ($)", "INR (₹)"]
-        rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
-        model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
+            curr_idx = curr_opts.index(st.session_state.user_prefs.get("currency", "USD ($)")) if st.session_state.user_prefs.get("currency") in curr_opts else 0
+            rate_idx = rate_opts.index(st.session_state.user_prefs.get("rate_standard", "US Agency ($150/hr)")) if st.session_state.user_prefs.get("rate_standard") in rate_opts else 0
+            model_idx = model_opts.index(st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")) if st.session_state.user_prefs.get("ai_model") in model_opts else 0
 
-        curr_idx = curr_opts.index(st.session_state.user_prefs.get("currency", "USD ($)")) if st.session_state.user_prefs.get("currency") in curr_opts else 0
-        rate_idx = rate_opts.index(st.session_state.user_prefs.get("rate_standard", "US Agency ($150/hr)")) if st.session_state.user_prefs.get("rate_standard") in rate_opts else 0
-        model_idx = model_opts.index(st.session_state.user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")) if st.session_state.user_prefs.get("ai_model") in model_opts else 0
+            new_curr = st.radio("Display Currency:", curr_opts, index=curr_idx, horizontal=True)
+            new_rate = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
+            new_model = st.radio("AI Engine:", model_opts, index=model_idx)
 
-        new_curr = st.radio("Display Currency:", curr_opts, index=curr_idx, horizontal=True)
-        new_rate = st.selectbox("Rate Standard:", rate_opts, index=rate_idx)
-        new_model = st.radio("AI Engine:", model_opts, index=model_idx)
+            if st.button("Save Settings", use_container_width=True):
+                new_prefs = {"currency": new_curr, "rate_standard": new_rate, "ai_model": new_model}
+                try:
+                    supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
+                    st.session_state.user_prefs.update(new_prefs)
+                    st.success("Global Settings Saved!")
+                except: pass
 
-        if st.button("Save Settings", use_container_width=True):
-            new_prefs = {"currency": new_curr, "rate_standard": new_rate, "ai_model": new_model}
-            try:
-                supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
-                st.session_state.user_prefs.update(new_prefs)
-                st.success("Global Settings Saved!")
-            except: pass
+            st.divider()
+            if st.button("Logout", use_container_width=True):
+                st.session_state.logged_in = False
+                controller.remove("bridgebuild_auth") # Terminate the cookie!
+                st.rerun()
 
-        st.divider()
-        if st.button("Logout", use_container_width=True):
-            st.session_state.logged_in = False
-            controller.remove("bridgebuild_auth") # Destroy the cookie safely!
-            sidebar_container.empty() # Wipe the sidebar visually
-            st.info("Logged out successfully. Please refresh the page.")
-
-    # 3. RENDER SPECIFIC DASHBOARD (Only if they didn't just click logout!)
-    if st.session_state.logged_in:
+        # RENDER SPECIFIC DASHBOARD 
         role = st.session_state.get("user_role", "pm") 
         if role == "sales": render_sales_dashboard(supabase)
         elif role == "pm": render_pm_dashboard(supabase)
