@@ -47,18 +47,20 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "cookie_loaded" not in st.session_state: st.session_state.cookie_loaded = False
 
 # ==========================================
-# THE IRONCLAD COOKIE READER
+# THE GHOST SHIELD COOKIE READER
 # ==========================================
-# We give the React component one single pass to mount and send the cookie safely
-if not st.session_state.cookie_loaded:
-    time.sleep(0.3) # 300ms micro-pause to let the browser hand over the text file
-    st.session_state.cookie_loaded = True
-
 saved_cookie_string = controller.get("bridgebuild_auth")
+
+# If this is the absolute first millisecond the app loads, show a loading screen and STOP. 
+# This gives the React component time to mount and fetch the cookie without flashing the Login screen!
+if "first_pass" not in st.session_state:
+    st.session_state.first_pass = True
+    st.title("BridgeBuild AI")
+    st.info("Verifying secure session...")
+    st.stop() # Stops the script here. The cookie component will auto-rerun it in 0.1 seconds!
 
 if not st.session_state.logged_in and saved_cookie_string:
     try:
-        # We must unpack the pure text string back into a Python dictionary
         session_data = json.loads(saved_cookie_string)
         st.session_state.logged_in = True
         st.session_state.user = MockUser(session_data.get("user_id"))
