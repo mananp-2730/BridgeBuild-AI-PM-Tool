@@ -42,7 +42,8 @@ def _check_page_break(c, current_y, height, threshold=100):
     return current_y
 
 def _draw_header(c, width, height, title):
-    c.setFillColorRGB(0.004, 0.129, 0.412) 
+    # Forest Green for Sales!
+    c.setFillColorRGB(0.133, 0.545, 0.133) 
     c.rect(0, height - 100, width, 100, fill=1, stroke=0)
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 22)
@@ -64,7 +65,6 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     y = height - 140
     c.setFillColor(colors.black)
     
-    # Fully wrapped summary instead of cutting it off!
     y = _draw_wrapped_text(c, "Project Summary:", 40, y, 500, "Helvetica-Bold", 14)
     y -= 5
     y = _draw_wrapped_text(c, ticket_data.get('project_summary', 'Untitled Project'), 40, y, 500, "Helvetica", 11)
@@ -87,17 +87,17 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     y -= 20
 
     y = _check_page_break(c, y, height)
-    c.setFillColorRGB(0.004, 0.129, 0.412)
+    c.setFillColorRGB(0.133, 0.545, 0.133) # Forest Green
     c.drawString(40, y, _safe_text("Critical 'Ask' List for Client:"))
     y -= 20
     c.setFillColor(colors.black)
     
     for q in ticket_data.get("client_questions", []):
-        if q.strip(): # Prevents empty bullet points
+        if q.strip(): 
             y = _check_page_break(c, y, height)
-            c.drawString(45, y, "*")
-            y = _draw_wrapped_text(c, q, 60, y, 480, "Helvetica", 11)
-            y -= 10
+            # Unified bullet point format fixes the formatting bug!
+            y = _draw_wrapped_text(c, f"• {q}", 40, y, 500, "Helvetica", 11)
+            y -= 5
 
     y -= 10
     y = _check_page_break(c, y, height)
@@ -109,9 +109,8 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     for r in ticket_data.get("deal_breakers", []):
         if r.strip():
             y = _check_page_break(c, y, height)
-            c.drawString(45, y, "!")
-            y = _draw_wrapped_text(c, r, 60, y, 480, "Helvetica", 11)
-            y -= 10
+            y = _draw_wrapped_text(c, f"• {r}", 40, y, 500, "Helvetica", 11)
+            y -= 5
 
     c.save()
     buffer.seek(0)
@@ -121,10 +120,6 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
 # SALES DASHBOARD RENDERER
 # ==========================================
 def render_sales_dashboard(supabase):
-    if st.button("Logout", key="sales_logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
     st.title("BridgeBuild AI - Sales Intake")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
 
@@ -209,6 +204,7 @@ def render_sales_dashboard(supabase):
                 fmt_high = convert_currency(high_end, currency)
                 score = data.get("feasibility_score", "Yellow")
 
+                # SAVING AS json.dumps(data) FIXES FUTURE HISTORY PDF BUGS!
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("project_summary", "Sales Intake"),
@@ -216,7 +212,7 @@ def render_sales_dashboard(supabase):
                     "raw_cost": raw_cost,
                     "complexity": score, 
                     "time": data.get("estimated_timeline", "Unknown"),
-                    "full_data": response.text
+                    "full_data": json.dumps(data) 
                 }
                 supabase.table("tickets").insert(new_ticket).execute()
 
@@ -275,24 +271,25 @@ def render_sales_dashboard(supabase):
         with col_action2:
             st.markdown("#### ✉️ Email Sales Team")
             
-            # --- FULL-FLEDGED SALES EMAIL PAYLOAD ---
+            # --- FULL-FLEDGED SALES EMAIL PAYLOAD (MATCHES SCREENSHOT EXACTLY) ---
             ticket_name = data.get('project_summary', 'New Project Request')[:50] + "..."
+            
             sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
             sales_body += f"-> FEASIBILITY SCORE: {score}\n"
             sales_body += f"-> EST. TIMELINE: {data.get('estimated_timeline', 'N/A')}\n"
             sales_body += f"-> EST. BUDGET: {fmt_low} - {fmt_high}\n\n"
-            
             sales_body += f"-> PROJECT SUMMARY:\n{data.get('project_summary', 'N/A')}\n\n"
             
             sales_body += f"-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
             for q in data.get("client_questions", []):
-                sales_body += f"  - {q}\n"
+                sales_body += f"- {q}\n"
                 
             sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
             for r in data.get("deal_breakers", []):
-                sales_body += f"  - {r}\n"
+                sales_body += f"- {r}\n"
                 
             sales_body += "\nBest,\nBridgeBuild Sales Hub"
+            
             sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
             
             st.markdown(f"""
@@ -313,7 +310,13 @@ def render_sales_dashboard(supabase):
         if saved_tickets:
             for item in saved_tickets:
                 with st.expander(f"Quote: {item['summary'][:60]}..."):
-                    past_data = json.loads(item['full_data'])
+                    
+                    # THIS FIXES THE BLANK HISTORY PDF BUG FOR OLD RECORDS!
+                    try:
+                        past_data = json.loads(clean_json_output(item['full_data']))
+                    except:
+                        past_data = {}
+                        
                     score = past_data.get('feasibility_score', 'Unknown')
                     
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
@@ -324,19 +327,24 @@ def render_sales_dashboard(supabase):
                     
                     # --- BUILD HISTORICAL SALES EMAIL PAYLOAD ---
                     ticket_name = past_data.get('project_summary', 'New Project Request')[:50] + "..."
+                    
                     sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n"
                     sales_body += f"-> FEASIBILITY SCORE: {score}\n"
                     sales_body += f"-> EST. TIMELINE: {past_data.get('estimated_timeline', 'N/A')}\n"
                     sales_body += f"-> EST. BUDGET: {hist_fmt_low} - {hist_fmt_high}\n\n"
                     sales_body += f"-> PROJECT SUMMARY:\n{past_data.get('project_summary', 'N/A')}\n\n"
-                    sales_body += f"-> CRITICAL 'ASK' LIST:\n"
-                    for q in past_data.get("client_questions", []): sales_body += f"  - {q}\n"
+                    
+                    sales_body += f"-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
+                    for q in past_data.get("client_questions", []):
+                        sales_body += f"- {q}\n"
+                        
                     sales_body += f"\n-> DEAL BREAKERS / RISKS:\n"
-                    for r in past_data.get("deal_breakers", []): sales_body += f"  - {r}\n"
+                    for r in past_data.get("deal_breakers", []):
+                        sales_body += f"- {r}\n"
+                        
                     sales_body += "\nBest,\nBridgeBuild Sales Hub"
                     sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
 
-                    # --- RENDER HISTORY UI BLOCKS ---
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
@@ -350,7 +358,6 @@ def render_sales_dashboard(supabase):
                                 except Exception as e:
                                     st.error(f"Failed to delete: {str(e)}")
                     
-                    # Embed Sales Email Button below the PDF/Delete row
                     st.markdown(f"""
                         <div style="margin-top: 5px; margin-bottom: 15px;">
                             <a href="{sales_mailto}" target="_blank" style="text-decoration: none;">
@@ -366,7 +373,7 @@ def render_sales_dashboard(supabase):
                     col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1: st.metric("Feasibility", score)
                     with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
-                    with col_m3: st.metric("Timeline", item['time'])
+                    with col_m3: st.metric("Timeline", item.get('time', 'N/A'))
                     
                     st.divider()
                     
