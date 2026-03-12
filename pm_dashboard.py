@@ -154,10 +154,7 @@ def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
 # PM DASHBOARD RENDERER
 # ==========================================
 def render_pm_dashboard(supabase):
-    if st.button("Logout", key="pm_logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
+    
     with st.sidebar:
         st.markdown("#### Architecture Engine")
         build_strategy = st.select_slider(
