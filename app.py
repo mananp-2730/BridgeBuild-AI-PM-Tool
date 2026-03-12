@@ -45,16 +45,14 @@ if "history" not in st.session_state: st.session_state.history = []
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 
 # --- THE AUTO-LOGIN COOKIE CHECK ---
-if "cookie_checked" not in st.session_state:
-    saved_session = controller.get("bridgebuild_auth")
-    
-    if saved_session and isinstance(saved_session, dict):
-        # If the browser remembers them, instantly restore the session!
-        st.session_state.logged_in = True
-        st.session_state.user = MockUser(saved_session.get("user_id"))
-        st.session_state.user_role = saved_session.get("role")
-    
-    st.session_state.cookie_checked = True
+saved_session = controller.get("bridgebuild_auth")
+
+if not st.session_state.logged_in and saved_session and isinstance(saved_session, dict):
+    # The browser finally passed the cookie! Instantly restore the session.
+    st.session_state.logged_in = True
+    st.session_state.user = MockUser(saved_session.get("user_id"))
+    st.session_state.user_role = saved_session.get("role")
+    st.rerun() # Instantly flip the UI from Login to the Dashboard!
 
 def get_user_role(user_id):
     """Fetches the user's department role from Supabase."""
