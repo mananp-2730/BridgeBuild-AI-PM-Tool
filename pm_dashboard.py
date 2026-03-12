@@ -154,8 +154,12 @@ def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
 # PM DASHBOARD RENDERER
 # ==========================================
 def render_pm_dashboard(supabase):
+    if st.button("Logout", key="pm_logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+
     with st.sidebar:
-        st.markdown("#### 🏗️ Architecture Engine")
+        st.markdown("#### Architecture Engine")
         build_strategy = st.select_slider(
             "Build Strategy:", 
             options=["Speed (Low-Code/MVP)", "Balanced", "Scale (Enterprise/Microservices)"], 
@@ -166,25 +170,60 @@ def render_pm_dashboard(supabase):
     currency = user_prefs.get("currency", "USD ($)")
     rate_type = user_prefs.get("rate_standard", "US Agency ($150/hr)")
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
-    
     api_key = st.secrets.get("GOOGLE_API_KEY")
 
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
 
-    if st.button("Load Sample Email", key="pm_load_sample_btn"):
-        st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
-    
     if "sales_input" not in st.session_state: 
         st.session_state.sales_input = ""
 
+    # ==========================================
+    # NEW: INCOMING SALES QUEUE (INBOX)
+    # ==========================================
+    try:
+        inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting PM Scoping").eq("target_department", "PM").order("created_at", desc=True).execute()
+        inbox_tickets = inbox_res.data
+        
+        if inbox_tickets:
+            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) from Sales waiting in your queue!")
+            for item in inbox_tickets:
+                with st.expander(f"🟢 Approved Sales Deal: {item['summary'][:60]}..."):
+                    try:
+                        sales_data = json.loads(item['full_data'])
+                    except:
+                        sales_data = {}
+                        
+                    st.write(f"**Approved Budget:** {item['cost']} | **Timeline:** {item['time']}")
+                    st.caption("**Deal Breakers to watch out for:**")
+                    for db in sales_data.get("deal_breakers", []):
+                        st.error(f"- {db}")
+                        
+                    if st.button("Accept & Load into Generator", key=f"accept_{item['id']}", type="primary"):
+                        # 1. Update the original sales ticket so it leaves the queue
+                        supabase.table("tickets").update({"status": "Accepted by PM"}).eq("id", item['id']).execute()
+                        
+                        # 2. Inject the highly structured sales data into the PM's text area!
+                        injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
+                        st.session_state.sales_input = injection_text
+                        st.rerun()
+            st.divider()
+    except Exception as e:
+        st.warning(f"Could not load Inbox: {str(e)}")
+
+    # ==========================================
+    # GENERATOR UI
+    # ==========================================
+    if st.button("Load Sample Email", key="pm_load_sample_btn"):
+        st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
+    
     uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
     if uploaded_file:
         file_ext = uploaded_file.name.split('.')[-1].lower()
         if file_ext in ['mp3', 'wav', 'm4a']: st.audio(uploaded_file)
             
-    sales_input = st.text_area("Paste Text or Add Extra Context:", value=st.session_state.sales_input, height=150)
+    sales_input = st.text_area("Paste Text or Review Sales Context:", value=st.session_state.sales_input, height=150)
 
     if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
     if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
@@ -203,12 +242,11 @@ def render_pm_dashboard(supabase):
                     prompt_contents = []
                     
                     if uploaded_file:
-                        st.write("Processing multi-modal audio/document file...")
+                        st.write("Processing multi-modal file...")
                         file_ext = f".{uploaded_file.name.split('.')[-1]}"
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                             tmp.write(uploaded_file.getvalue())
                             tmp_path = tmp.name
-                        
                         gemini_file = client.files.upload(file=tmp_path)
                         prompt_contents.append(gemini_file)
                         os.remove(tmp_path)
@@ -224,11 +262,9 @@ def render_pm_dashboard(supabase):
                     )
                     
                     if uploaded_file:
-                        st.write("Cleaning up temporary files...")
                         client.files.delete(name=gemini_file.name)
                     
                     st.write("Structuring Epics, Stories, and Budgets...")
-                    
                     data, error_msg = safe_parse_json(response.text)
                     
                     if error_msg:
@@ -247,9 +283,11 @@ def render_pm_dashboard(supabase):
                 fmt_low = convert_currency(low_end, currency)
                 fmt_high = convert_currency(high_end, currency)
 
+                # NEW PM TICKET SAVED TO DB
                 new_ticket = {
                     "user_id": st.session_state.user.id, "summary": data.get("summary"), "cost": f"{fmt_low} - {fmt_high}",
-                    "raw_cost": raw_cost, "complexity": data.get("complexity_score"), "time": data.get("development_time"), "full_data": response.text
+                    "raw_cost": raw_cost, "complexity": data.get("complexity_score"), "time": data.get("development_time"), 
+                    "full_data": json.dumps(data), "status": "Draft", "target_department": "None"
                 }
                 db_res = supabase.table("tickets").insert(new_ticket).execute()
                 st.session_state.active_ticket_id = db_res.data[0]['id']
@@ -325,85 +363,47 @@ def render_pm_dashboard(supabase):
         
         with col_action1:
             st.markdown("#### 📄 Export PDF Reports")
-            st.download_button(
-                "Download Detailed Ticket (Engineering)", 
-                data=generate_local_pm_pdf(data, currency, is_detailed=True), 
-                file_name="bridgebuild_detailed_ticket.pdf", 
-                mime="application/pdf", 
-                use_container_width=True
-            )
-            st.download_button(
-                "Download Brief Summary (Sales / Client)", 
-                data=generate_local_pm_pdf(data, currency, is_detailed=False), 
-                file_name="bridgebuild_brief_summary.pdf", 
-                mime="application/pdf", 
-                use_container_width=True
-            )
+            st.download_button("Download Detailed Ticket (Engineering)", data=generate_local_pm_pdf(data, currency, is_detailed=True), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
+            st.download_button("Download Brief Summary (Sales / Client)", data=generate_local_pm_pdf(data, currency, is_detailed=False), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
         
         with col_action2:
             st.markdown("#### ✉️ Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
             
-            # --- CALCULATE PHASE 2 BUDGET FOR EMAILS ---
             p2_raw_email = data.get("phase_2_budget_usd", "0-0")
             p2_low_email = convert_currency(p2_raw_email.split("-")[0].strip() if "-" in p2_raw_email else p2_raw_email, currency)
             p2_high_email = convert_currency(p2_raw_email.split("-")[1].strip() if "-" in p2_raw_email else p2_raw_email, currency)
 
-            # ==========================================
-            # 1. ENGINEERING EMAIL PAYLOAD (Ultra-Detailed)
-            # ==========================================
             eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements for: {ticket_name}\n\n"
             eng_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
             eng_body += f"-> PHASE 1: CORE MVP\nEst. Time: {data.get('development_time', 'N/A')} | Est. Budget: {fmt_low} - {fmt_high}\n"
-            
             if "mvp_user_stories" in data:
                 for item in data.get("mvp_user_stories", []):
                     eng_body += f"\nStory: {item.get('story')}\n"
-                    for ac in item.get("acceptance_criteria", []):
-                        eng_body += f"  - AC: {ac}\n"
+                    for ac in item.get("acceptance_criteria", []): eng_body += f"  - AC: {ac}\n"
             else:
-                for feat in data.get("mvp_features", []):
-                    eng_body += f"  - {feat}\n"
-
+                for feat in data.get("mvp_features", []): eng_body += f"  - {feat}\n"
             eng_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
-            for feat in data.get("phase_2_features", []):
-                eng_body += f"  - {feat}\n"
-
+            for feat in data.get("phase_2_features", []): eng_body += f"  - {feat}\n"
             eng_body += f"\n\n-> TECHNICAL RISKS\n"
-            for risk in data.get("technical_risks", []):
-                eng_body += f"  - {risk}\n"
-
+            for risk in data.get("technical_risks", []): eng_body += f"  - {risk}\n"
             eng_body += f"\n\n-> SUGGESTED TECH STACK\n"
-            for tech in data.get("suggested_stack", []):
-                eng_body += f"  - {tech}\n"
-                
+            for tech in data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
             eng_body += "\n\nBest,\nProduct Management"
             eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
             
-            # ==========================================
-            # 2. SALES EMAIL PAYLOAD (High-Level MVP Focus)
-            # ==========================================
             sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
             sales_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
             sales_body += f"-> PHASE 1: CORE MVP\nEst. Time: {data.get('development_time', 'N/A')} | Est. Budget: {fmt_low} - {fmt_high}\n"
-            
             if "mvp_user_stories" in data:
-                for item in data.get("mvp_user_stories", []):
-                    sales_body += f"  - {item.get('story')}\n"
+                for item in data.get("mvp_user_stories", []): sales_body += f"  - {item.get('story')}\n"
             else:
-                for feat in data.get("mvp_features", []):
-                    sales_body += f"  - {feat}\n"
-
+                for feat in data.get("mvp_features", []): sales_body += f"  - {feat}\n"
             sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
-            for feat in data.get("phase_2_features", []):
-                sales_body += f"  - {feat}\n"
-
+            for feat in data.get("phase_2_features", []): sales_body += f"  - {feat}\n"
             sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
             sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
             
-            # ==========================================
-            # 3. RENDER BUTTONS
-            # ==========================================
             st.markdown(f"""
                 <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
                     <button style="width: 100%; background-color: #012169; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
@@ -416,7 +416,7 @@ def render_pm_dashboard(supabase):
                     </button>
                 </a>
                 """, unsafe_allow_html=True)
-                
+            
         with st.expander("View Jira / Confluence Markup", expanded=False):
             st.code(generate_jira_format(data, currency), language="jira")
                 
@@ -440,7 +440,7 @@ def render_pm_dashboard(supabase):
                         st.session_state.active_ticket = updated_data
                         
                         if st.session_state.active_ticket_id:
-                            supabase.table("tickets").update({"summary": updated_data.get("summary"), "complexity": updated_data.get("complexity_score"), "time": updated_data.get("development_time"), "full_data": update_response.text}).eq("id", st.session_state.active_ticket_id).execute()
+                            supabase.table("tickets").update({"summary": updated_data.get("summary"), "complexity": updated_data.get("complexity_score"), "time": updated_data.get("development_time"), "full_data": json.dumps(updated_data)}).eq("id", st.session_state.active_ticket_id).execute()
                             
                         st.rerun() 
                     except Exception as e:
@@ -449,27 +449,30 @@ def render_pm_dashboard(supabase):
     st.divider()
     st.subheader("Saved Tickets History")
     try:
-        db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
+        # Changed to only show PM tickets in the PM history!
+        db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).neq("complexity", "Engineering Architecture").neq("complexity", "UI/UX Scoping").order("created_at", desc=True).execute()
         saved_tickets = db_response.data
         
-        if saved_tickets:
-            for i, item in enumerate(saved_tickets):
+        # Filter out Sales tickets from the PM History view
+        pm_tickets = [t for t in saved_tickets if t.get('complexity') not in ['Green', 'Yellow', 'Red']]
+        
+        if pm_tickets:
+            for i, item in enumerate(pm_tickets):
                 with st.expander(f"Ticket: {item['summary'][:60]}..."):
-                    past_data = json.loads(item['full_data'])
-                    
-                    # --- RECALCULATE CURRENCY FOR HISTORY EMAILS ---
+                    try:
+                        past_data = json.loads(clean_json_output(item['full_data']))
+                    except:
+                        past_data = {}
+                        
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
                     hist_low = convert_currency(hist_raw_cost.split("-")[0].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
                     hist_high = convert_currency(hist_raw_cost.split("-")[1].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
-                    
                     p2_raw_email = past_data.get("phase_2_budget_usd", "0-0")
                     p2_low_email = convert_currency(p2_raw_email.split("-")[0].strip() if "-" in p2_raw_email else p2_raw_email, currency)
                     p2_high_email = convert_currency(p2_raw_email.split("-")[1].strip() if "-" in p2_raw_email else p2_raw_email, currency)
                     
-                    # --- BUILD HISTORICAL EMAIL PAYLOADS ---
                     ticket_name = past_data.get('ticket_name', past_data.get('summary', 'New Project'))[:50]
                     
-                    # Eng Payload
                     eng_body = f"Hello Engineering Team,\n\nPlease review the scoped Agile requirements for: {ticket_name}\n\n"
                     eng_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
                     eng_body += f"-> PHASE 1: CORE MVP\nEst. Time: {past_data.get('development_time', 'N/A')} | Est. Budget: {hist_low} - {hist_high}\n"
@@ -488,7 +491,6 @@ def render_pm_dashboard(supabase):
                     eng_body += "\n\nBest,\nProduct Management"
                     eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
 
-                    # Sales Payload
                     sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
                     sales_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
                     sales_body += f"-> PHASE 1: CORE MVP\nEst. Time: {past_data.get('development_time', 'N/A')} | Est. Budget: {hist_low} - {hist_high}\n"
@@ -501,7 +503,6 @@ def render_pm_dashboard(supabase):
                     sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
                     sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
 
-                    # --- RENDER HISTORY UI BLOCKS ---
                     hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_pm_pdf(past_data, currency, is_detailed=True), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
@@ -513,7 +514,6 @@ def render_pm_dashboard(supabase):
                             except Exception as e:
                                 st.error(f"Failed to delete ticket: {str(e)}")
                     
-                    # Embed Email Buttons below the PDF/Delete row
                     st.markdown(f"""
                         <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;">
                             <a href="{eng_mailto}" target="_blank" style="text-decoration: none; flex: 1;">
@@ -532,15 +532,6 @@ def render_pm_dashboard(supabase):
                     with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
                         st.code(generate_jira_format(past_data, currency), language="jira")
         else:
-            st.info("No saved tickets yet. Generate your first one above!")
-            
+            st.info("No saved PM tickets yet. Generate your first one above!")
     except Exception as e:
         st.error(f"Could not load history: {str(e)}")
-    
-    st.markdown("---")
-    footer_html = """
-    <div style='text-align: center; color: #666666; font-size: 0.8em; font-family: sans-serif;'>
-        <p>Built by <a href='https://github.com/mananp-2730' target='_blank' style='text-decoration: none; color: #0366d6;'>Manan Patel</a></p>
-    </div>
-    """
-    st.markdown(footer_html, unsafe_allow_html=True)
