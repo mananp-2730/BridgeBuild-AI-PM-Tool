@@ -133,6 +133,55 @@ def render_design_dashboard(supabase):
     st.title("BridgeBuild AI - UX/UI Design Intake")
     st.markdown("### Transform messy client ideas into structured user flows and screen layouts.")
 
+    if "design_input" not in st.session_state: 
+        st.session_state.design_input = ""
+        
+    # Initialize State Management
+    if "active_design_ticket" not in st.session_state: 
+        st.session_state.active_design_ticket = None
+    if "active_design_ticket_id" not in st.session_state: 
+        st.session_state.active_design_ticket_id = None
+
+    # ==========================================
+    # NEW: INCOMING PM QUEUE (INBOX)
+    # ==========================================
+    try:
+        inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting UI/UX Scoping").eq("target_department", "Design").order("created_at", desc=True).execute()
+        inbox_tickets = inbox_res.data
+        
+        if inbox_tickets:
+            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved Agile ticket(s) from the PM Hub waiting for Design!")
+            for item in inbox_tickets:
+                with st.expander(f"Incoming Agile Ticket: {item['summary'][:60]}..."):
+                    try:
+                        pm_data = json.loads(item['full_data'])
+                    except:
+                        pm_data = {}
+                        
+                    st.write(f"**Dev Time:** {item['time']} | **Complexity:** {item['complexity']}")
+                    
+                    if st.button("Accept & Load into Studio", key=f"accept_{item['id']}", type="primary"):
+                        # 1. Update the original PM ticket so it leaves the queue
+                        supabase.table("tickets").update({"status": "Accepted by Design"}).eq("id", item['id']).execute()
+                        
+                        # 2. Inject the highly structured PM data into the Designer's text area!
+                        injection_text = f"PM HANDOFF CONTEXT:\nProject Summary: {pm_data.get('summary', item['summary'])}\n"
+                        if "mvp_user_stories" in pm_data:
+                            injection_text += "User Stories to Design For:\n"
+                            for story in pm_data.get("mvp_user_stories", []):
+                                injection_text += f"- {story.get('story')}\n"
+                        else:
+                            injection_text += f"Features to Design For: {pm_data.get('mvp_features', [])}\n"
+                            
+                        st.session_state.design_input = injection_text
+                        st.rerun()
+            st.divider()
+    except Exception as e:
+        st.warning(f"Could not load Inbox: {str(e)}")
+
+    # ==========================================
+    # GENERATOR UI
+    # ==========================================
     uploaded_file = st.file_uploader("Upload Client Audio/Notes (.mp3, .wav)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
     if uploaded_file:
@@ -140,14 +189,10 @@ def render_design_dashboard(supabase):
         if file_ext in ['mp3', 'wav', 'm4a']:
             st.audio(uploaded_file)
             
-    design_input = st.text_area("Or Paste Notes:", height=150, placeholder="Example: Client wants a fitness app where users can track workouts and share with friends. Needs to feel modern and energetic.")
+    design_input = st.text_area("Paste Text or Review PM Context:", value=st.session_state.design_input, height=150, placeholder="Example: Client wants a fitness app where users can track workouts and share with friends. Needs to feel modern and energetic.")
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
     model_choice = st.session_state.get("user_prefs", {}).get("ai_model", "Gemini 1.5 Flash (Fast)")
-
-    # Initialize State Management
-    if "active_design_ticket" not in st.session_state: 
-        st.session_state.active_design_ticket = None
 
     if st.button("Generate Design Architecture", type="primary"):
         if not api_key:
@@ -204,7 +249,7 @@ def render_design_dashboard(supabase):
                         status.update(label="Design Architecture Complete!", state="complete", expanded=False)
                         st.session_state.active_design_ticket = data
 
-                # SAVE TO SUPABASE
+                # SAVE TO SUPABASE WITH STATUS
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("project_vision", "Design Architecture")[:200],
@@ -212,9 +257,13 @@ def render_design_dashboard(supabase):
                     "raw_cost": "0-0",
                     "complexity": "UI/UX Scoping", 
                     "time": "TBD",
-                    "full_data": response.text
+                    "full_data": response.text,
+                    "status": "Draft",
+                    "target_department": "None"
                 }
-                supabase.table("tickets").insert(new_ticket).execute()
+                db_res = supabase.table("tickets").insert(new_ticket).execute()
+                st.session_state.active_design_ticket_id = db_res.data[0]['id']
+                st.rerun()
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
@@ -309,6 +358,21 @@ def render_design_dashboard(supabase):
                 </a>
                 """, unsafe_allow_html=True)
 
+        # ==========================================
+        # NEW: THE ACTIVE TICKET HANDOFF PROTOCOL
+        # ==========================================
+        st.divider()
+        st.markdown("#### Department Handoff")
+        st.info("Design complete? Route this visually scoped ticket to Engineering for Tech Architecture.")
+
+        if st.session_state.get("active_design_ticket_id"):
+            if st.button("Approve & Send to Engineering", type="primary", use_container_width=True):
+                try:
+                    supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", st.session_state.active_design_ticket_id).execute()
+                    st.success("Boom! Successfully routed to the Engineering Inbox.")
+                except Exception as e:
+                    st.error(f"Failed to handoff ticket: {str(e)}")
+
     # --- 3. DESIGN HISTORY SECTION ---
     st.divider()
     st.subheader("Saved Design Architectures")
@@ -319,7 +383,24 @@ def render_design_dashboard(supabase):
         
         if saved_tickets:
             for item in saved_tickets:
-                with st.expander(f"Design: {item['summary'][:60]}..."):
+                
+                # --- NEW: STATUS BADGE LOGIC ---
+                current_status = item.get('status', 'Draft')
+                if current_status in ['Draft', 'Accepted by Design']:
+                    status_icon = "📝"
+                elif current_status == 'Awaiting Tech Architecture':
+                    status_icon = "⚙️"
+                else:
+                    status_icon = "✅"
+
+                with st.expander(f"{status_icon} Design: {item['summary'][:60]}..."):
+                    
+                    # --- SHOW CURRENT STATUS ---
+                    if current_status in ['Draft', 'Accepted by Design']:
+                        st.caption(f"Status: **{current_status} (Not Sent)**")
+                    else:
+                        st.caption(f"Status: **{current_status}** 🚀")
+
                     past_data = json.loads(item['full_data'])
                     theme = past_data.get("design_theme", {})
                     
@@ -362,6 +443,13 @@ def render_design_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
                     
+                    # --- NEW: HISTORY HANDOFF BUTTONS ---
+                    if current_status in ['Draft', 'Accepted by Design']:
+                        st.markdown("##### Route Ticket")
+                        if st.button("Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
+                            supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", item['id']).execute()
+                            st.rerun()
+
                     st.divider()
                     
                     col_hf1, col_hf2 = st.columns(2)
