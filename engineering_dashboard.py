@@ -132,7 +132,6 @@ def generate_local_eng_pdf(ticket_data):
 # ENGINEERING DASHBOARD RENDERER
 # ==========================================
 def render_engineering_dashboard(supabase):
-    # THE ROGUE LOGOUT BUTTON HAS BEEN ELIMINATED! 
 
     with st.sidebar:
         st.markdown("#### DevOps Settings")
@@ -145,6 +144,61 @@ def render_engineering_dashboard(supabase):
     st.title("BridgeBuild AI - Engineering Terminal")
     st.markdown("### Translate requirements into DB schemas, APIs, and CI/CD pipelines.")
 
+    if "eng_input" not in st.session_state: 
+        st.session_state.eng_input = ""
+
+    # Initialize State Management
+    if "active_eng_ticket" not in st.session_state: 
+        st.session_state.active_eng_ticket = None
+    if "active_eng_ticket_id" not in st.session_state: 
+        st.session_state.active_eng_ticket_id = None
+
+    # ==========================================
+    # NEW: INCOMING QUEUE (INBOX)
+    # ==========================================
+    try:
+        inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting Tech Architecture").eq("target_department", "Engineering").order("created_at", desc=True).execute()
+        inbox_tickets = inbox_res.data
+        
+        if inbox_tickets:
+            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) waiting for Technical Architecture!")
+            for item in inbox_tickets:
+                with st.expander(f"⚙️ Incoming Ticket: {item['summary'][:60]}..."):
+                    try:
+                        prev_data = json.loads(item['full_data'])
+                    except:
+                        prev_data = {}
+                        
+                    st.write(f"**Budget Info:** {item['cost']} | **Complexity:** {item['complexity']}")
+                    
+                    if st.button("Accept & Load into Terminal", key=f"accept_{item['id']}", type="primary"):
+                        # 1. Update the original ticket so it leaves the queue
+                        supabase.table("tickets").update({"status": "Accepted by Engineering"}).eq("id", item['id']).execute()
+                        
+                        # 2. Inject the highly structured data into the Engineer's text area!
+                        injection_text = f"HANDOFF CONTEXT:\nProject Summary: {prev_data.get('summary', prev_data.get('project_vision', item['summary']))}\n"
+                        
+                        # If it came from PM:
+                        if "mvp_user_stories" in prev_data:
+                            injection_text += "User Stories to Build:\n"
+                            for story in prev_data.get("mvp_user_stories", []):
+                                injection_text += f"- {story.get('story')}\n"
+                                
+                        # If it came from Design:
+                        if "key_screens" in prev_data:
+                            injection_text += "Design Screens to Support:\n"
+                            for screen in prev_data.get("key_screens", []):
+                                injection_text += f"- {screen.get('screen_name')}\n"
+                                
+                        st.session_state.eng_input = injection_text
+                        st.rerun()
+            st.divider()
+    except Exception as e:
+        st.warning(f"Could not load Inbox: {str(e)}")
+
+    # ==========================================
+    # GENERATOR UI
+    # ==========================================
     uploaded_file = st.file_uploader("Upload Tech Specs / Audio (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
     if uploaded_file:
@@ -152,11 +206,7 @@ def render_engineering_dashboard(supabase):
         if file_ext in ['mp3', 'wav', 'm4a']:
             st.audio(uploaded_file)
             
-    eng_input = st.text_area("Or Paste Raw Requirements:", height=150, placeholder="Example: We need a backend for a food delivery app. Drivers need to update location in real-time, users place orders, and restaurants accept them.")
-
-    # Initialize State Management
-    if "active_eng_ticket" not in st.session_state: 
-        st.session_state.active_eng_ticket = None
+    eng_input = st.text_area("Paste Raw Requirements or Review Context:", value=st.session_state.eng_input, height=150, placeholder="Example: We need a backend for a food delivery app. Drivers need to update location in real-time, users place orders, and restaurants accept them.")
 
     if st.button("Generate Technical Architecture", type="primary"):
         if not api_key:
@@ -221,9 +271,13 @@ def render_engineering_dashboard(supabase):
                     "raw_cost": "0-0",
                     "complexity": "Engineering Architecture", 
                     "time": "TBD",
-                    "full_data": response.text
+                    "full_data": response.text,
+                    "status": "Draft",
+                    "target_department": "None"
                 }
-                supabase.table("tickets").insert(new_ticket).execute()
+                db_res = supabase.table("tickets").insert(new_ticket).execute()
+                st.session_state.active_eng_ticket_id = db_res.data[0]['id']
+                st.rerun()
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
@@ -325,6 +379,21 @@ def render_engineering_dashboard(supabase):
                 </a>
                 """, unsafe_allow_html=True)
 
+        # ==========================================
+        # NEW: THE ACTIVE TICKET FINALIZE PROTOCOL
+        # ==========================================
+        st.divider()
+        st.markdown("#### 🚀 Finalize Project")
+        st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
+
+        if st.session_state.active_eng_ticket_id:
+            if st.button("✅ Mark as Ready for Dev", type="primary", use_container_width=True):
+                try:
+                    supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", st.session_state.active_eng_ticket_id).execute()
+                    st.success("Boom! Architecture finalized and ready for the build! ✅")
+                except Exception as e:
+                    st.error(f"Failed to finalize ticket: {str(e)}")
+
     # --- 3. ENGINEERING HISTORY SECTION ---
     st.divider()
     st.subheader("Saved Architecture Schemas")
@@ -335,7 +404,22 @@ def render_engineering_dashboard(supabase):
         
         if saved_tickets:
             for item in saved_tickets:
-                with st.expander(f"Arch: {item['summary'][:60]}..."):
+                
+                # --- NEW: STATUS BADGE LOGIC ---
+                current_status = item.get('status', 'Draft')
+                if current_status in ['Draft', 'Accepted by Engineering']:
+                    status_icon = "📝"
+                else:
+                    status_icon = "✅"
+
+                with st.expander(f"{status_icon} Arch: {item['summary'][:60]}..."):
+                    
+                    # --- SHOW CURRENT STATUS ---
+                    if current_status in ['Draft', 'Accepted by Engineering']:
+                        st.caption(f"Status: **{current_status} (Not Finalized)**")
+                    else:
+                        st.caption(f"Status: **{current_status}** 🚀")
+
                     past_data = json.loads(item['full_data'])
                     
                     # History Email Payload
@@ -378,6 +462,13 @@ def render_engineering_dashboard(supabase):
                             </a>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                    # --- NEW: HISTORY FINALIZE BUTTON ---
+                    if current_status in ['Draft', 'Accepted by Engineering']:
+                        st.markdown("##### 🚀 Finalize Project")
+                        if st.button("✅ Mark as Ready for Dev", key=f"hist_ready_{item['id']}", use_container_width=True):
+                            supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", item['id']).execute()
+                            st.rerun()
                     
                     st.divider()
                     
