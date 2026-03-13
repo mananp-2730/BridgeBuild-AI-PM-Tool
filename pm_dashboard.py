@@ -416,6 +416,30 @@ def render_pm_dashboard(supabase):
             
         with st.expander("View Jira / Confluence Markup", expanded=False):
             st.code(generate_jira_format(data, currency), language="jira")
+
+        # ==========================================
+        # NEW: THE ACTIVE TICKET HANDOFF PROTOCOL
+        # ==========================================
+        st.divider()
+        st.markdown("#### Department Handoff")
+        st.info("Agile Scope Approved? Route this ticket to the next phase of development.")
+
+        if st.session_state.active_ticket_id:
+            col_handoff1, col_handoff2 = st.columns(2)
+            with col_handoff1:
+                if st.button("Approve & Send to Design", type="primary", use_container_width=True):
+                    try:
+                        supabase.table("tickets").update({"status": "Awaiting UI/UX Scoping", "target_department": "Design"}).eq("id", st.session_state.active_ticket_id).execute()
+                        st.success("Boom! Successfully routed to the Design Inbox.")
+                    except Exception as e:
+                        st.error(f"Failed to handoff ticket: {str(e)}")
+            with col_handoff2:
+                if st.button("Approve & Send to Engineering", type="primary", use_container_width=True):
+                    try:
+                        supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", st.session_state.active_ticket_id).execute()
+                        st.success("Boom! Successfully routed to the Engineering Inbox.")
+                    except Exception as e:
+                        st.error(f"Failed to handoff ticket: {str(e)}")
                 
         refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
         if refine_query:
@@ -455,12 +479,30 @@ def render_pm_dashboard(supabase):
         
         if pm_tickets:
             for i, item in enumerate(pm_tickets):
-                with st.expander(f"Ticket: {item['summary'][:60]}..."):
+                
+                # --- NEW: STATUS BADGE LOGIC ---
+                current_status = item.get('status', 'Draft')
+                if current_status in ['Draft', 'Accepted by PM']:
+                    status_icon = "📝"
+                elif current_status == 'Awaiting UI/UX Scoping':
+                    status_icon = "🎨"
+                elif current_status == 'Awaiting Tech Architecture':
+                    status_icon = "⚙️"
+                else:
+                    status_icon = "✅"
+                
+                with st.expander(f"{status_icon} Ticket: {item['summary'][:60]}..."):
                     try:
                         past_data = json.loads(clean_json_output(item['full_data']))
                     except:
                         past_data = {}
                         
+                    # --- SHOW CURRENT STATUS ---
+                    if current_status in ['Draft', 'Accepted by PM']:
+                        st.caption(f"Status: **{current_status} (Not Sent)**")
+                    else:
+                        st.caption(f"Status: **{current_status}** 🚀")
+
                     hist_raw_cost = past_data.get("budget_estimate_usd", "0-0")
                     hist_low = convert_currency(hist_raw_cost.split("-")[0].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
                     hist_high = convert_currency(hist_raw_cost.split("-")[1].strip() if "-" in hist_raw_cost else hist_raw_cost, currency)
@@ -525,6 +567,19 @@ def render_pm_dashboard(supabase):
                             </a>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                    # --- NEW: HISTORY HANDOFF BUTTONS ---
+                    if current_status in ['Draft', 'Accepted by PM']:
+                        st.markdown("##### Route Ticket")
+                        hist_hand_col1, hist_hand_col2 = st.columns(2)
+                        with hist_hand_col1:
+                            if st.button("Send to Design", key=f"hist_design_{item['id']}", use_container_width=True):
+                                supabase.table("tickets").update({"status": "Awaiting UI/UX Scoping", "target_department": "Design"}).eq("id", item['id']).execute()
+                                st.rerun()
+                        with hist_hand_col2:
+                            if st.button("Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
+                                supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", item['id']).execute()
+                                st.rerun()
 
                     with st.expander("🎫 View Jira / Confluence Markup", expanded=False):
                         st.code(generate_jira_format(past_data, currency), language="jira")
