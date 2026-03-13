@@ -383,7 +383,7 @@ def render_engineering_dashboard(supabase):
         # NEW: THE ACTIVE TICKET FINALIZE PROTOCOL
         # ==========================================
         st.divider()
-        st.markdown("#### 🚀 Finalize Project")
+        st.markdown("#### Finalize Project")
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
 
         if st.session_state.active_eng_ticket_id:
@@ -465,8 +465,8 @@ def render_engineering_dashboard(supabase):
                         
                     # --- NEW: HISTORY FINALIZE BUTTON ---
                     if current_status in ['Draft', 'Accepted by Engineering']:
-                        st.markdown("##### 🚀 Finalize Project")
-                        if st.button("✅ Mark as Ready for Dev", key=f"hist_ready_{item['id']}", use_container_width=True):
+                        st.markdown("##### Finalize Project")
+                        if st.button("Mark as Ready for Dev", key=f"hist_ready_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", item['id']).execute()
                             st.rerun()
                     
