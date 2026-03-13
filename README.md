@@ -17,11 +17,11 @@ BridgeBuild AI acts as an intelligent, continuous feasibility pipeline. A single
 Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. When one department finishes their scoping, they route the locked ticket to the next department's inbox. The AI instantly reads the previous department's constraints (budgets, deal-breakers, user stories) and injects them into the next phase of development—ensuring zero data loss and mathematical budget alignment from kickoff to deployment.
 
 ## Role-Based Workspaces & Pipelines:
-1. **Super Admin Workspace:** Complete control over the organization's Active Directory. Instantly upgrade or change user roles via an interactive UI that pushes directly to the Supabase PostgreSQL database.
-2. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, the critical "Ask List" for clients, deal-breaker warnings, and dynamic MVP budgeting with a real-time USD/INR toggle.
-3. **Product Management (PM) Dashboard:** Breaks unstructured requirements down into Agile Epics, MVP User Stories, Technical Risk Analysis, and native Mermaid.js architecture flowcharts.
-4. **UX/UI Design Studio:** Strips away backend tech jargon to generate core user flows, key screen layouts, UI component lists, and automatically extracts and renders hex color swatches for the project's "vibe".
-5. Engineering Terminal: Translates business requirements into pure technical execution, providing structured database schemas, color-coded REST API endpoints, tech stack recommendations, and CI/CD pipeline strategies.
+1. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, critical client "Ask Lists", deal-breaker warnings, and dynamic MVP budgeting.
+2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, Technical Risk Analysis, and native Mermaid.js architecture flowcharts.
+3. **UX/UI Design Studio:** Catches approved Agile tickets. Strips away backend tech jargon to generate core user flows, key screen layouts, UI component lists, and extracts hex color swatches for the project's visual identity.
+4. **Engineering Terminal:** Catches approved Design tickets. Translates business requirements into pure technical execution, providing structured database schemas, REST API routes, tech stack recommendations, and CI/CD pipelines.
+5. **Admin Control Center:** A global oversight dashboard that calculates total organizational pipeline value, tracks real-time department bottlenecks, and manages Active Directory access.
 
 ## Tech Stack
 * **Core Logic:** Python 3.11
