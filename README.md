@@ -61,22 +61,20 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 ## Roadmap
 
 **Completed Milestones** 
-- [x] Fast vs. Scalable Toggle: Dynamic tech stack recommendations based on project constraints.
+- [x] Multi-tenant Modular Refactoring: Scalable, role-based dashboards.
+- [x] Super Admin God View: Global pipeline analytics and Active Directory RBAC.
+- [x] Department Handoff Protocol: Cross-user database injections and Inbox queues.
+- [x] Zero-Friction Auth: Bulletproof URL session routing.
+- [x] Multimodal Audio Ingestion: Process .mp3, .wav, and .pdf transcripts natively.
+- [x] Automated Artifact Generation: Dynamic PDF and Stakeholder Email creation.
 - [x] Architecture Flowchart Generation: AI-generated native Mermaid.js diagrams.
-- [x] Multimodal Audio Ingestion: Process `.mp3`, `.wav`, and `.pdf` transcripts natively.
-- [x] Progressive Disclosure UI: Streamlined interface to reduce cognitive load.
-- [x] Granular Database History: Save, manage, and specifically delete session history.
-- [x] User Authentication: Secure login for team collaboration.
-- [x] Epic & Sub-Task Splitter: Automatically break down high-complexity scores into manageable child tickets.
-- [x] Multi-tenant Modular Refactoring: Broke monolithic code into scalable, role-based dashboards.
-- [x] Super Admin & RBAC Integration: Dynamic assignment of Sales, PM, and Design roles.
-- [x] Sales & Design Portals: Shipped dedicated minimum viable products (MVPs) for non-technical departments.
-- [x] Engineering Portal: Pure technical execution, API schemas, JSON payloads, and CI/CD pipelines.
+- [x] Epic & Sub-Task Splitter: Break down high-complexity scores into manageable child tickets.
 
 **Upcoming Features** 
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
+- [ ] Jira / Linear Integration: One-click export of Agile epics directly into external project management tools.
 
 ________
 Architectured and Engineered by Manan
