@@ -4,15 +4,19 @@ BridgeBuild AI: The Enterprise Agile Operating System
 
 A multi-department, role-based SaaS platform that uses Google Gemini to instantly translate messy client notes and audio transcripts into structured, actionable workflows. BridgeBuild AI eliminates organizational data silos by passing a single source of truth from Sales, to Product Management, to Design, to Engineering without a single copy-paste.
 
-## The Problem
-In B2B software agencies, a major source of friction is the "Translation Gap" between departments:
-1. Sales teams promise features without realizing technical complexity or asking the right business questions.
-2. Design teams get vague vibes instead of structured user journeys and component lists.
-3. Engineering teams receive unstructured requirements, leading to scope creep and missed deadlines.
-4. Cost Estimation is often a guess, leading to underpriced contracts.
+## The Problem: The "Translation Gap"
+In B2B software agencies, the biggest point of failure is department handoffs:
+1. Sales promises features without realizing technical complexity, deal-breakers, or asking the right business questions.
+2. Product Managers spend hours manually translating vague sales transcripts into structured Agile epics.
+3. Designers get vague "vibes" instead of structured user journeys and component lists.
+4. Engineers receive unstructured requirements, leading to scope creep, missed deadlines, and messy database schemas.
 
-## The Solution: Role-Based Workspaces
-BridgeBuild AI acts as an intelligent, multi-tenant feasibility layer. A single AI engine shape-shifts its personality and UI based on the user's secure department role (managed via Supabase RBAC). It takes raw client emails, meeting notes, or raw audio recordings and generates role-specific outputs:
+## The Solution: The BridgeBuild OS
+BridgeBuild AI acts as an intelligent, continuous feasibility pipeline. A single AI engine shape-shifts its personality, logic, and UI based on the user's secure department role (managed via Supabase RBAC).
+
+Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. When one department finishes their scoping, they route the locked ticket to the next department's inbox. The AI instantly reads the previous department's constraints (budgets, deal-breakers, user stories) and injects them into the next phase of development—ensuring zero data loss and mathematical budget alignment from kickoff to deployment.
+
+## Role-Based Workspaces & Pipelines:
 1. **Super Admin Workspace:** Complete control over the organization's Active Directory. Instantly upgrade or change user roles via an interactive UI that pushes directly to the Supabase PostgreSQL database.
 2. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, the critical "Ask List" for clients, deal-breaker warnings, and dynamic MVP budgeting with a real-time USD/INR toggle.
 3. **Product Management (PM) Dashboard:** Breaks unstructured requirements down into Agile Epics, MVP User Stories, Technical Risk Analysis, and native Mermaid.js architecture flowcharts.
