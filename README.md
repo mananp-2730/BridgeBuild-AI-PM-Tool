@@ -30,11 +30,11 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
 * **Artifact Generation:** ReportLab (PDFs), Native Mermaid.js
 
-## Key value adding features:
-* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema and budget.
-* **Shape-Shifting AI Brains:** The application acts as four different SaaS products in one. The UI, logic, and core LLM system prompts dynamically rewrite themselves the exact moment a user logs into their specific department role.
-* **Generative Visuals & Flowcharts:** Moves beyond standard text generation by rendering native Mermaid.js architecture diagrams for Engineers and extracting/rendering live CSS Hex color swatches for Designers.
-* **Real-Time Dynamic Quoting:** Instantly toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical CRM records on the fly without database refreshes.
+## Key Architectural Features:
+* **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
+* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema.
+* **Automated Stakeholder Artifacts:** Instantly generates and downloads localized, department-specific PDF reports and pre-fills email clients to share specs with external stakeholders in one click.
+* **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
 
 ## Steps to Run Locally
 1. **Clone the repo**
