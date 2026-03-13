@@ -28,6 +28,7 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
 * **Frontend:** Streamlit 
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
+* **Artifact Generation:** ReportLab (PDFs), Native Mermaid.js
 
 ## Key value adding features:
 * **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema and budget.
