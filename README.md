@@ -1,8 +1,8 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://bridgebuild-ai-pm-tool-hxpamzy2hsnyxfksaqqk7c.streamlit.app/)
 
-BridgeBuild AI: The AI-Powered Agile Operating System
+BridgeBuild AI: The Enterprise Agile Operating System
 
-A multi-department, role-based SaaS application that uses Google Gemini to instantly translate messy client notes and audio transcripts into structured, actionable workflows tailored to whoever is logged in (Sales, Product Management, or Design).
+A multi-department, role-based SaaS platform that uses Google Gemini to instantly translate messy client notes and audio transcripts into structured, actionable workflows. BridgeBuild AI eliminates organizational data silos by passing a single source of truth from Sales, to Product Management, to Design, to Engineering without a single copy-paste.
 
 ## The Problem
 In B2B software agencies, a major source of friction is the "Translation Gap" between departments:
