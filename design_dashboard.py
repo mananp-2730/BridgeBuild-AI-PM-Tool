@@ -147,7 +147,7 @@ def render_design_dashboard(supabase):
         inbox_tickets = inbox_res.data
         
         if inbox_tickets:
-            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved Agile ticket(s) from the PM Hub waiting for Design!")
+            st.info(f"**INCOMING:** You have {len(inbox_tickets)} approved Agile ticket(s) from the PM Hub waiting for Design!")
             for item in inbox_tickets:
                 with st.expander(f"Incoming Agile Ticket: {item['summary'][:60]}..."):
                     try:
@@ -265,43 +265,64 @@ def render_design_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
-    # --- 1. RENDER THE ACTIVE DESIGN UI ---
+    # ==========================================
+    # RENDER THE ACTIVE DESIGN UI (POLISHED)
+    # ==========================================
     if st.session_state.active_design_ticket:
         data = st.session_state.active_design_ticket
         
         st.write("")
         st.success("Design Architecture Ready!")
         
+        # --- HERO SECTION ---
+        with st.container(border=True):
+            st.markdown("#### Project Vision")
+            st.info(data.get('project_vision'))
+            st.markdown(f"**Target Audience:** {data.get('target_audience')}")
+        
+        st.write("")
+        
+        # --- THEME & COLOR SWATCH CARD ---
         theme = data.get("design_theme", {})
         vibe = theme.get("vibe", "Modern & Clean")
         raw_color_text = theme.get("primary_color_suggestion", "#012169")
-        
-        # Extract just the hex code using regex
         match = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', raw_color_text)
         safe_hex = match.group(0) if match else "#012169"
-        
-        st.markdown(f"### The Vibe: {vibe}")
-        st.markdown(f"**Suggested Primary Color:** <span style='background-color: {safe_hex}; color: white; padding: 6px 10px; border-radius: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);'>{raw_color_text}</span>", unsafe_allow_html=True)                
-        st.info(f"**Project Vision:** {data.get('project_vision')}")
-        st.write(f"**Target Audience:** {data.get('target_audience')}")
+
+        with st.container(border=True):
+            col_vibe, col_color = st.columns(2)
+            with col_vibe:
+                st.markdown("#### The Vibe")
+                st.write(f"*{vibe}*")
+            with col_color:
+                st.markdown("#### Primary Color")
+                # Massive dynamic color swatch
+                st.markdown(f"""
+                <div style='background-color: {safe_hex}; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 2px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);'>
+                    {raw_color_text}
+                </div>
+                """, unsafe_allow_html=True)
         
         st.divider()
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Core User Flows")
+            st.markdown("#### Core User Flows")
             for flow in data.get("core_user_flows", []):
                 with st.expander(f"Flow: {flow.get('flow_name', 'User Flow')}"):
                     for step in flow.get("steps", []):
                         st.markdown(f"- {step}")
                         
             st.write("")
-            st.subheader("UI Component Library")
+            st.markdown("#### UI Component Library")
+            # --- INLINE COMPONENT PILLS ---
+            components_html = ""
             for comp in data.get("ui_components_needed", []):
-                st.markdown(f"- `{comp}`")
+                components_html += f"<span style='background-color: #e2e8f0; color: #1e293b; padding: 6px 12px; border-radius: 20px; margin-right: 8px; margin-bottom: 8px; display: inline-block; font-size: 13px; font-weight: 600; border: 1px solid #cbd5e1;'>{comp}</span>"
+            st.markdown(components_html, unsafe_allow_html=True)
 
         with col2:
-            st.subheader("Key Screens & Layouts")
+            st.markdown("#### 📱 Key Screens & Layouts")
             for screen in data.get("key_screens", []):
                 with st.container(border=True):
                     st.markdown(f"**{screen.get('screen_name', 'Screen')}**")
@@ -309,7 +330,7 @@ def render_design_dashboard(supabase):
                         st.caption(f"🔹 {elem}")
                         
             st.write("")
-            st.subheader("Accessibility (a11y)")
+            st.markdown("#### Accessibility (a11y)")
             for a11y in data.get("accessibility_a11y", []):
                 st.success(f"✓ {a11y}")
 
@@ -356,7 +377,7 @@ def render_design_dashboard(supabase):
                 """, unsafe_allow_html=True)
 
         # ==========================================
-        # NEW: THE ACTIVE TICKET HANDOFF PROTOCOL
+        # THE ACTIVE TICKET HANDOFF PROTOCOL
         # ==========================================
         st.divider()
         st.markdown("#### Department Handoff")
@@ -366,7 +387,7 @@ def render_design_dashboard(supabase):
             if st.button("Approve & Send to Engineering", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", st.session_state.active_design_ticket_id).execute()
-                    st.success("Boom! Successfully routed to the Engineering Inbox.")
+                    st.success("Successfully routed to the Engineering Inbox.")
                 except Exception as e:
                     st.error(f"Failed to handoff ticket: {str(e)}")
 
@@ -413,7 +434,10 @@ def render_design_dashboard(supabase):
                     hist_body += "\nSee the attached PDF for full specs.\n\nBest,\nBridgeBuild Design Hub"
                     hist_mailto = f"mailto:?subject={quote('Historical UX/UI Design Specs')}&body={quote(hist_body)}"
 
-                    st.markdown(f"**Vibe:** {hist_vibe} | **Color:** {hist_hex}")
+                    # Add the color swatch to history too!
+                    match_hist = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', hist_hex)
+                    safe_hist_hex = match_hist.group(0) if match_hist else "#012169"
+                    st.markdown(f"**Vibe:** {hist_vibe} | **Color:** <span style='background-color: {safe_hist_hex}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'>{hist_hex}</span>", unsafe_allow_html=True)
                     
                     # Render localized PDF and Delete inside History
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
@@ -442,8 +466,8 @@ def render_design_dashboard(supabase):
                     
                     # --- NEW: HISTORY HANDOFF BUTTONS ---
                     if current_status in ['Draft', 'Accepted by Design']:
-                        st.markdown("##### Route Ticket")
-                        if st.button("Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
+                        st.markdown("##### 🚀 Route Ticket")
+                        if st.button("⚙️ Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", item['id']).execute()
                             st.rerun()
 
