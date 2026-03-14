@@ -126,9 +126,6 @@ def generate_local_design_pdf(ticket_data):
 # DESIGN DASHBOARD RENDERER
 # ==========================================
 def render_design_dashboard(supabase):
-    if st.button("Logout", key="design_logout"):
-        st.session_state.logged_in = False
-        st.rerun()
 
     st.title("BridgeBuild AI - UX/UI Design Intake")
     st.markdown("### Transform messy client ideas into structured user flows and screen layouts.")
