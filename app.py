@@ -2,7 +2,7 @@
 BridgeBuild AI - Agile Operating System
 ----------------------------------------------------
 Author: Manan Patel
-Version: 2.0.0 (Bulletproof URL Session Routing)
+Version: 2.1.0 (Dynamic Dark Mode UI)
 """
 import streamlit as st
 from pm_dashboard import render_pm_dashboard
@@ -47,77 +47,108 @@ def get_user_role(user_id):
 # ==========================================
 # THE BULLETPROOF URL LISTENER 🔗
 # ==========================================
-# If the user hits refresh, Streamlit instantly checks the URL for the session token!
 if not st.session_state.logged_in and "session" in st.query_params:
     user_id = st.query_params["session"]
     st.session_state.user = MockUser(user_id)
     st.session_state.user_role = get_user_role(user_id)
     st.session_state.logged_in = True
 
-def setup_custom_styling():
-    """Supercharged Global CSS styles for the BridgeBuild Enterprise OS."""
-    st.markdown("""
+# ==========================================
+# THE DYNAMIC THEME ENGINE 🎨
+# ==========================================
+def setup_custom_styling(is_dark=False):
+    """Injects dynamic CSS based on the user's Dark Mode preference."""
+    
+    # Base White-Labeling & Button Physics (Applies to both modes)
+    common_css = """
     <style>
-        /* 1. WHITE-LABELING */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
-
-        /* 2. DUKE BLUE THEME VARIABLES */
-        :root { 
-            --primary-color: #012169; 
-            --hover-color: #001547;
-        }
-
-        /* 3. PREMIUM BUTTON ANIMATIONS */
+        
         div.stButton > button {
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
         }
-        div.stButton > button:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            box-shadow: 0 4px 6px rgba(1, 33, 105, 0.1);
-        }
-
         div.stButton > button[kind="primary"] {
-            background-color: var(--primary-color) !important;
-            color: white !important;
             border: none !important;
-            border-radius: 8px;
-            font-weight: bold;
             padding: 0.5rem 1rem;
-            box-shadow: 0 4px 6px rgba(1, 33, 105, 0.2);
-            transition: all 0.3s ease;
         }
         div.stButton > button[kind="primary"]:hover {
-            background-color: var(--hover-color) !important;
-            box-shadow: 0 6px 12px rgba(1, 33, 105, 0.3);
             transform: translateY(-2px);
         }
-
-        /* 4. SAAS CARD STYLING */
-        [data-testid="stExpander"] {
-            border-radius: 10px !important;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            margin-bottom: 0.5rem;
-            overflow: hidden;
+    </style>
+    """
+    
+    # The Light Theme (Duke Blue & Crisp White)
+    light_css = """
+    <style>
+        :root { 
+            --primary-color: #012169; 
+            --hover-color: #001547;
+            --bg-color: #F4F6F8;
+            --text-color: #1E293B;
+            --card-bg: #FFFFFF;
+            --border-color: #e2e8f0;
         }
         
-        /* 5. TYPOGRAPHY POLISH */
-        [data-testid="stMetricValue"] {
-            color: var(--primary-color) !important;
-            font-weight: 800 !important;
-        }
+        div.stButton > button[kind="primary"] { background-color: var(--primary-color) !important; color: white !important; box-shadow: 0 4px 6px rgba(1, 33, 105, 0.2); }
+        div.stButton > button[kind="primary"]:hover { background-color: var(--hover-color) !important; box-shadow: 0 6px 12px rgba(1, 33, 105, 0.3); }
+        
+        [data-testid="stSidebar"] { background-color: var(--card-bg) !important; border-right: 1px solid var(--border-color); }
+        [data-testid="stExpander"] { background-color: var(--card-bg) !important; border-radius: 10px !important; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        [data-testid="stMetricValue"] { color: var(--primary-color) !important; font-weight: 800 !important; }
     </style>
-    """, unsafe_allow_html=True)
+    """
     
+    # The Dark Theme (Sleek Charcoal & Blue)
+    dark_css = """
+    <style>
+        :root { 
+            --primary-color: #3b82f6; 
+            --hover-color: #60a5fa;
+            --bg-color: #0e1117;
+            --text-color: #f8fafc;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+        }
+        
+        /* Force Dark Backgrounds */
+        .stApp { background-color: var(--bg-color) !important; color: var(--text-color) !important; }
+        [data-testid="stSidebar"] { background-color: var(--card-bg) !important; border-right: 1px solid var(--border-color) !important; }
+        [data-testid="stHeader"] { background-color: var(--bg-color) !important; }
+        
+        /* Text Overrides */
+        h1, h2, h3, h4, h5, p, span, div, label { color: var(--text-color) !important; }
+        
+        /* Buttons & Cards */
+        div.stButton > button[kind="primary"] { background-color: var(--primary-color) !important; color: white !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); }
+        div.stButton > button[kind="primary"]:hover { background-color: var(--hover-color) !important; }
+        div.stButton > button[kind="secondary"] { background-color: transparent !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
+        
+        [data-testid="stExpander"] { background-color: var(--card-bg) !important; border-radius: 10px !important; border: 1px solid var(--border-color) !important; }
+        
+        /* Input Overrides */
+        .stTextInput input, .stTextArea textarea, .stChatInputContainer { background-color: #0f172a !important; color: white !important; border: 1px solid var(--border-color) !important; }
+        
+        [data-testid="stMetricValue"] { color: var(--primary-color) !important; font-weight: 800 !important; }
+        [data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+    </style>
+    """
+    
+    if is_dark:
+        st.markdown(common_css + dark_css, unsafe_allow_html=True)
+    else:
+        st.markdown(common_css + light_css, unsafe_allow_html=True)
+
 # ==========================================
 # THE MASTER ROUTER
 # ==========================================
 if not st.session_state.logged_in:
+    # Render default light CSS for the login page
+    setup_custom_styling(is_dark=False)
+    
     st.markdown("""
         <style>
             [data-testid="stSidebar"] { display: none; }
@@ -164,7 +195,20 @@ if not st.session_state.logged_in:
 
 else:
     # THE USER IS SECURELY LOGGED IN - DRAW THE APP
-    setup_custom_styling()
+    
+    # Grab the user's settings so we know if they want Dark Mode!
+    if "user_prefs" not in st.session_state:
+        try:
+            res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).execute()
+            st.session_state.user_prefs = res.data[0] if res.data else {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)", "dark_mode": False}
+        except:
+            st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)", "dark_mode": False}
+
+    # Extract current dark mode status from DB/Session
+    is_dark_mode = st.session_state.user_prefs.get("dark_mode", False)
+    
+    # Fire the theme engine!
+    setup_custom_styling(is_dark=is_dark_mode)
     
     with st.sidebar:
         col_logo, col_text = st.columns([0.2, 0.8])
@@ -175,14 +219,11 @@ else:
         st.caption(f"Role: {st.session_state.get('user_role', 'Unknown').upper()}")
         st.divider()
 
-        if "user_prefs" not in st.session_state:
-            try:
-                res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).execute()
-                st.session_state.user_prefs = res.data[0] if res.data else {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
-            except:
-                st.session_state.user_prefs = {"currency": "USD ($)", "rate_standard": "US Agency ($150/hr)", "ai_model": "Gemini 1.5 Flash (Fast)"}
-
         st.markdown("#### Global Settings")
+        
+        # --- THE DARK MODE TOGGLE ---
+        new_dark = st.toggle("🌙 Night Mode", value=is_dark_mode)
+
         curr_opts = ["USD ($)", "INR (₹)"]
         rate_opts = ["US Agency ($150/hr)", "India Agency ($40/hr)", "Freelancer ($20/hr)"]
         model_opts = ["Gemini 1.5 Flash (Fast)", "Gemini 1.5 Pro (High Reasoning)"]
@@ -196,11 +237,17 @@ else:
         new_model = st.radio("AI Engine:", model_opts, index=model_idx)
 
         if st.button("Save Settings", use_container_width=True):
-            new_prefs = {"currency": new_curr, "rate_standard": new_rate, "ai_model": new_model}
+            new_prefs = {
+                "currency": new_curr, 
+                "rate_standard": new_rate, 
+                "ai_model": new_model,
+                "dark_mode": new_dark # Save the theme state to DB!
+            }
             try:
                 supabase.table("profiles").update(new_prefs).eq("id", st.session_state.user.id).execute()
                 st.session_state.user_prefs.update(new_prefs)
                 st.success("Global Settings Saved!")
+                st.rerun() # Instantly repaints the screen with the new theme!
             except: pass
 
         st.divider()
