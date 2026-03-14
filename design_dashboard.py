@@ -322,7 +322,7 @@ def render_design_dashboard(supabase):
             st.markdown(components_html, unsafe_allow_html=True)
 
         with col2:
-            st.markdown("#### 📱 Key Screens & Layouts")
+            st.markdown("#### Key Screens & Layouts")
             for screen in data.get("key_screens", []):
                 with st.container(border=True):
                     st.markdown(f"**{screen.get('screen_name', 'Screen')}**")
