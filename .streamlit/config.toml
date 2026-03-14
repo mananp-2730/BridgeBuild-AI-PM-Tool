@@ -1,1 +1,21 @@
+[theme]
+# Forces the app into Light Mode permanently so text never goes invisible!
+base = "light"
 
+# BridgeBuild/Duke Blue
+primaryColor = "#012169"
+
+# Soft premium gray background
+backgroundColor = "#F4F6F8"
+
+# Crisp white sidebar
+secondaryBackgroundColor = "#FFFFFF"
+
+# Dark charcoal text
+textColor = "#1E293B"
+
+font = "sans serif"
+
+[client]
+# Hides ugly red error tracebacks from clients
+showErrorDetails = false
