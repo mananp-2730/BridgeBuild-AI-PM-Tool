@@ -58,7 +58,7 @@ def setup_custom_styling():
     """Supercharged Global CSS styles for the BridgeBuild Enterprise OS."""
     st.markdown("""
     <style>
-        /* 1. WHITE-LABELING: Hide default Streamlit branding */
+        /* 1. WHITE-LABELING */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
@@ -67,15 +67,10 @@ def setup_custom_styling():
         :root { 
             --primary-color: #012169; 
             --hover-color: #001547;
-            --background-soft: #F4F6F8;
         }
 
         /* 3. PREMIUM BUTTON ANIMATIONS */
-        /* Standard Secondary Buttons */
         div.stButton > button {
-            border: 2px solid #e2e8f0;
-            background-color: white;
-            color: #334155;
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -86,7 +81,6 @@ def setup_custom_styling():
             box-shadow: 0 4px 6px rgba(1, 33, 105, 0.1);
         }
 
-        /* Primary Action Buttons (Solid Duke Blue) */
         div.stButton > button[kind="primary"] {
             background-color: var(--primary-color) !important;
             color: white !important;
@@ -100,12 +94,11 @@ def setup_custom_styling():
         div.stButton > button[kind="primary"]:hover {
             background-color: var(--hover-color) !important;
             box-shadow: 0 6px 12px rgba(1, 33, 105, 0.3);
-            transform: translateY(-2px); /* Lifts the button up slightly! */
+            transform: translateY(-2px);
         }
 
-        /* 4. SAAS CARD STYLING (Expanders & Containers) */
+        /* 4. SAAS CARD STYLING */
         [data-testid="stExpander"] {
-            background-color: white;
             border-radius: 10px !important;
             border: 1px solid #e2e8f0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
@@ -113,13 +106,7 @@ def setup_custom_styling():
             overflow: hidden;
         }
         
-        /* 5. SIDEBAR POLISH */
-        [data-testid="stSidebar"] {
-            border-right: 1px solid #e2e8f0;
-            background-color: white;
-        }
-        
-        /* Clean up metric typography */
+        /* 5. TYPOGRAPHY POLISH */
         [data-testid="stMetricValue"] {
             color: var(--primary-color) !important;
             font-weight: 800 !important;
