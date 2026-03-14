@@ -55,22 +55,78 @@ if not st.session_state.logged_in and "session" in st.query_params:
     st.session_state.logged_in = True
 
 def setup_custom_styling():
+    """Supercharged Global CSS styles for the BridgeBuild Enterprise OS."""
     st.markdown("""
     <style>
-        :root { --primary-color: #012169; }
-        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child { background-color: #012169 !important; border-color: #012169 !important; }
-        div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child > div { background-color: white !important; }
-        div[data-baseweb="slider"] div[role="slider"] { background-color: #012169 !important; box-shadow: none !important; }
-        div[data-baseweb="slider"] div[data-testid="stTickBar"] > div { background-color: #012169 !important; }
-        div[data-testid="stMarkdownContainer"] p code { color: #012169 !important; }
-        div[data-baseweb="checkbox"] div[aria-checked="true"] { background-color: #012169 !important; border-color: #012169 !important; }
-        [data-testid="stSidebarUserContent"] { padding-top: 0rem !important; margin-top: -50px !important; }
-        div.stButton > button:first-child { background-color: #012169; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; padding: 12px 24px; }
-        [data-testid="stMetricValue"], [data-testid="stMetricValue"] > div { color: var(--text-color) !important; }
-        div.stButton > button:first-child:hover { background-color: #001547; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        /* 1. WHITE-LABELING: Hide default Streamlit branding */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+
+        /* 2. DUKE BLUE THEME VARIABLES */
+        :root { 
+            --primary-color: #012169; 
+            --hover-color: #001547;
+            --background-soft: #F4F6F8;
+        }
+
+        /* 3. PREMIUM BUTTON ANIMATIONS */
+        /* Standard Secondary Buttons */
+        div.stButton > button {
+            border: 2px solid #e2e8f0;
+            background-color: white;
+            color: #334155;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        div.stButton > button:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 4px 6px rgba(1, 33, 105, 0.1);
+        }
+
+        /* Primary Action Buttons (Solid Duke Blue) */
+        div.stButton > button[kind="primary"] {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 4px 6px rgba(1, 33, 105, 0.2);
+            transition: all 0.3s ease;
+        }
+        div.stButton > button[kind="primary"]:hover {
+            background-color: var(--hover-color) !important;
+            box-shadow: 0 6px 12px rgba(1, 33, 105, 0.3);
+            transform: translateY(-2px); /* Lifts the button up slightly! */
+        }
+
+        /* 4. SAAS CARD STYLING (Expanders & Containers) */
+        [data-testid="stExpander"] {
+            background-color: white;
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        
+        /* 5. SIDEBAR POLISH */
+        [data-testid="stSidebar"] {
+            border-right: 1px solid #e2e8f0;
+            background-color: white;
+        }
+        
+        /* Clean up metric typography */
+        [data-testid="stMetricValue"] {
+            color: var(--primary-color) !important;
+            font-weight: 800 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
-
+    
 # ==========================================
 # THE MASTER ROUTER
 # ==========================================
