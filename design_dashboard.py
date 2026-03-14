@@ -339,7 +339,7 @@ def render_design_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Design Specs")
+            st.markdown("#### Export Design Specs")
             st.download_button(
                 "Download Design PDF", 
                 data=generate_local_design_pdf(data), 
@@ -349,7 +349,7 @@ def render_design_dashboard(supabase):
             )
             
         with col_action2:
-            st.markdown("#### ✉️ Share with Design Team")
+            st.markdown("#### Share with Design Team")
             
             design_body = f"Hello Design Team,\n\nPlease review the UX/UI Architecture for our next project.\n\n"
             design_body += f"-> PROJECT VISION:\n{data.get('project_vision', 'N/A')}\n\n"
