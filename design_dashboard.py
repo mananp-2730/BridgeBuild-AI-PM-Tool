@@ -73,6 +73,7 @@ def generate_local_design_pdf(ticket_data):
     theme = ticket_data.get("design_theme", {})
     y = _draw_wrapped_text(c, f"Target Audience: {ticket_data.get('target_audience', 'N/A')}", 40, y, 500, "Helvetica-Bold", 11)
     y = _draw_wrapped_text(c, f"The Vibe: {theme.get('vibe', 'N/A')}", 40, y, 500, "Helvetica-Bold", 11)
+    y = _draw_wrapped_text(c, f"Typography: {theme.get('typography_pairing', 'N/A')}", 40, y, 500, "Helvetica-Bold", 11)
     y = _draw_wrapped_text(c, f"Primary Color Hex: {theme.get('primary_color_suggestion', 'N/A')}", 40, y, 500, "Helvetica-Bold", 11)
     y -= 20
 
@@ -285,6 +286,7 @@ def render_design_dashboard(supabase):
         # --- THEME & COLOR SWATCH CARD ---
         theme = data.get("design_theme", {})
         vibe = theme.get("vibe", "Modern & Clean")
+        typography = theme.get("typography_pairing", "Standard sans-serif")
         raw_color_text = theme.get("primary_color_suggestion", "#012169")
         match = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', raw_color_text)
         safe_hex = match.group(0) if match else "#012169"
@@ -294,6 +296,8 @@ def render_design_dashboard(supabase):
             with col_vibe:
                 st.markdown("#### The Vibe")
                 st.write(f"*{vibe}*")
+                st.markdown("#### Typography")
+                st.write(f"*{typography}*")
             with col_color:
                 st.markdown("#### Primary Color")
                 # Massive dynamic color swatch
@@ -355,6 +359,7 @@ def render_design_dashboard(supabase):
             design_body += f"-> PROJECT VISION:\n{data.get('project_vision', 'N/A')}\n\n"
             design_body += f"-> TARGET AUDIENCE: {data.get('target_audience', 'N/A')}\n"
             design_body += f"-> THE VIBE: {vibe}\n"
+            design_body += f"-> TYPOGRAPHY: {typography}\n"
             design_body += f"-> PRIMARY HEX: {raw_color_text}\n\n"
             
             design_body += f"-> KEY SCREENS TO DESIGN:\n"
@@ -424,10 +429,12 @@ def render_design_dashboard(supabase):
                     
                     # History Email Payload
                     hist_vibe = theme.get("vibe", "Modern & Clean")
+                    hist_typography = theme.get("typography_pairing", "Standard sans-serif")
                     hist_hex = theme.get("primary_color_suggestion", "#012169")
                     hist_body = f"Hello Design Team,\n\nPlease review the UX/UI Architecture for a past project concept.\n\n"
                     hist_body += f"-> PROJECT VISION:\n{past_data.get('project_vision', 'N/A')}\n\n"
                     hist_body += f"-> THE VIBE: {hist_vibe}\n"
+                    hist_body += f"-> TYPOGRAPHY: {hist_typography}\n"
                     hist_body += f"-> PRIMARY HEX: {hist_hex}\n\n"
                     hist_body += f"-> KEY SCREENS TO DESIGN:\n"
                     for screen in past_data.get("key_screens", []): hist_body += f"  - {screen.get('screen_name')}\n"
@@ -437,7 +444,7 @@ def render_design_dashboard(supabase):
                     # Add the color swatch to history too!
                     match_hist = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', hist_hex)
                     safe_hist_hex = match_hist.group(0) if match_hist else "#012169"
-                    st.markdown(f"**Vibe:** {hist_vibe} | **Color:** <span style='background-color: {safe_hist_hex}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'>{hist_hex}</span>", unsafe_allow_html=True)
+                    st.markdown(f"**Vibe:** {hist_vibe} | **Font:** {hist_typography} | **Color:** <span style='background-color: {safe_hist_hex}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'>{hist_hex}</span>", unsafe_allow_html=True)
                     
                     # Render localized PDF and Delete inside History
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
@@ -466,8 +473,8 @@ def render_design_dashboard(supabase):
                     
                     # --- NEW: HISTORY HANDOFF BUTTONS ---
                     if current_status in ['Draft', 'Accepted by Design']:
-                        st.markdown("##### 🚀 Route Ticket")
-                        if st.button("⚙️ Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
+                        st.markdown("##### Route Ticket")
+                        if st.button("Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", item['id']).execute()
                             st.rerun()
 
