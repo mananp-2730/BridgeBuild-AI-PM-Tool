@@ -81,6 +81,20 @@ def generate_local_eng_pdf(ticket_data):
     y = _draw_wrapped_text(c, f"Database: {tech_stack.get('database', 'N/A')}", 40, y, 500, "Helvetica", 11)
     y = _draw_wrapped_text(c, f"Infrastructure: {tech_stack.get('infrastructure', 'N/A')}", 40, y, 500, "Helvetica", 11)
     y -= 15
+    
+    # --- NEW: Integrations in PDF ---
+    integrations = ticket_data.get("third_party_integrations", [])
+    if integrations:
+        y = _check_page_break(c, y, height)
+        c.setFillColorRGB(0.2, 0.2, 0.2)
+        c.drawString(40, y, _safe_text("3rd Party Integrations"))
+        y -= 20
+        c.setFillColor(colors.black)
+        for integration in integrations:
+            y = _check_page_break(c, y, height)
+            c.drawString(50, y, "🔌")
+            y = _draw_wrapped_text(c, integration, 65, y, 460, "Helvetica", 10)
+        y -= 5
 
     y = _check_page_break(c, y, height)
     c.setFillColorRGB(0.2, 0.2, 0.2)
@@ -154,7 +168,7 @@ def render_engineering_dashboard(supabase):
         st.session_state.active_eng_ticket_id = None
 
     # ==========================================
-    # NEW: INCOMING QUEUE (INBOX)
+    # INCOMING QUEUE (INBOX)
     # ==========================================
     try:
         inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting Tech Architecture").eq("target_department", "Engineering").order("created_at", desc=True).execute()
@@ -163,7 +177,7 @@ def render_engineering_dashboard(supabase):
         if inbox_tickets:
             st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) waiting for Technical Architecture!")
             for item in inbox_tickets:
-                with st.expander(f"⚙️ Incoming Ticket: {item['summary'][:60]}..."):
+                with st.expander(f"Incoming Ticket: {item['summary'][:60]}..."):
                     try:
                         prev_data = json.loads(item['full_data'])
                     except:
@@ -172,19 +186,15 @@ def render_engineering_dashboard(supabase):
                     st.write(f"**Budget Info:** {item['cost']} | **Complexity:** {item['complexity']}")
                     
                     if st.button("Accept & Load into Terminal", key=f"accept_{item['id']}", type="primary"):
-                        # 1. Update the original ticket so it leaves the queue
                         supabase.table("tickets").update({"status": "Accepted by Engineering"}).eq("id", item['id']).execute()
                         
-                        # 2. Inject the highly structured data into the Engineer's text area!
                         injection_text = f"HANDOFF CONTEXT:\nProject Summary: {prev_data.get('summary', prev_data.get('project_vision', item['summary']))}\n"
                         
-                        # If it came from PM:
                         if "mvp_user_stories" in prev_data:
                             injection_text += "User Stories to Build:\n"
                             for story in prev_data.get("mvp_user_stories", []):
                                 injection_text += f"- {story.get('story')}\n"
                                 
-                        # If it came from Design:
                         if "key_screens" in prev_data:
                             injection_text += "Design Screens to Support:\n"
                             for screen in prev_data.get("key_screens", []):
@@ -282,7 +292,9 @@ def render_engineering_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
-    # --- 1. RENDER THE ACTIVE ENGINEERING UI ---
+    # ==========================================
+    # RENDER THE ACTIVE ENGINEERING UI
+    # ==========================================
     if st.session_state.active_eng_ticket:
         data = st.session_state.active_eng_ticket
         
@@ -297,15 +309,25 @@ def render_engineering_dashboard(supabase):
         col_tech1, col_tech2 = st.columns(2)
         tech_stack = data.get("tech_stack_recommendation", {})
         with col_tech1:
-            st.markdown("**Frontend:**")
+            st.markdown("#### Frontend:")
             st.code(tech_stack.get("frontend", "N/A"), language="bash")
-            st.markdown("**Backend:**")
+            st.markdown("#### Backend:")
             st.code(tech_stack.get("backend", "N/A"), language="bash")
         with col_tech2:
-            st.markdown("**Database:**")
+            st.markdown("#### Database:")
             st.code(tech_stack.get("database", "N/A"), language="bash")
-            st.markdown("**Infrastructure:**")
+            st.markdown("#### Infrastructure:")
             st.code(tech_stack.get("infrastructure", "N/A"), language="bash")
+            
+        # --- NEW: INTEGRATIONS UI ---
+        integrations = data.get("third_party_integrations", [])
+        if integrations:
+            st.write("")
+            st.markdown("#### Required Third-Party Integrations")
+            integrations_html = ""
+            for integration in integrations:
+                integrations_html += f"<span style='background-color: #334155; color: white; padding: 6px 12px; border-radius: 4px; margin-right: 8px; margin-bottom: 8px; display: inline-block; font-size: 13px; font-weight: bold;'>{integration}</span>"
+            st.markdown(integrations_html, unsafe_allow_html=True)
         
         st.divider()
         
@@ -343,7 +365,7 @@ def render_engineering_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Technical Specs")
+            st.markdown("#### Export Technical Specs")
             st.download_button(
                 "Download Engineering PDF", 
                 data=generate_local_eng_pdf(data), 
@@ -353,7 +375,7 @@ def render_engineering_dashboard(supabase):
             )
             
         with col_action2:
-            st.markdown("#### ✉️ Share with Dev Team")
+            st.markdown("#### Share with Dev Team")
             
             eng_body = f"Hello Dev Team,\n\nPlease review the generated System Architecture for our upcoming build.\n\n"
             eng_body += f"-> ARCHITECTURE OVERVIEW:\n{data.get('system_architecture', 'N/A')}\n\n"
@@ -363,6 +385,11 @@ def render_engineering_dashboard(supabase):
             eng_body += f"  - Backend: {tech_stack.get('backend', 'N/A')}\n"
             eng_body += f"  - Database: {tech_stack.get('database', 'N/A')}\n"
             eng_body += f"  - Infrastructure: {tech_stack.get('infrastructure', 'N/A')}\n\n"
+            
+            if integrations:
+                eng_body += f"-> REQUIRED INTEGRATIONS:\n"
+                for i in integrations: eng_body += f"  - {i}\n"
+                eng_body += "\n"
             
             eng_body += f"-> REQUIRED API ENDPOINTS:\n"
             for api in data.get("api_endpoints", []):
@@ -380,17 +407,17 @@ def render_engineering_dashboard(supabase):
                 """, unsafe_allow_html=True)
 
         # ==========================================
-        # NEW: THE ACTIVE TICKET FINALIZE PROTOCOL
+        # THE ACTIVE TICKET FINALIZE PROTOCOL
         # ==========================================
         st.divider()
         st.markdown("#### Finalize Project")
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
 
         if st.session_state.active_eng_ticket_id:
-            if st.button("✅ Mark as Ready for Dev", type="primary", use_container_width=True):
+            if st.button("Mark as Ready for Dev", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", st.session_state.active_eng_ticket_id).execute()
-                    st.success("Boom! Architecture finalized and ready for the build! ✅")
+                    st.success("Architecture finalized and ready for the build!")
                 except Exception as e:
                     st.error(f"Failed to finalize ticket: {str(e)}")
 
@@ -418,7 +445,7 @@ def render_engineering_dashboard(supabase):
                     if current_status in ['Draft', 'Accepted by Engineering']:
                         st.caption(f"Status: **{current_status} (Not Finalized)**")
                     else:
-                        st.caption(f"Status: **{current_status}** 🚀")
+                        st.caption(f"Status: **{current_status}**")
 
                     past_data = json.loads(item['full_data'])
                     
@@ -431,6 +458,13 @@ def render_engineering_dashboard(supabase):
                     hist_body += f"  - Backend: {hist_tech_stack.get('backend', 'N/A')}\n"
                     hist_body += f"  - Database: {hist_tech_stack.get('database', 'N/A')}\n"
                     hist_body += f"  - Infrastructure: {hist_tech_stack.get('infrastructure', 'N/A')}\n\n"
+                    
+                    hist_ints = past_data.get("third_party_integrations", [])
+                    if hist_ints:
+                        hist_body += f"-> REQUIRED INTEGRATIONS:\n"
+                        for i in hist_ints: hist_body += f"  - {i}\n"
+                        hist_body += "\n"
+
                     hist_body += f"-> REQUIRED API ENDPOINTS:\n"
                     for api in past_data.get("api_endpoints", []): hist_body += f"  - [{api.get('method')}] {api.get('route')}\n"
                     hist_body += "\nSee the attached PDF for the full DB Schema.\n\nBest,\nBridgeBuild Engineering Hub"
@@ -438,6 +472,10 @@ def render_engineering_dashboard(supabase):
 
                     st.markdown(f"**Pipeline:** {past_data.get('ci_cd_pipeline', 'N/A')}")
                     
+                    # Render Integrations in History
+                    if hist_ints:
+                        st.markdown("**Integrations:** " + ", ".join(hist_ints))
+                        
                     # Render localized PDF and Delete inside History
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
