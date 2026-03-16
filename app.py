@@ -139,12 +139,11 @@ def setup_custom_styling(is_dark=False):
         /* UI FLAW FIX: Placeholder visibility in Dark Mode */
         ::placeholder { color: #64748b !important; opacity: 1 !important; }
         
-        /* THE NUCLEAR OPTION FOR FILE UPLOADER & BROWSE BUTTON */
+        /* THE ULTIMATE NUCLEAR OPTION FOR FILE UPLOADER & BROWSE BUTTON */
         [data-testid="stFileUploader"] > section { background-color: #0f172a !important; border: 1px dashed var(--border-color) !important; }
         [data-testid="stFileUploader"] * { color: var(--text-color) !important; }
-        [data-testid="stFileUploadDropzone"] { background-color: #0f172a !important; }
-        [data-testid="stFileUploadDropzone"] button { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; border-radius: 6px; }
-        [data-testid="stFileUploadDropzone"] button:hover { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+        [data-testid="stFileUploader"] button { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; border-radius: 6px !important; font-weight: 600; }
+        [data-testid="stFileUploader"] button:hover { border-color: var(--primary-color) !important; color: var(--primary-color) !important; background-color: var(--card-bg) !important; }
         
         /* UI FLAW FIX: Selectbox / Dropdown */
         div[data-baseweb="select"] > div { background-color: #0f172a !important; color: white !important; border-color: var(--border-color) !important; }
