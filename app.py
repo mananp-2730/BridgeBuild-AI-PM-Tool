@@ -54,7 +54,7 @@ if not st.session_state.logged_in and "session" in st.query_params:
     st.session_state.logged_in = True
 
 # ==========================================
-# THE DYNAMIC THEME ENGINE 🎨
+# THE DYNAMIC THEME ENGINE 
 # ==========================================
 def setup_custom_styling(is_dark=False):
     """Injects dynamic CSS based on the user's Dark Mode preference."""
@@ -66,7 +66,7 @@ def setup_custom_styling(is_dark=False):
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        div.stButton > button {
+        div.stButton > button, div.stDownloadButton > button {
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -127,10 +127,21 @@ def setup_custom_styling(is_dark=False):
         div.stButton > button[kind="primary"]:hover { background-color: var(--hover-color) !important; }
         div.stButton > button[kind="secondary"] { background-color: transparent !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
         
+        /* UI FLAW FIX: Download Buttons */
+        div.stDownloadButton > button { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
+        div.stDownloadButton > button:hover { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+
         [data-testid="stExpander"] { background-color: var(--card-bg) !important; border-radius: 10px !important; border: 1px solid var(--border-color) !important; }
         
-        /* Input Overrides */
+        /* UI FLAW FIX: Input Overrides & File Uploader */
         .stTextInput input, .stTextArea textarea, .stChatInputContainer { background-color: #0f172a !important; color: white !important; border: 1px solid var(--border-color) !important; }
+        
+        [data-testid="stFileUploadDropzone"] { background-color: #0f172a !important; border: 1px dashed var(--border-color) !important; }
+        [data-testid="stFileUploadDropzone"] * { color: var(--text-color) !important; }
+        
+        /* UI FLAW FIX: Selectbox / Dropdown */
+        div[data-baseweb="select"] > div { background-color: #0f172a !important; color: white !important; border-color: var(--border-color) !important; }
+        ul[data-baseweb="menu"] { background-color: #0f172a !important; color: white !important; }
         
         [data-testid="stMetricValue"] { color: var(--primary-color) !important; font-weight: 800 !important; }
         [data-testid="stMetricLabel"] { color: #94a3b8 !important; }
@@ -141,7 +152,7 @@ def setup_custom_styling(is_dark=False):
         st.markdown(common_css + dark_css, unsafe_allow_html=True)
     else:
         st.markdown(common_css + light_css, unsafe_allow_html=True)
-
+        
 # ==========================================
 # THE MASTER ROUTER
 # ==========================================
