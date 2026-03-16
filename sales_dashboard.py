@@ -118,7 +118,7 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
 # SALES DASHBOARD RENDERER
 # ==========================================
 def render_sales_dashboard(supabase):
-    st.title("BridgeBuild AI - Sales Intake")
+    st.title("BridgeBuild AI - Sales Intake 📈")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
 
     uploaded_file = st.file_uploader("Upload Client Audio (.mp3, .wav)", type=["mp3", "wav", "m4a"])
@@ -203,46 +203,75 @@ def render_sales_dashboard(supabase):
                     "complexity": score, 
                     "time": data.get("estimated_timeline", "Unknown"),
                     "full_data": json.dumps(data),
-                    "status": "Draft",               # NEW COLUMNS ADDED HERE!
-                    "target_department": "None"      # NEW COLUMNS ADDED HERE!
+                    "status": "Draft",               
+                    "target_department": "None"      
                 }
-                # CAPTURE THE ID FOR THE HANDOFF BUTTON!
                 db_res = supabase.table("tickets").insert(new_ticket).execute()
                 st.session_state.active_sales_ticket_id = db_res.data[0]['id']
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
+    # ==========================================
+    # RENDER THE ACTIVE SALES UI (EXECUTIVE POLISH)
+    # ==========================================
     if st.session_state.active_sales_ticket:
         data = st.session_state.active_sales_ticket
         
         st.write("")
-        score = data.get("feasibility_score", "Yellow")
-        if "Green" in score: st.success(f"### 🟢 Feasibility: GREEN\n{data.get('feasibility_reason')}")
-        elif "Red" in score: st.error(f"### 🔴 Feasibility: RED\n**Warning:** {data.get('feasibility_reason')}")
-        else: st.warning(f"### 🟡 Feasibility: YELLOW\n{data.get('feasibility_reason')}")
-            
-        st.markdown(f"**Project Summary:** {data.get('project_summary')}")
-        st.divider()
+        st.success("Analysis Ready! Review the Executive Summary below.")
+        
+        # --- EXECUTIVE SUMMARY CARD ---
+        with st.container(border=True):
+            score = data.get("feasibility_score", "Yellow")
+            if "Green" in score: 
+                st.markdown("### 🟢 **Feasibility: GREEN (Highly Feasible)**")
+                st.success(f"**Reason:** {data.get('feasibility_reason')}")
+            elif "Red" in score: 
+                st.markdown("### 🔴 **Feasibility: RED (High Risk)**")
+                st.error(f"**Warning:** {data.get('feasibility_reason')}")
+            else: 
+                st.markdown("### 🟡 **Feasibility: YELLOW (Needs Scoping)**")
+                st.warning(f"**Reason:** {data.get('feasibility_reason')}")
+                
+            st.markdown(f"**Project Summary:** {data.get('project_summary')}")
 
+        st.write("")
+
+        # --- BUDGET & TIMELINE METRICS ---
         raw_cost = data.get("budget_estimate_usd", "0-0")
         low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
         high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
         fmt_low = convert_currency(low_end, currency)
         fmt_high = convert_currency(high_end, currency)
         
-        col1, col2 = st.columns(2)
-        with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
-        with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
+        with st.container(border=True):
+            col1, col2 = st.columns(2)
+            with col1: st.metric("Estimated MVP Timeline ⏳", data.get("estimated_timeline"))
+            with col2: st.metric("Estimated MVP Budget 💰", f"{fmt_low} - {fmt_high}")
             
-        st.divider()
+        st.write("")
+        
+        # --- THE 'ASK' LIST & DEAL BREAKERS ---
         col_q, col_r = st.columns(2)
         with col_q:
-            st.subheader("The 'Ask' List")
-            for q in data.get("client_questions", []): st.info(f"{q}")
+            with st.container(border=True):
+                st.markdown("#### ❓ The 'Ask' List")
+                st.caption("Critical missing info to ask the client:")
+                for q in data.get("client_questions", []):
+                    # Bolds the prefix (e.g., "Question 1:") for better readability
+                    prefix = q.split(":", 1)[0] + ":" if ":" in q else ""
+                    rest = q.split(":", 1)[1] if ":" in q else q
+                    st.info(f"**{prefix}** {rest.strip()}" if prefix else rest)
+                    
         with col_r:
-            st.subheader("Deal Breakers")
-            for r in data.get("deal_breakers", []): st.error(f"{r}")
+            with st.container(border=True):
+                st.markdown("#### 🚨 Deal Breakers")
+                st.caption("Major risks to evaluate before signing:")
+                for r in data.get("deal_breakers", []):
+                    prefix = r.split(":", 1)[0] + ":" if ":" in r else ""
+                    rest = r.split(":", 1)[1] if ":" in r else r
+                    st.error(f"**{prefix}** {rest.strip()}" if prefix else rest)
 
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
@@ -270,21 +299,21 @@ def render_sales_dashboard(supabase):
                 """, unsafe_allow_html=True)
             
         # ==========================================
-        # NEW: THE HANDOFF BUTTON!
+        # THE HANDOFF BUTTON!
         # ==========================================
         st.divider()
         st.markdown("#### Department Handoff")
         st.info("Client approved the quote? Send this locked scope directly to the Product Management team to build the Agile Ticket.")
         
-        # We check if we have the ID to update
         if st.session_state.active_sales_ticket_id:
-            if st.button("Approve Quote & Send to PM Hub", type="primary", use_container_width=True):
+            if st.button("🚀 Approve Quote & Send to PM Hub", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", st.session_state.active_sales_ticket_id).execute()
                     st.success("Successfully routed to the PM Inbox.")
                 except Exception as e:
                     st.error(f"Failed to handoff ticket: {str(e)}")
             
+    # --- SALES HISTORY SECTION (POLISHED) ---
     st.divider()
     st.subheader("Saved Sales Quotes")
     
@@ -352,25 +381,32 @@ def render_sales_dashboard(supabase):
 
                     # --- HISTORY HANDOFF BUTTON ---
                     if current_status == 'Draft':
-                        if st.button("Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
+                        if st.button("🚀 Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", item['id']).execute()
                             st.rerun()
                             
                     st.divider()
                     
-                    col_m1, col_m2, col_m3 = st.columns(3)
-                    with col_m1: st.metric("Feasibility", score)
-                    with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
-                    with col_m3: st.metric("Timeline", item.get('time', 'N/A'))
+                    with st.container(border=True):
+                        col_m1, col_m2, col_m3 = st.columns(3)
+                        with col_m1: st.metric("Feasibility", score)
+                        with col_m2: st.metric("Budget", f"{hist_fmt_low} - {hist_fmt_high}") 
+                        with col_m3: st.metric("Timeline", item.get('time', 'N/A'))
                     
-                    st.divider()
+                    st.write("")
                     col_q, col_r = st.columns(2)
                     with col_q:
-                        st.markdown("##### The 'Ask' List")
-                        for q in past_data.get("client_questions", []): st.info(f"{q}")
+                        st.markdown("##### ❓ The 'Ask' List")
+                        for q in past_data.get("client_questions", []): 
+                            prefix = q.split(":", 1)[0] + ":" if ":" in q else ""
+                            rest = q.split(":", 1)[1] if ":" in q else q
+                            st.info(f"**{prefix}** {rest.strip()}" if prefix else rest)
                     with col_r:
-                        st.markdown("##### Deal Breakers")
-                        for r in past_data.get("deal_breakers", []): st.error(f"{r}")
+                        st.markdown("##### 🚨 Deal Breakers")
+                        for r in past_data.get("deal_breakers", []): 
+                            prefix = r.split(":", 1)[0] + ":" if ":" in r else ""
+                            rest = r.split(":", 1)[1] if ":" in r else r
+                            st.error(f"**{prefix}** {rest.strip()}" if prefix else rest)
         else:
             st.info("No saved quotes yet. Run an analysis above!")
             
