@@ -118,7 +118,7 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
 # SALES DASHBOARD RENDERER
 # ==========================================
 def render_sales_dashboard(supabase):
-    st.title("BridgeBuild AI - Sales Intake 📈")
+    st.title("BridgeBuild AI - Sales Intake")
     st.markdown("### Quickly validate requirements and get estimated timelines.")
 
     uploaded_file = st.file_uploader("Upload Client Audio (.mp3, .wav)", type=["mp3", "wav", "m4a"])
@@ -247,8 +247,8 @@ def render_sales_dashboard(supabase):
         
         with st.container(border=True):
             col1, col2 = st.columns(2)
-            with col1: st.metric("Estimated MVP Timeline ⏳", data.get("estimated_timeline"))
-            with col2: st.metric("Estimated MVP Budget 💰", f"{fmt_low} - {fmt_high}")
+            with col1: st.metric("Estimated MVP Timeline", data.get("estimated_timeline"))
+            with col2: st.metric("Estimated MVP Budget", f"{fmt_low} - {fmt_high}")
             
         st.write("")
         
@@ -256,7 +256,7 @@ def render_sales_dashboard(supabase):
         col_q, col_r = st.columns(2)
         with col_q:
             with st.container(border=True):
-                st.markdown("#### ❓ The 'Ask' List")
+                st.markdown("#### The 'Ask' List")
                 st.caption("Critical missing info to ask the client:")
                 for q in data.get("client_questions", []):
                     # Bolds the prefix (e.g., "Question 1:") for better readability
@@ -266,7 +266,7 @@ def render_sales_dashboard(supabase):
                     
         with col_r:
             with st.container(border=True):
-                st.markdown("#### 🚨 Deal Breakers")
+                st.markdown("#### Deal Breakers")
                 st.caption("Major risks to evaluate before signing:")
                 for r in data.get("deal_breakers", []):
                     prefix = r.split(":", 1)[0] + ":" if ":" in r else ""
@@ -277,11 +277,11 @@ def render_sales_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Sales Report")
+            st.markdown("#### Export Sales Report")
             st.download_button("Download Sales PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_sales_report.pdf", mime="application/pdf", use_container_width=True)
             
         with col_action2:
-            st.markdown("#### ✉️ Email Sales Team")
+            st.markdown("#### Email Sales Team")
             ticket_name = data.get('project_summary', 'New Project Request')[:50] + "..."
             sales_body = f"Hello Sales Team,\n\nPlease review the initial Sales & Feasibility scoping for the upcoming client request.\n\n-> FEASIBILITY SCORE: {score}\n-> EST. TIMELINE: {data.get('estimated_timeline', 'N/A')}\n-> EST. BUDGET: {fmt_low} - {fmt_high}\n\n-> PROJECT SUMMARY:\n{data.get('project_summary', 'N/A')}\n\n-> CRITICAL 'ASK' LIST (Questions for the Client):\n"
             for q in data.get("client_questions", []): sales_body += f"- {q}\n"
@@ -306,7 +306,7 @@ def render_sales_dashboard(supabase):
         st.info("Client approved the quote? Send this locked scope directly to the Product Management team to build the Agile Ticket.")
         
         if st.session_state.active_sales_ticket_id:
-            if st.button("🚀 Approve Quote & Send to PM Hub", type="primary", use_container_width=True):
+            if st.button("Approve Quote & Send to PM Hub", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", st.session_state.active_sales_ticket_id).execute()
                     st.success("Successfully routed to the PM Inbox.")
@@ -381,7 +381,7 @@ def render_sales_dashboard(supabase):
 
                     # --- HISTORY HANDOFF BUTTON ---
                     if current_status == 'Draft':
-                        if st.button("🚀 Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
+                        if st.button("Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", item['id']).execute()
                             st.rerun()
                             
@@ -396,13 +396,13 @@ def render_sales_dashboard(supabase):
                     st.write("")
                     col_q, col_r = st.columns(2)
                     with col_q:
-                        st.markdown("##### ❓ The 'Ask' List")
+                        st.markdown("##### The 'Ask' List")
                         for q in past_data.get("client_questions", []): 
                             prefix = q.split(":", 1)[0] + ":" if ":" in q else ""
                             rest = q.split(":", 1)[1] if ":" in q else q
                             st.info(f"**{prefix}** {rest.strip()}" if prefix else rest)
                     with col_r:
-                        st.markdown("##### 🚨 Deal Breakers")
+                        st.markdown("##### Deal Breakers")
                         for r in past_data.get("deal_breakers", []): 
                             prefix = r.split(":", 1)[0] + ":" if ":" in r else ""
                             rest = r.split(":", 1)[1] if ":" in r else r
