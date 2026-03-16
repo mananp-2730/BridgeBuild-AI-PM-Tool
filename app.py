@@ -54,7 +54,7 @@ if not st.session_state.logged_in and "session" in st.query_params:
     st.session_state.logged_in = True
 
 # ==========================================
-# THE DYNAMIC THEME ENGINE 
+# THE DYNAMIC THEME ENGINE 🎨
 # ==========================================
 def setup_custom_styling(is_dark=False):
     """Injects dynamic CSS based on the user's Dark Mode preference."""
@@ -136,8 +136,10 @@ def setup_custom_styling(is_dark=False):
         /* UI FLAW FIX: Input Overrides & File Uploader */
         .stTextInput input, .stTextArea textarea, .stChatInputContainer { background-color: #0f172a !important; color: white !important; border: 1px solid var(--border-color) !important; }
         
-        [data-testid="stFileUploadDropzone"] { background-color: #0f172a !important; border: 1px dashed var(--border-color) !important; }
-        [data-testid="stFileUploadDropzone"] * { color: var(--text-color) !important; }
+        /* THE NUCLEAR OPTION FOR FILE UPLOADER */
+        [data-testid="stFileUploader"] > section { background-color: #0f172a !important; border: 1px dashed var(--border-color) !important; }
+        [data-testid="stFileUploader"] * { color: var(--text-color) !important; }
+        [data-testid="stFileUploadDropzone"] { background-color: #0f172a !important; }
         
         /* UI FLAW FIX: Selectbox / Dropdown */
         div[data-baseweb="select"] > div { background-color: #0f172a !important; color: white !important; border-color: var(--border-color) !important; }
