@@ -66,7 +66,7 @@ def setup_custom_styling(is_dark=False):
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        div.stButton > button, div.stDownloadButton > button, [data-testid="stPopover"] > button {
+        div.stButton > button, div.stDownloadButton > button, [data-testid="stPopover"] button {
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -128,8 +128,16 @@ def setup_custom_styling(is_dark=False):
         div.stButton > button[kind="secondary"] { background-color: transparent !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
         
         /* UI FLAW FIX: Download & Popover (Delete) Buttons */
-        div.stDownloadButton > button, [data-testid="stPopover"] > button { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
-        div.stDownloadButton > button:hover, [data-testid="stPopover"] > button:hover { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+        div.stDownloadButton > button, [data-testid="stPopover"] button { 
+            background-color: var(--card-bg) !important; 
+            color: var(--text-color) !important; 
+            border: 1px solid var(--border-color) !important; 
+        }
+        div.stDownloadButton > button:hover, [data-testid="stPopover"] button:hover { 
+            border-color: var(--primary-color) !important; 
+            color: var(--primary-color) !important; 
+            background-color: var(--bg-color) !important; 
+        }
 
         /* UI FLAW FIX: Expander Headers when clicked open */
         [data-testid="stExpander"] { background-color: var(--card-bg) !important; border-radius: 10px !important; border: 1px solid var(--border-color) !important; }
