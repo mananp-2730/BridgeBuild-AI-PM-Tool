@@ -66,7 +66,7 @@ def setup_custom_styling(is_dark=False):
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        div.stButton > button, div.stDownloadButton > button, [data-testid="stPopover"] > button {
+        div.stButton > button, div.stDownloadButton > button {
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -127,23 +127,50 @@ def setup_custom_styling(is_dark=False):
         div.stButton > button[kind="primary"]:hover { background-color: var(--hover-color) !important; }
         div.stButton > button[kind="secondary"] { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
         
-        /* UI FLAW FIX: Download & Popover (Delete) Buttons */
-        div.stDownloadButton > button, [data-testid="stPopover"] > button { 
-            background-color: var(--card-bg) !important; 
-            color: var(--text-color) !important; 
-            border: 1px solid var(--border-color) !important; 
+        /* UI FLAW FIX: Download Buttons */
+        div.stDownloadButton > button { background-color: var(--card-bg) !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; }
+        div.stDownloadButton > button:hover { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+
+        /* ========================================= */
+        /* THE BOSS FIGHT: POPOVERS & ALERTS         */
+        /* ========================================= */
+        
+        /* 1. The Trigger Button (The main Delete button) */
+        div[data-testid="stPopover"] > div > button,
+        div[data-testid="stPopoverTarget"] > button {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
         }
-        div.stDownloadButton > button:hover, [data-testid="stPopover"] > button:hover { 
-            border-color: var(--primary-color) !important; 
-            color: var(--primary-color) !important; 
-            background-color: var(--bg-color) !important; 
+        div[data-testid="stPopover"] > div > button:hover,
+        div[data-testid="stPopoverTarget"] > button:hover {
+            border-color: var(--primary-color) !important;
+            color: var(--primary-color) !important;
+            background-color: var(--bg-color) !important;
+        }
+        
+        /* 2. The Popover Menu Body (The floating container) */
+        div[data-testid="stPopoverBody"] {
+            background-color: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px !important;
+        }
+        
+        /* 3. Strip the hidden white background from inner blocks */
+        div[data-testid="stPopoverBody"] > div {
+            background-color: transparent !important;
         }
 
-        /* UI FLAW FIX: Inside the Popover Body & Alerts */
-        [data-testid="stPopoverBody"] { background-color: var(--card-bg) !important; border: 1px solid var(--border-color) !important; border-radius: 10px !important; }
-        [data-testid="stPopoverBody"] > div { background-color: transparent !important; }
-        [data-testid="stAlert"] { background-color: rgba(30, 41, 59, 0.8) !important; border: 1px solid var(--border-color) !important; }
-        [data-testid="stAlert"] * { color: var(--text-color) !important; }
+        /* 4. Fix Alerts (The "Are you sure?" yellow box) */
+        [data-testid="stAlert"] {
+            background-color: rgba(30, 41, 59, 0.8) !important; /* Sleek, stealthy dark slate */
+            border: 1px solid var(--border-color) !important;
+        }
+        [data-testid="stAlert"] * {
+            color: var(--text-color) !important;
+        }
+        /* ========================================= */
 
         /* UI FLAW FIX: Expander Headers */
         [data-testid="stExpander"] { background-color: var(--card-bg) !important; border-radius: 10px !important; border: 1px solid var(--border-color) !important; }
@@ -151,15 +178,8 @@ def setup_custom_styling(is_dark=False):
         [data-testid="stExpander"] summary:hover { background-color: var(--bg-color) !important; }
         
         /* UI FLAW FIX: Inputs & Textareas */
-        .stTextInput input, .stTextArea textarea { background-color: #0f172a !important; color: white !important; border: 1px solid var(--border-color) !important; }
+        .stTextInput input, .stTextArea textarea, .stChatInputContainer { background-color: #0f172a !important; color: white !important; border: 1px solid var(--border-color) !important; }
         ::placeholder { color: #64748b !important; opacity: 1 !important; }
-        
-        /* THE ULTIMATE NUCLEAR OPTION FOR CHAT INPUT */
-        [data-testid="stChatInput"] { background-color: transparent !important; }
-        [data-testid="stChatInput"] > div { background-color: #0f172a !important; border: 1px solid var(--border-color) !important; border-radius: 8px; }
-        [data-testid="stChatInput"] textarea { color: white !important; background-color: transparent !important; }
-        [data-testid="stChatInput"] button { background-color: transparent !important; border: none !important; }
-        [data-testid="stChatInput"] svg { fill: var(--primary-color) !important; }
         
         /* File Uploader & Browse Button */
         [data-testid="stFileUploader"] > section { background-color: #0f172a !important; border: 1px dashed var(--border-color) !important; }
