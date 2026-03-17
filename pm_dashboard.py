@@ -392,15 +392,15 @@ def render_pm_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export Reports")
+            st.markdown("#### Export Reports")
             st.download_button("Download Detailed Ticket (Engineering PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=True), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
             st.download_button("Download Brief Summary (Sales PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=False), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
             
             # --- NEW: CSV EXPORT BUTTON ---
-            st.download_button("📥 Download CSV (Jira/Linear Bulk Import)", data=generate_jira_csv(data), file_name="jira_bulk_import.csv", mime="text/csv", use_container_width=True)
+            st.download_button("Download CSV (Jira/Linear Bulk Import)", data=generate_jira_csv(data), file_name="jira_bulk_import.csv", mime="text/csv", use_container_width=True)
         
         with col_action2:
-            st.markdown("#### ✉️ Share with Stakeholders")
+            st.markdown("#### Share with Stakeholders")
             ticket_name = data.get('ticket_name', data.get('summary', 'New Project'))[:50]
             
             p2_raw_email = data.get("phase_2_budget_usd", "0-0")
@@ -583,7 +583,7 @@ def render_pm_dashboard(supabase):
                         st.download_button("Download PDF", data=generate_local_pm_pdf(past_data, currency, is_detailed=True), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
                         
                         # --- NEW: HISTORY CSV EXPORT BUTTON ---
-                        st.download_button("📥 Download CSV", data=generate_jira_csv(past_data), file_name=f"jira_import_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_{item['id']}", use_container_width=True)
+                        st.download_button("Download CSV", data=generate_jira_csv(past_data), file_name=f"jira_import_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col3:
                         if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
