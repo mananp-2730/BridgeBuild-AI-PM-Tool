@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import io
+import csv
 from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from google import genai
@@ -82,7 +83,7 @@ def generate_local_eng_pdf(ticket_data):
     y = _draw_wrapped_text(c, f"Infrastructure: {tech_stack.get('infrastructure', 'N/A')}", 40, y, 500, "Helvetica", 11)
     y -= 15
     
-    # --- NEW: Integrations in PDF ---
+    # --- Integrations in PDF ---
     integrations = ticket_data.get("third_party_integrations", [])
     if integrations:
         y = _check_page_break(c, y, height)
@@ -141,6 +142,38 @@ def generate_local_eng_pdf(ticket_data):
     c.save()
     buffer.seek(0)
     return buffer
+
+# ==========================================
+# ENGINEERING CSV EXPORTER ENGINE
+# ==========================================
+def generate_engineering_csv(ticket_data):
+    """Converts DB Schema and API Endpoints into a developer-friendly CSV."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # 1. DATABASE SCHEMA EXPORT
+    writer.writerow(["--- DATABASE SCHEMA ---", "", "", ""])
+    writer.writerow(["Table Name", "Columns", "Relationships", "Type"])
+    
+    for table in ticket_data.get("database_schema", []):
+        table_name = table.get("table_name", "Unknown")
+        relationships = table.get("relationships", "None")
+        columns = "\n".join([f"- {col}" for col in table.get("columns", [])])
+        writer.writerow([table_name, columns, relationships, "Database Table"])
+        
+    writer.writerow([]) # Blank spacer row
+    
+    # 2. API ENDPOINTS EXPORT
+    writer.writerow(["--- API ROUTING ---", "", "", ""])
+    writer.writerow(["Method", "Route", "Purpose", "Type"])
+    
+    for api in ticket_data.get("api_endpoints", []):
+        method = api.get("method", "GET")
+        route = api.get("route", "/")
+        purpose = api.get("purpose", "No description")
+        writer.writerow([method, route, purpose, "API Endpoint"])
+        
+    return output.getvalue().encode('utf-8')
 
 # ==========================================
 # ENGINEERING DASHBOARD RENDERER
@@ -319,7 +352,6 @@ def render_engineering_dashboard(supabase):
             st.markdown("#### Infrastructure:")
             st.code(tech_stack.get("infrastructure", "N/A"), language="bash")
             
-        # --- NEW: INTEGRATIONS UI ---
         integrations = data.get("third_party_integrations", [])
         if integrations:
             st.write("")
@@ -373,6 +405,14 @@ def render_engineering_dashboard(supabase):
                 mime="application/pdf", 
                 use_container_width=True
             )
+            # --- NEW: ENGINEERING CSV EXPORT ---
+            st.download_button(
+                "📥 Download CSV (DB & API Schema)", 
+                data=generate_engineering_csv(data), 
+                file_name="engineering_schema_export.csv", 
+                mime="text/csv", 
+                use_container_width=True
+            )
             
         with col_action2:
             st.markdown("#### Share with Dev Team")
@@ -414,7 +454,7 @@ def render_engineering_dashboard(supabase):
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
 
         if st.session_state.active_eng_ticket_id:
-            if st.button("Mark as Ready for Dev", type="primary", use_container_width=True):
+            if st.button("✅ Mark as Ready for Dev", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", st.session_state.active_eng_ticket_id).execute()
                     st.success("Architecture finalized and ready for the build!")
@@ -432,7 +472,6 @@ def render_engineering_dashboard(supabase):
         if saved_tickets:
             for item in saved_tickets:
                 
-                # --- NEW: STATUS BADGE LOGIC ---
                 current_status = item.get('status', 'Draft')
                 if current_status in ['Draft', 'Accepted by Engineering']:
                     status_icon = "📝"
@@ -441,7 +480,6 @@ def render_engineering_dashboard(supabase):
 
                 with st.expander(f"{status_icon} Arch: {item['summary'][:60]}..."):
                     
-                    # --- SHOW CURRENT STATUS ---
                     if current_status in ['Draft', 'Accepted by Engineering']:
                         st.caption(f"Status: **{current_status} (Not Finalized)**")
                     else:
@@ -449,7 +487,6 @@ def render_engineering_dashboard(supabase):
 
                     past_data = json.loads(item['full_data'])
                     
-                    # History Email Payload
                     hist_tech_stack = past_data.get("tech_stack_recommendation", {})
                     hist_body = f"Hello Dev Team,\n\nPlease review the generated System Architecture for a previous concept.\n\n"
                     hist_body += f"-> ARCHITECTURE OVERVIEW:\n{past_data.get('system_architecture', 'N/A')}\n\n"
@@ -472,14 +509,16 @@ def render_engineering_dashboard(supabase):
 
                     st.markdown(f"**Pipeline:** {past_data.get('ci_cd_pipeline', 'N/A')}")
                     
-                    # Render Integrations in History
                     if hist_ints:
                         st.markdown("**Integrations:** " + ", ".join(hist_ints))
                         
-                    # Render localized PDF and Delete inside History
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_eng_pdf(past_data), file_name=f"architecture_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_eng_{item['id']}", use_container_width=True)
+                        
+                        # --- NEW: HISTORY CSV EXPORT BUTTON ---
+                        st.download_button("📥 Download CSV (DB & API Schema)", data=generate_engineering_csv(past_data), file_name=f"engineering_schema_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_eng_{item['id']}", use_container_width=True)
+                        
                     with hist_btn_col2:
                         with st.popover("Delete Schema", use_container_width=True):
                             st.warning("Are you sure? This cannot be undone.")
@@ -490,7 +529,6 @@ def render_engineering_dashboard(supabase):
                                 except Exception as e:
                                     st.error(f"Failed to delete: {str(e)}")
                     
-                    # Embed Email Button
                     st.markdown(f"""
                         <div style="margin-top: 5px; margin-bottom: 15px;">
                             <a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
@@ -501,7 +539,6 @@ def render_engineering_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
                         
-                    # --- NEW: HISTORY FINALIZE BUTTON ---
                     if current_status in ['Draft', 'Accepted by Engineering']:
                         st.markdown("##### Finalize Project")
                         if st.button("Mark as Ready for Dev", key=f"hist_ready_{item['id']}", use_container_width=True):
