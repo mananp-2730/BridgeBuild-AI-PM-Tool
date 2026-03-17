@@ -407,7 +407,7 @@ def render_engineering_dashboard(supabase):
             )
             # --- NEW: ENGINEERING CSV EXPORT ---
             st.download_button(
-                "📥 Download CSV (DB & API Schema)", 
+                "Download CSV (DB & API Schema)", 
                 data=generate_engineering_csv(data), 
                 file_name="engineering_schema_export.csv", 
                 mime="text/csv", 
@@ -454,7 +454,7 @@ def render_engineering_dashboard(supabase):
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
 
         if st.session_state.active_eng_ticket_id:
-            if st.button("✅ Mark as Ready for Dev", type="primary", use_container_width=True):
+            if st.button("Mark as Ready for Dev", type="primary", use_container_width=True):
                 try:
                     supabase.table("tickets").update({"status": "Ready for Dev", "target_department": "None"}).eq("id", st.session_state.active_eng_ticket_id).execute()
                     st.success("Architecture finalized and ready for the build!")
@@ -517,7 +517,7 @@ def render_engineering_dashboard(supabase):
                         st.download_button("Download PDF", data=generate_local_eng_pdf(past_data), file_name=f"architecture_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_eng_{item['id']}", use_container_width=True)
                         
                         # --- NEW: HISTORY CSV EXPORT BUTTON ---
-                        st.download_button("📥 Download CSV (DB & API Schema)", data=generate_engineering_csv(past_data), file_name=f"engineering_schema_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_eng_{item['id']}", use_container_width=True)
+                        st.download_button("Download CSV (DB & API Schema)", data=generate_engineering_csv(past_data), file_name=f"engineering_schema_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_eng_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col2:
                         with st.popover("Delete Schema", use_container_width=True):
