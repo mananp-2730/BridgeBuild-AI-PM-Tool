@@ -4,6 +4,7 @@ import urllib.parse
 import tempfile
 import os
 import io
+import csv
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
@@ -151,6 +152,40 @@ def generate_local_pm_pdf(ticket_data, currency="USD ($)", is_detailed=True):
     return buffer
 
 # ==========================================
+# JIRA/LINEAR CSV EXPORTER ENGINE
+# ==========================================
+def generate_jira_csv(ticket_data):
+    """Converts the JSON ticket data into a bulk-import friendly CSV."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Standard Jira Import Headers
+    writer.writerow(["Issue Type", "Summary", "Description", "Priority"])
+    
+    project_summary = ticket_data.get("summary", "No project summary provided.")
+    
+    if "mvp_user_stories" in ticket_data:
+        for item in ticket_data.get("mvp_user_stories", []):
+            story_title = item.get("story", "User Story")
+            ac_list = item.get("acceptance_criteria", [])
+            
+            # Format the description beautifully for Jira
+            description = f"Context:\n{project_summary}\n\nAcceptance Criteria:\n"
+            for ac in ac_list:
+                description += f"- {ac}\n"
+                
+            writer.writerow(["Story", story_title, description, "Highest"])
+    else:
+        for feat in ticket_data.get("mvp_features", []):
+            writer.writerow(["Story", feat, f"Context:\n{project_summary}", "Highest"])
+            
+    # Optionally export Phase 2 as Low Priority
+    for feat in ticket_data.get("phase_2_features", []):
+        writer.writerow(["Story", f"[Phase 2] {feat}", "Future enhancement", "Low"])
+        
+    return output.getvalue().encode('utf-8')
+
+# ==========================================
 # PM DASHBOARD RENDERER
 # ==========================================
 def render_pm_dashboard(supabase):
@@ -176,7 +211,7 @@ def render_pm_dashboard(supabase):
         st.session_state.sales_input = ""
 
     # ==========================================
-    # NEW: INCOMING SALES QUEUE (INBOX)
+    # INCOMING SALES QUEUE (INBOX)
     # ==========================================
     try:
         inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting PM Scoping").eq("target_department", "PM").order("created_at", desc=True).execute()
@@ -197,10 +232,8 @@ def render_pm_dashboard(supabase):
                         st.error(f"- {db}")
                         
                     if st.button("Accept & Load into Generator", key=f"accept_{item['id']}", type="primary"):
-                        # 1. Update the original sales ticket so it leaves the queue
                         supabase.table("tickets").update({"status": "Accepted by PM"}).eq("id", item['id']).execute()
                         
-                        # 2. Inject the highly structured sales data into the PM's text area!
                         injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
                         st.session_state.sales_input = injection_text
                         st.rerun()
@@ -359,9 +392,12 @@ def render_pm_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### 📄 Export PDF Reports")
-            st.download_button("Download Detailed Ticket (Engineering)", data=generate_local_pm_pdf(data, currency, is_detailed=True), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
-            st.download_button("Download Brief Summary (Sales / Client)", data=generate_local_pm_pdf(data, currency, is_detailed=False), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
+            st.markdown("#### 📄 Export Reports")
+            st.download_button("Download Detailed Ticket (Engineering PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=True), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
+            st.download_button("Download Brief Summary (Sales PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=False), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
+            
+            # --- NEW: CSV EXPORT BUTTON ---
+            st.download_button("📥 Download CSV (Jira/Linear Bulk Import)", data=generate_jira_csv(data), file_name="jira_bulk_import.csv", mime="text/csv", use_container_width=True)
         
         with col_action2:
             st.markdown("#### ✉️ Share with Stakeholders")
@@ -418,7 +454,7 @@ def render_pm_dashboard(supabase):
             st.code(generate_jira_format(data, currency), language="jira")
 
         # ==========================================
-        # NEW: THE ACTIVE TICKET HANDOFF PROTOCOL
+        # THE ACTIVE TICKET HANDOFF PROTOCOL
         # ==========================================
         st.divider()
         st.markdown("#### Department Handoff")
@@ -542,9 +578,13 @@ def render_pm_dashboard(supabase):
                     sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
                     sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
 
-                    hist_btn_col1, hist_btn_col2, hist_btn_col3 = st.columns([2, 2, 1])
+                    hist_btn_col1, hist_btn_col3 = st.columns([4, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_pm_pdf(past_data, currency, is_detailed=True), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
+                        
+                        # --- NEW: HISTORY CSV EXPORT BUTTON ---
+                        st.download_button("📥 Download CSV", data=generate_jira_csv(past_data), file_name=f"jira_import_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_{item['id']}", use_container_width=True)
+                        
                     with hist_btn_col3:
                         if st.button("Delete", key=f"del_{item['id']}", use_container_width=True):
                             try:
@@ -568,7 +608,7 @@ def render_pm_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
                         
-                    # --- NEW: HISTORY HANDOFF BUTTONS ---
+                    # --- HISTORY HANDOFF BUTTONS ---
                     if current_status in ['Draft', 'Accepted by PM']:
                         st.markdown("##### Route Ticket")
                         hist_hand_col1, hist_hand_col2 = st.columns(2)
