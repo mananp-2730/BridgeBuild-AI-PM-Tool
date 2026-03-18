@@ -69,6 +69,8 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 - [x] Automated Artifact Generation: Dynamic PDF and Stakeholder Email creation.
 - [x] Architecture Flowchart Generation: AI-generated native Mermaid.js diagrams.
 - [x] Jira / Linear Integration: One-click bulk CSV export of Agile epics and Developer schemas.
+- [x] Dynamic Stealth UI: Custom CSS engine for flawless dark mode transitions.
+- [ ] 
 
 **Upcoming Features** 
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
