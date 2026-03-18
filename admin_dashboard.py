@@ -18,7 +18,7 @@ def extract_average_cost(raw_cost_str):
     return 0
 
 def render_admin_dashboard(supabase):
-    st.title("Admin Control Center 👑")
+    st.title("Admin Control Center ")
     st.markdown("### BridgeBuild AI Global Oversight & Access Control")
     
     # Create a clean tabbed layout so the Admin Hub doesn't get cluttered
