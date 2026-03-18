@@ -18,18 +18,16 @@ def extract_average_cost(raw_cost_str):
     return 0
 
 def render_admin_dashboard(supabase):
-    st.title("Admin Control Center ")
+    st.title("Admin Control Center 👑")
     st.markdown("### BridgeBuild AI Global Oversight & Access Control")
     
     # Create a clean tabbed layout so the Admin Hub doesn't get cluttered
-    tab1, tab2 = st.tabs(["Global Analytics", "Team Role Management"])
+    tab1, tab2 = st.tabs(["📊 Global Analytics", "👥 Team Role Management"])
 
     # ==========================================
     # TAB 1: THE "GOD VIEW" ANALYTICS
     # ==========================================
     with tab1:
-        st.markdown("#### Organization Pipeline Overview")
-        
         try:
             # Fetch EVERY ticket in the entire company
             all_tickets_response = supabase.table("tickets").select("*").execute()
@@ -47,26 +45,40 @@ def render_admin_dashboard(supabase):
                 eng_queue = len([t for t in all_tickets if t.get('target_department') == 'Engineering'])
                 completed = len([t for t in all_tickets if t.get('status') == 'Ready for Dev'])
 
-                # Top Row Metrics
+                st.markdown("#### Organization Pipeline Overview")
+                
+                # Top Row Metrics (Executive Containers)
                 col_m1, col_m2, col_m3 = st.columns(3)
                 with col_m1:
-                    st.metric("Total AI Generations", total_projects)
+                    with st.container(border=True):
+                        st.metric("Total AI Generations 🤖", total_projects)
                 with col_m2:
-                    st.metric("Total Pipeline Value", f"${total_pipeline_value:,.2f}")
+                    with st.container(border=True):
+                        st.metric("Total Pipeline Value 💰", f"${total_pipeline_value:,.2f}")
                 with col_m3:
-                    st.metric("Fully Scoped & Ready", completed)
+                    with st.container(border=True):
+                        st.metric("Fully Scoped & Ready ✅", completed)
 
-                st.divider()
+                st.write("")
                 st.markdown("#### Live Department Bottlenecks")
                 
-                # Second Row Metrics
+                # Second Row Metrics (Queue Warnings)
                 col_b1, col_b2, col_b3 = st.columns(3)
                 with col_b1:
-                    st.metric("Awaiting PM Scoping", pm_queue)
+                    with st.container(border=True):
+                        st.markdown("**📝 Awaiting PM Scoping**")
+                        if pm_queue > 0: st.error(f"## {pm_queue} Ticket(s)")
+                        else: st.success("## 0 Tickets")
                 with col_b2:
-                    st.metric("Awaiting UI/UX Design", design_queue)
+                    with st.container(border=True):
+                        st.markdown("**🎨 Awaiting UI/UX Design**")
+                        if design_queue > 0: st.error(f"## {design_queue} Ticket(s)")
+                        else: st.success("## 0 Tickets")
                 with col_b3:
-                    st.metric("Awaiting Engineering", eng_queue)
+                    with st.container(border=True):
+                        st.markdown("**⚙️ Awaiting Engineering**")
+                        if eng_queue > 0: st.error(f"## {eng_queue} Ticket(s)")
+                        else: st.success("## 0 Tickets")
 
                 st.divider()
                 st.markdown("#### Live Project Radar")
@@ -75,11 +87,11 @@ def render_admin_dashboard(supabase):
                 radar_data = []
                 for t in all_tickets:
                     radar_data.append({
-                        "Project Summary": t.get("summary", "Unknown")[:60] + "...",
+                        "Creation Date": t.get("created_at", "").split("T")[0],
+                        "Project Summary": t.get("summary", "Unknown")[:80] + "...",
                         "Current Status": t.get("status", "Unknown"),
                         "Target Dept": t.get("target_department", "None"),
                         "Est. Time": t.get("time", "Unknown"),
-                        "Creation Date": t.get("created_at", "").split("T")[0]
                     })
                 
                 radar_df = pd.DataFrame(radar_data)
@@ -92,22 +104,24 @@ def render_admin_dashboard(supabase):
                     radar_df, 
                     use_container_width=True, 
                     hide_index=True,
+                    height=400,
                     column_config={
-                        "Current Status": st.column_config.TextColumn(
-                            "Status",
-                            help="Current stage in the pipeline"
-                        )
+                        "Creation Date": st.column_config.TextColumn("Date", width="small"),
+                        "Project Summary": st.column_config.TextColumn("Project Vision", width="large"),
+                        "Current Status": st.column_config.TextColumn("Status", help="Current stage in the pipeline", width="medium"),
+                        "Target Dept": st.column_config.TextColumn("Owner", width="small"),
+                        "Est. Time": st.column_config.TextColumn("Timeline", width="small")
                     }
                 )
 
         except Exception as e:
             st.error(f"Error loading Global Analytics: {str(e)}")
 
-
     # ==========================================
-    # TAB 2: TEAM MANAGEMENT (Your original code, polished)
+    # TAB 2: TEAM MANAGEMENT 
     # ==========================================
     with tab2:
+        st.write("")
         st.markdown("#### Active Directory")
         st.info("Assign department dashboards to users by clicking their 'Role' cell below, selecting a new department, and hitting Save.")
 
@@ -124,20 +138,23 @@ def render_admin_dashboard(supabase):
                 edited_df = st.data_editor(
                     df,
                     column_config={
-                        "id": st.column_config.TextColumn("User ID", disabled=True),
+                        "id": st.column_config.TextColumn("User ID", disabled=True, width="medium"),
                         "role": st.column_config.SelectboxColumn(
                             "Department Role",
                             help="Assign the user's dashboard access level.",
                             options=roles_list,
-                            required=True
+                            required=True,
+                            width="medium"
                         ),
-                        "currency": st.column_config.TextColumn("Currency", disabled=True),
-                        "rate_standard": st.column_config.TextColumn("Rate Standard", disabled=True),
-                        "ai_model": st.column_config.TextColumn("AI Model", disabled=True)
+                        "currency": st.column_config.TextColumn("Currency", disabled=True, width="small"),
+                        "rate_standard": st.column_config.TextColumn("Rate Standard", disabled=True, width="medium"),
+                        "ai_model": st.column_config.TextColumn("AI Model", disabled=True, width="medium"),
+                        "dark_mode": st.column_config.CheckboxColumn("Dark Mode", disabled=True, width="small")
                     },
                     hide_index=True,
                     key="admin_role_editor",
-                    use_container_width=True
+                    use_container_width=True,
+                    height=400
                 )
 
                 st.write("")
