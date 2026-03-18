@@ -68,7 +68,7 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 - [x] Multimodal Audio Ingestion: Process .mp3, .wav, and .pdf transcripts natively.
 - [x] Automated Artifact Generation: Dynamic PDF and Stakeholder Email creation.
 - [x] Architecture Flowchart Generation: AI-generated native Mermaid.js diagrams.
-- [x] Epic & Sub-Task Splitter: Break down high-complexity scores into manageable child tickets.
+- [x] Jira / Linear Integration: One-click bulk CSV export of Agile epics and Developer schemas.
 
 **Upcoming Features** 
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
