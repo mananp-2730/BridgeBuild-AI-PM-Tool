@@ -51,13 +51,13 @@ def render_admin_dashboard(supabase):
                 col_m1, col_m2, col_m3 = st.columns(3)
                 with col_m1:
                     with st.container(border=True):
-                        st.metric("Total AI Generations 🤖", total_projects)
+                        st.metric("Total AI Generations", total_projects)
                 with col_m2:
                     with st.container(border=True):
-                        st.metric("Total Pipeline Value 💰", f"${total_pipeline_value:,.2f}")
+                        st.metric("Total Pipeline Value", f"${total_pipeline_value:,.2f}")
                 with col_m3:
                     with st.container(border=True):
-                        st.metric("Fully Scoped & Ready ✅", completed)
+                        st.metric("Fully Scoped & Ready", completed)
 
                 st.write("")
                 st.markdown("#### Live Department Bottlenecks")
