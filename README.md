@@ -76,7 +76,7 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
-- [ ] Jira / Linear Integration: One-click export of Agile epics directly into external project management tools.
+
 
 ________
 Architectured and Engineered by Manan
