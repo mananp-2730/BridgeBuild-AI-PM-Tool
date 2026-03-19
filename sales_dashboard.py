@@ -13,6 +13,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 
+# Import the PowerPoint generator library
+try:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+except ImportError:
+    pass # Handled via pip install instruction
+
 # ==========================================
 # LOCALIZED SALES PDF ENGINE
 # ==========================================
@@ -113,6 +120,85 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     c.save()
     buffer.seek(0)
     return buffer
+
+# ==========================================
+# SALES PPTX PITCH DECK ENGINE
+# ==========================================
+def generate_sales_pptx(ticket_data, currency="USD ($)"):
+    """Generates a 5-slide pitch deck dynamically from the Sales JSON data."""
+    prs = Presentation()
+    
+    # 1. TITLE SLIDE
+    slide_layout = prs.slide_layouts[0] # 0 is standard Title Slide layout
+    slide = prs.slides.add_slide(slide_layout)
+    title = slide.shapes.title
+    subtitle = slide.placeholders[1]
+    
+    title.text = "Project Proposal & Feasibility"
+    summary_text = ticket_data.get('project_summary', 'New Project')
+    subtitle.text = summary_text[:80] + "..." if len(summary_text) > 80 else summary_text
+
+    # 2. EXECUTIVE SUMMARY SLIDE
+    slide_layout = prs.slide_layouts[1] # 1 is Title and Content layout
+    slide = prs.slides.add_slide(slide_layout)
+    title = slide.shapes.title
+    body = slide.placeholders[1]
+    
+    title.text = "Executive Summary"
+    body.text = ticket_data.get('project_summary', 'No summary provided.')
+
+    # 3. FEASIBILITY & TIMELINE SLIDE
+    slide = prs.slides.add_slide(prs.slide_layouts[1])
+    title = slide.shapes.title
+    body = slide.placeholders[1]
+    
+    title.text = "Feasibility & Timeline Details"
+    tf = body.text_frame
+    tf.text = f"Feasibility Assessment: {ticket_data.get('feasibility_score', 'N/A')}"
+    
+    p = tf.add_paragraph()
+    p.text = f"Reasoning: {ticket_data.get('feasibility_reason', 'N/A')}"
+    p.space_after = Pt(14)
+    
+    p2 = tf.add_paragraph()
+    p2.text = f"Estimated Timeline: {ticket_data.get('estimated_timeline', 'N/A')}"
+
+    # 4. INVESTMENT (BUDGET) SLIDE
+    raw_cost = ticket_data.get("budget_estimate_usd", "0-0")
+    low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+    high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+    fmt_low = convert_currency(low_end, currency)
+    fmt_high = convert_currency(high_end, currency)
+
+    slide = prs.slides.add_slide(prs.slide_layouts[1])
+    title = slide.shapes.title
+    body = slide.placeholders[1]
+    
+    title.text = "Estimated Investment (MVP)"
+    tf = body.text_frame
+    tf.text = f"Estimated Budget Scope: {fmt_low} - {fmt_high}"
+    p = tf.add_paragraph()
+    p.text = "Note: Final scoping requires technical architecture breakdown."
+
+    # 5. NEXT STEPS & CLARIFICATIONS SLIDE
+    slide = prs.slides.add_slide(prs.slide_layouts[1])
+    title = slide.shapes.title
+    body = slide.placeholders[1]
+    
+    title.text = "Next Steps & Clarifications"
+    tf = body.text_frame
+    tf.text = "To proceed to the Technical Scoping phase, we need to clarify:"
+    
+    for q in ticket_data.get("client_questions", []):
+        p = tf.add_paragraph()
+        p.text = q
+        p.level = 1
+
+    buffer = io.BytesIO()
+    prs.save(buffer)
+    buffer.seek(0)
+    return buffer
+
 
 # ==========================================
 # SALES DASHBOARD RENDERER
@@ -259,7 +345,6 @@ def render_sales_dashboard(supabase):
                 st.markdown("#### The 'Ask' List")
                 st.caption("Critical missing info to ask the client:")
                 for q in data.get("client_questions", []):
-                    # Bolds the prefix (e.g., "Question 1:") for better readability
                     prefix = q.split(":", 1)[0] + ":" if ":" in q else ""
                     rest = q.split(":", 1)[1] if ":" in q else q
                     st.info(f"**{prefix}** {rest.strip()}" if prefix else rest)
@@ -277,8 +362,11 @@ def render_sales_dashboard(supabase):
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
         with col_action1:
-            st.markdown("#### Export Sales Report")
+            st.markdown("#### Export Sales Artifacts")
             st.download_button("Download Sales PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_sales_report.pdf", mime="application/pdf", use_container_width=True)
+            
+            # --- NEW PPTX EXPORT BUTTON ---
+            st.download_button("📥 Download Pitch Deck (.pptx)", data=generate_sales_pptx(data, currency), file_name="bridgebuild_pitch_deck.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
             
         with col_action2:
             st.markdown("#### Email Sales Team")
@@ -324,7 +412,6 @@ def render_sales_dashboard(supabase):
         if saved_tickets:
             for item in saved_tickets:
                 
-                # Dynamic expander title based on status
                 status_icon = "🟢" if item.get('status') == 'Awaiting PM Scoping' else "📝"
                 expander_title = f"{status_icon} Quote: {item['summary'][:55]}..."
                 
@@ -349,7 +436,6 @@ def render_sales_dashboard(supabase):
                     sales_body += "\nBest,\nBridgeBuild Sales Hub"
                     sales_mailto = f"mailto:?subject={quote(f'Sales Quote: {ticket_name}')}&body={quote(sales_body)}"
 
-                    # --- STATUS BADGE IN HISTORY ---
                     current_status = item.get('status', 'Draft')
                     if current_status == 'Draft':
                         st.caption("Status: **Draft (Not Sent)**")
@@ -359,6 +445,10 @@ def render_sales_dashboard(supabase):
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
+                        
+                        # --- NEW PPTX EXPORT BUTTON (HISTORY) ---
+                        st.download_button("📥 Download Pitch Deck", data=generate_sales_pptx(past_data, currency), file_name=f"pitch_deck_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
+                        
                     with hist_btn_col2:
                         with st.popover("Delete", use_container_width=True):
                             st.warning("Are you sure?")
@@ -379,7 +469,6 @@ def render_sales_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
 
-                    # --- HISTORY HANDOFF BUTTON ---
                     if current_status == 'Draft':
                         if st.button("Send to PM Hub", key=f"handoff_{item['id']}", use_container_width=True):
                             supabase.table("tickets").update({"status": "Awaiting PM Scoping", "target_department": "PM"}).eq("id", item['id']).execute()
