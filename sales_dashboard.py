@@ -13,15 +13,16 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 
-# Import the PowerPoint generator library
+# Import the PowerPoint generator library & styling tools
 try:
     from pptx import Presentation
     from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
 except ImportError:
     pass # Handled via pip install instruction
 
 # ==========================================
-# LOCALIZED SALES PDF ENGINE
+# LOCALIZED SALES PDF ENGINE (INTERNAL)
 # ==========================================
 def _safe_text(text):
     return str(text).replace("₹", "INR ").encode('ascii', 'ignore').decode('ascii')
@@ -67,7 +68,7 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
-    _draw_header(c, width, height, "Sales & Feasibility Report")
+    _draw_header(c, width, height, "Internal Sales & Feasibility Report")
     y = height - 140
     c.setFillColor(colors.black)
     
@@ -122,83 +123,93 @@ def generate_local_sales_pdf(ticket_data, currency="USD ($)"):
     return buffer
 
 # ==========================================
-# SALES PPTX PITCH DECK ENGINE
+# SALES PPTX PITCH DECK ENGINE (CLIENT-FACING)
 # ==========================================
-def generate_sales_pptx(ticket_data, currency="USD ($)"):
-    """Generates a 5-slide pitch deck dynamically from the Sales JSON data."""
+def generate_sales_pptx(ticket_data):
+    """Generates a high-ticket, client-facing pitch deck. NO BUDGETS OR TIMELINES."""
     prs = Presentation()
     
+    # Modern Enterprise Colors
+    primary_color = RGBColor(1, 33, 105) # Deep Blue
+    
     # 1. TITLE SLIDE
-    slide_layout = prs.slide_layouts[0] # 0 is standard Title Slide layout
+    slide_layout = prs.slide_layouts[0] 
     slide = prs.slides.add_slide(slide_layout)
     title = slide.shapes.title
     subtitle = slide.placeholders[1]
     
-    title.text = "Project Proposal & Feasibility"
-    summary_text = ticket_data.get('project_summary', 'New Project')
+    title.text = "Strategic Partnership Proposal"
+    title.text_frame.paragraphs[0].font.color.rgb = primary_color
+    title.text_frame.paragraphs[0].font.bold = True
+    
+    summary_text = ticket_data.get('project_summary', 'Digital Transformation Project')
     subtitle.text = summary_text[:80] + "..." if len(summary_text) > 80 else summary_text
 
-    # 2. EXECUTIVE SUMMARY SLIDE
-    slide_layout = prs.slide_layouts[1] # 1 is Title and Content layout
+    # 2. THE VISION SLIDE
+    slide_layout = prs.slide_layouts[1] 
     slide = prs.slides.add_slide(slide_layout)
     title = slide.shapes.title
     body = slide.placeholders[1]
     
-    title.text = "Executive Summary"
+    title.text = "Project Vision & Objectives"
+    title.text_frame.paragraphs[0].font.color.rgb = primary_color
     body.text = ticket_data.get('project_summary', 'No summary provided.')
 
-    # 3. FEASIBILITY & TIMELINE SLIDE
+    # 3. STRATEGIC APPROACH SLIDE (Replaces raw feasibility)
     slide = prs.slides.add_slide(prs.slide_layouts[1])
     title = slide.shapes.title
     body = slide.placeholders[1]
     
-    title.text = "Feasibility & Timeline Details"
-    tf = body.text_frame
-    tf.text = f"Feasibility Assessment: {ticket_data.get('feasibility_score', 'N/A')}"
+    title.text = "Our Strategic Approach"
+    title.text_frame.paragraphs[0].font.color.rgb = primary_color
     
+    tf = body.text_frame
+    tf.text = "Based on our initial analysis, we have identified the optimal path forward to ensure a scalable and secure build."
     p = tf.add_paragraph()
-    p.text = f"Reasoning: {ticket_data.get('feasibility_reason', 'N/A')}"
-    p.space_after = Pt(14)
-    
-    p2 = tf.add_paragraph()
-    p2.text = f"Estimated Timeline: {ticket_data.get('estimated_timeline', 'N/A')}"
+    p.text = f"Key Focus Area: {ticket_data.get('feasibility_reason', 'Developing a robust initial architecture.')}"
+    p.level = 1
 
-    # 4. INVESTMENT (BUDGET) SLIDE
-    raw_cost = ticket_data.get("budget_estimate_usd", "0-0")
-    low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
-    high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
-    fmt_low = convert_currency(low_end, currency)
-    fmt_high = convert_currency(high_end, currency)
-
+    # 4. RISK MANAGEMENT SLIDE (Replaces Deal Breakers)
     slide = prs.slides.add_slide(prs.slide_layouts[1])
     title = slide.shapes.title
     body = slide.placeholders[1]
     
-    title.text = "Estimated Investment (MVP)"
+    title.text = "Proactive Risk Management"
+    title.text_frame.paragraphs[0].font.color.rgb = primary_color
+    
     tf = body.text_frame
-    tf.text = f"Estimated Budget Scope: {fmt_low} - {fmt_high}"
-    p = tf.add_paragraph()
-    p.text = "Note: Final scoping requires technical architecture breakdown."
+    tf.text = "To ensure a flawless execution, our engineering team will preemptively address the following technical priorities:"
+    
+    for r in ticket_data.get("deal_breakers", []):
+        p = tf.add_paragraph()
+        # Clean out any bolding markdown the AI might have added
+        clean_text = r.split(":", 1)[1].strip() if ":" in r else r
+        clean_text = clean_text.replace("**", "")
+        p.text = clean_text
+        p.level = 1
 
-    # 5. NEXT STEPS & CLARIFICATIONS SLIDE
+    # 5. DISCOVERY WORKSHOP SLIDE (Replaces Ask List)
     slide = prs.slides.add_slide(prs.slide_layouts[1])
     title = slide.shapes.title
     body = slide.placeholders[1]
     
-    title.text = "Next Steps & Clarifications"
+    title.text = "Next Steps: Discovery Workshop"
+    title.text_frame.paragraphs[0].font.color.rgb = primary_color
+    
     tf = body.text_frame
-    tf.text = "To proceed to the Technical Scoping phase, we need to clarify:"
+    tf.text = "To finalize the technical scoping and provide an accurate investment timeline, our next conversation will focus on:"
     
     for q in ticket_data.get("client_questions", []):
         p = tf.add_paragraph()
-        p.text = q
+        clean_text = q.split(":", 1)[1].strip() if ":" in q else q
+        clean_text = clean_text.replace("**", "")
+        p.text = clean_text
         p.level = 1
 
     buffer = io.BytesIO()
     prs.save(buffer)
     buffer.seek(0)
     return buffer
-
 
 # ==========================================
 # SALES DASHBOARD RENDERER
@@ -363,10 +374,11 @@ def render_sales_dashboard(supabase):
         
         with col_action1:
             st.markdown("#### Export Sales Artifacts")
-            st.download_button("Download Sales PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_sales_report.pdf", mime="application/pdf", use_container_width=True)
+            # PDF is for INTERNAL use (shows budgets and raw feasibility)
+            st.download_button("Download Internal PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_internal_sales_report.pdf", mime="application/pdf", use_container_width=True)
             
-            # --- NEW PPTX EXPORT BUTTON ---
-            st.download_button("Download Pitch Deck (.pptx)", data=generate_sales_pptx(data, currency), file_name="bridgebuild_pitch_deck.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
+            # PPTX is for EXTERNAL use (No budgets, re-framed language, branded colors)
+            st.download_button("📥 Download Client Pitch Deck (.pptx)", data=generate_sales_pptx(data), file_name="bridgebuild_client_pitch.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
             
         with col_action2:
             st.markdown("#### Email Sales Team")
@@ -444,10 +456,9 @@ def render_sales_dashboard(supabase):
                         
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
-                        st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
+                        st.download_button("Download Internal PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"internal_sales_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
                         
-                        # --- NEW PPTX EXPORT BUTTON (HISTORY) ---
-                        st.download_button("Download Pitch Deck", data=generate_sales_pptx(past_data, currency), file_name=f"pitch_deck_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
+                        st.download_button("📥 Download Client Pitch Deck", data=generate_sales_pptx(past_data), file_name=f"client_pitch_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col2:
                         with st.popover("Delete", use_container_width=True):
