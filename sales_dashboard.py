@@ -378,7 +378,7 @@ def render_sales_dashboard(supabase):
             st.download_button("Download Internal PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_internal_sales_report.pdf", mime="application/pdf", use_container_width=True)
             
             # PPTX is for EXTERNAL use (No budgets, re-framed language, branded colors)
-            st.download_button("📥 Download Client Pitch Deck (.pptx)", data=generate_sales_pptx(data), file_name="bridgebuild_client_pitch.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
+            st.download_button("Download Client Pitch Deck (.pptx)", data=generate_sales_pptx(data), file_name="bridgebuild_client_pitch.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
             
         with col_action2:
             st.markdown("#### Email Sales Team")
@@ -458,7 +458,7 @@ def render_sales_dashboard(supabase):
                     with hist_btn_col1:
                         st.download_button("Download Internal PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"internal_sales_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
                         
-                        st.download_button("📥 Download Client Pitch Deck", data=generate_sales_pptx(past_data), file_name=f"client_pitch_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
+                        st.download_button("Download Client Pitch Deck", data=generate_sales_pptx(past_data), file_name=f"client_pitch_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col2:
                         with st.popover("Delete", use_container_width=True):
