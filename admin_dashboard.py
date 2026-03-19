@@ -66,17 +66,17 @@ def render_admin_dashboard(supabase):
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
                 with st.container(border=True):
-                    st.markdown("**📝 Awaiting PM Scoping**")
+                    st.markdown("**Awaiting PM Scoping**")
                     if pm_queue > 0: st.error(f"## {pm_queue} Ticket(s)")
                     else: st.success("## 0 Tickets")
             with col_b2:
                 with st.container(border=True):
-                    st.markdown("**🎨 Awaiting UI/UX Design**")
+                    st.markdown("**Awaiting UI/UX Design**")
                     if design_queue > 0: st.error(f"## {design_queue} Ticket(s)")
                     else: st.success("## 0 Tickets")
             with col_b3:
                 with st.container(border=True):
-                    st.markdown("**⚙️ Awaiting Engineering**")
+                    st.markdown("**Awaiting Engineering**")
                     if eng_queue > 0: st.error(f"## {eng_queue} Ticket(s)")
                     else: st.success("## 0 Tickets")
 
