@@ -366,7 +366,7 @@ def render_sales_dashboard(supabase):
             st.download_button("Download Sales PDF", data=generate_local_sales_pdf(data, currency), file_name="bridgebuild_sales_report.pdf", mime="application/pdf", use_container_width=True)
             
             # --- NEW PPTX EXPORT BUTTON ---
-            st.download_button("📥 Download Pitch Deck (.pptx)", data=generate_sales_pptx(data, currency), file_name="bridgebuild_pitch_deck.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
+            st.download_button("Download Pitch Deck (.pptx)", data=generate_sales_pptx(data, currency), file_name="bridgebuild_pitch_deck.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", use_container_width=True)
             
         with col_action2:
             st.markdown("#### Email Sales Team")
