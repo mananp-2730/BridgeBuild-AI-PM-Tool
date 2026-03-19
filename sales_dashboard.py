@@ -447,7 +447,7 @@ def render_sales_dashboard(supabase):
                         st.download_button("Download PDF", data=generate_local_sales_pdf(past_data, currency), file_name=f"sales_quote_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_sales_{item['id']}", use_container_width=True)
                         
                         # --- NEW PPTX EXPORT BUTTON (HISTORY) ---
-                        st.download_button("📥 Download Pitch Deck", data=generate_sales_pptx(past_data, currency), file_name=f"pitch_deck_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
+                        st.download_button("Download Pitch Deck", data=generate_sales_pptx(past_data, currency), file_name=f"pitch_deck_{item['id'][:8]}.pptx", mime="application/vnd.openxmlformats-officedocument.presentationml.presentation", key=f"hist_pptx_sales_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col2:
                         with st.popover("Delete", use_container_width=True):
