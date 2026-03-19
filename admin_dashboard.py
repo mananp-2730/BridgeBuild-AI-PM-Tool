@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 import re
+import json
 
 def extract_average_cost(raw_cost_str):
     """Helper function to turn '15000-20000' into a mathematical average for the pipeline."""
     if not raw_cost_str or raw_cost_str == "0-0" or raw_cost_str == "N/A (Design Phase)" or raw_cost_str == "N/A (Engineering Phase)":
         return 0
     
-    # Extract all numbers from the string
     numbers = re.findall(r'\d+', str(raw_cost_str).replace(',', ''))
     if not numbers:
         return 0
@@ -18,74 +18,74 @@ def extract_average_cost(raw_cost_str):
     return 0
 
 def render_admin_dashboard(supabase):
-    st.title("Admin Control Center")
+    st.title("Admin Control Center 👑")
     st.markdown("### BridgeBuild AI Global Oversight & Access Control")
     
-    # Create a clean tabbed layout so the Admin Hub doesn't get cluttered
-    tab1, tab2 = st.tabs(["Global Analytics", "Team Role Management"])
+    # NEW: Added the Profitability Engine Tab
+    tab1, tab2, tab3 = st.tabs(["📊 Global Analytics", "👥 Team Management", "⚖️ Profitability Engine"])
+
+    # Fetch all tickets once to use across tabs
+    try:
+        all_tickets_response = supabase.table("tickets").select("*").execute()
+        all_tickets = all_tickets_response.data
+    except Exception as e:
+        st.error(f"Failed to connect to database: {str(e)}")
+        all_tickets = []
 
     # ==========================================
     # TAB 1: THE "GOD VIEW" ANALYTICS
     # ==========================================
     with tab1:
-        try:
-            # Fetch EVERY ticket in the entire company
-            all_tickets_response = supabase.table("tickets").select("*").execute()
-            all_tickets = all_tickets_response.data
+        if not all_tickets:
+            st.info("No projects generated in the company yet.")
+        else:
+            total_projects = len(all_tickets)
+            total_pipeline_value = sum([extract_average_cost(t.get('raw_cost', '0-0')) for t in all_tickets if t.get('status') != 'Completed & Billed'])
             
-            if not all_tickets:
-                st.info("No projects generated in the company yet.")
-            else:
-                total_projects = len(all_tickets)
-                total_pipeline_value = sum([extract_average_cost(t.get('raw_cost', '0-0')) for t in all_tickets])
-                
-                # Count bottlenecks by targeting department
-                pm_queue = len([t for t in all_tickets if t.get('target_department') == 'PM'])
-                design_queue = len([t for t in all_tickets if t.get('target_department') == 'Design'])
-                eng_queue = len([t for t in all_tickets if t.get('target_department') == 'Engineering'])
-                completed = len([t for t in all_tickets if t.get('status') == 'Ready for Dev'])
+            pm_queue = len([t for t in all_tickets if t.get('target_department') == 'PM'])
+            design_queue = len([t for t in all_tickets if t.get('target_department') == 'Design'])
+            eng_queue = len([t for t in all_tickets if t.get('target_department') == 'Engineering'])
+            completed = len([t for t in all_tickets if t.get('status') == 'Ready for Dev'])
 
-                st.markdown("#### Organization Pipeline Overview")
-                
-                # Top Row Metrics (Executive Containers)
-                col_m1, col_m2, col_m3 = st.columns(3)
-                with col_m1:
-                    with st.container(border=True):
-                        st.metric("Total AI Generations", total_projects)
-                with col_m2:
-                    with st.container(border=True):
-                        st.metric("Total Pipeline Value", f"${total_pipeline_value:,.2f}")
-                with col_m3:
-                    with st.container(border=True):
-                        st.metric("Fully Scoped & Ready", completed)
+            st.markdown("#### Organization Pipeline Overview")
+            
+            col_m1, col_m2, col_m3 = st.columns(3)
+            with col_m1:
+                with st.container(border=True):
+                    st.metric("Total AI Generations 🤖", total_projects)
+            with col_m2:
+                with st.container(border=True):
+                    st.metric("Active Pipeline Value 💰", f"${total_pipeline_value:,.2f}")
+            with col_m3:
+                with st.container(border=True):
+                    st.metric("Ready for Dev ✅", completed)
 
-                st.write("")
-                st.markdown("#### Live Department Bottlenecks")
-                
-                # Second Row Metrics (Queue Warnings)
-                col_b1, col_b2, col_b3 = st.columns(3)
-                with col_b1:
-                    with st.container(border=True):
-                        st.markdown("**Awaiting PM Scoping**")
-                        if pm_queue > 0: st.error(f"## {pm_queue} Ticket(s)")
-                        else: st.success("## 0 Tickets")
-                with col_b2:
-                    with st.container(border=True):
-                        st.markdown("**Awaiting UI/UX Design**")
-                        if design_queue > 0: st.error(f"## {design_queue} Ticket(s)")
-                        else: st.success("## 0 Tickets")
-                with col_b3:
-                    with st.container(border=True):
-                        st.markdown("**Awaiting Engineering**")
-                        if eng_queue > 0: st.error(f"## {eng_queue} Ticket(s)")
-                        else: st.success("## 0 Tickets")
+            st.write("")
+            st.markdown("#### Live Department Bottlenecks")
+            
+            col_b1, col_b2, col_b3 = st.columns(3)
+            with col_b1:
+                with st.container(border=True):
+                    st.markdown("**📝 Awaiting PM Scoping**")
+                    if pm_queue > 0: st.error(f"## {pm_queue} Ticket(s)")
+                    else: st.success("## 0 Tickets")
+            with col_b2:
+                with st.container(border=True):
+                    st.markdown("**🎨 Awaiting UI/UX Design**")
+                    if design_queue > 0: st.error(f"## {design_queue} Ticket(s)")
+                    else: st.success("## 0 Tickets")
+            with col_b3:
+                with st.container(border=True):
+                    st.markdown("**⚙️ Awaiting Engineering**")
+                    if eng_queue > 0: st.error(f"## {eng_queue} Ticket(s)")
+                    else: st.success("## 0 Tickets")
 
-                st.divider()
-                st.markdown("#### Live Project Radar")
-                
-                # Clean up the data for a beautiful Admin Table
-                radar_data = []
-                for t in all_tickets:
+            st.divider()
+            st.markdown("#### Live Project Radar")
+            
+            radar_data = []
+            for t in all_tickets:
+                if t.get("status") != "Completed & Billed":
                     radar_data.append({
                         "Creation Date": t.get("created_at", "").split("T")[0],
                         "Project Summary": t.get("summary", "Unknown")[:80] + "...",
@@ -93,13 +93,9 @@ def render_admin_dashboard(supabase):
                         "Target Dept": t.get("target_department", "None"),
                         "Est. Time": t.get("time", "Unknown"),
                     })
-                
-                radar_df = pd.DataFrame(radar_data)
-                
-                # Sort by newest first
-                radar_df = radar_df.sort_values(by="Creation Date", ascending=False)
-                
-                # Display interactive, read-only dataframe
+            
+            if radar_data:
+                radar_df = pd.DataFrame(radar_data).sort_values(by="Creation Date", ascending=False)
                 st.dataframe(
                     radar_df, 
                     use_container_width=True, 
@@ -108,14 +104,13 @@ def render_admin_dashboard(supabase):
                     column_config={
                         "Creation Date": st.column_config.TextColumn("Date", width="small"),
                         "Project Summary": st.column_config.TextColumn("Project Vision", width="large"),
-                        "Current Status": st.column_config.TextColumn("Status", help="Current stage in the pipeline", width="medium"),
+                        "Current Status": st.column_config.TextColumn("Status", width="medium"),
                         "Target Dept": st.column_config.TextColumn("Owner", width="small"),
                         "Est. Time": st.column_config.TextColumn("Timeline", width="small")
                     }
                 )
-
-        except Exception as e:
-            st.error(f"Error loading Global Analytics: {str(e)}")
+            else:
+                st.info("No active projects in the pipeline.")
 
     # ==========================================
     # TAB 2: TEAM MANAGEMENT 
@@ -141,7 +136,6 @@ def render_admin_dashboard(supabase):
                         "id": st.column_config.TextColumn("User ID", disabled=True, width="medium"),
                         "role": st.column_config.SelectboxColumn(
                             "Department Role",
-                            help="Assign the user's dashboard access level.",
                             options=roles_list,
                             required=True,
                             width="medium"
@@ -154,21 +148,15 @@ def render_admin_dashboard(supabase):
                     hide_index=True,
                     key="admin_role_editor",
                     use_container_width=True,
-                    height=400
+                    height=300
                 )
-
-                st.write("")
                 
                 if st.button("Save Changes to Database", type="primary"):
                     with st.spinner("Pushing updates to enterprise servers..."):
                         updates_made = False
-                        
                         for index, row in edited_df.iterrows():
-                            original_role = df.loc[index, 'role']
-                            new_role = row['role']
-                            
-                            if original_role != new_role:
-                                supabase.table("profiles").update({"role": new_role}).eq("id", row['id']).execute()
+                            if df.loc[index, 'role'] != row['role']:
+                                supabase.table("profiles").update({"role": row['role']}).eq("id", row['id']).execute()
                                 updates_made = True
                         
                         if updates_made:
@@ -176,6 +164,106 @@ def render_admin_dashboard(supabase):
                             st.rerun() 
                         else:
                             st.info("No changes detected.")
-                            
         except Exception as e:
             st.error(f"Error loading Admin Directory: {str(e)}")
+
+    # ==========================================
+    # TAB 3: THE PROFITABILITY ENGINE
+    # ==========================================
+    with tab3:
+        st.write("")
+        st.markdown("#### Project Financial Close-Out")
+        st.info("Log actual costs for completed projects to calibrate AI estimations and track agency profitability.")
+
+        # 1. Close-Out Form
+        ready_tickets = [t for t in all_tickets if t.get('status') == 'Ready for Dev']
+        
+        with st.expander("Log a Completed Project", expanded=True):
+            if not ready_tickets:
+                st.success("No active projects pending close-out. All completed!")
+            else:
+                ticket_options = {f"{t['summary'][:60]}...": t for t in ready_tickets}
+                selected_ticket_name = st.selectbox("Select Project to Close Out:", list(ticket_options.keys()))
+                
+                if selected_ticket_name:
+                    active_t = ticket_options[selected_ticket_name]
+                    est_cost = extract_average_cost(active_t.get('raw_cost', '0'))
+                    
+                    st.caption(f"**AI Estimated Budget:** ${est_cost:,.2f}")
+                    
+                    col_close1, col_close2 = st.columns(2)
+                    with col_close1:
+                        actual_cost = st.number_input("Actual Total Cost ($)", min_value=0, value=int(est_cost), step=500)
+                    with col_close2:
+                        actual_time = st.text_input("Actual Time Spent", placeholder="e.g., 6 Weeks")
+                        
+                    if st.button("Finalize & Log Financials", type="primary", use_container_width=True):
+                        try:
+                            # Safely load existing JSON to append actuals
+                            full_data = json.loads(active_t['full_data']) if active_t.get('full_data') else {}
+                            full_data['actual_cost'] = actual_cost
+                            full_data['actual_time'] = actual_time
+                            
+                            # Update the database
+                            supabase.table("tickets").update({
+                                "status": "Completed & Billed",
+                                "target_department": "None",
+                                "full_data": json.dumps(full_data)
+                            }).eq("id", active_t['id']).execute()
+                            
+                            st.success("Project finalized! Financials logged.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to log project: {str(e)}")
+
+        st.divider()
+        st.markdown("#### Margin & Variance Analytics")
+        
+        # 2. Financial Analytics Engine
+        completed_tickets = [t for t in all_tickets if t.get('status') == 'Completed & Billed']
+        
+        if not completed_tickets:
+            st.info("Complete your first project above to generate financial analytics.")
+        else:
+            analytics_data = []
+            total_est = 0
+            total_actual = 0
+            
+            for t in completed_tickets:
+                try:
+                    data = json.loads(t['full_data'])
+                    est = extract_average_cost(t.get('raw_cost', '0'))
+                    act = float(data.get('actual_cost', est))
+                    
+                    total_est += est
+                    total_actual += act
+                    
+                    variance = est - act
+                    margin_status = "✅ Profitable" if variance >= 0 else "🔴 Loss / Over-budget"
+                    
+                    analytics_data.append({
+                        "Project": t.get("summary", "Unknown")[:40] + "...",
+                        "AI Estimate": f"${est:,.2f}",
+                        "Actual Cost": f"${act:,.2f}",
+                        "Variance": f"${variance:,.2f}",
+                        "Health": margin_status
+                    })
+                except:
+                    continue
+            
+            # Top-Line Margin Metrics
+            col_a1, col_a2, col_a3 = st.columns(3)
+            with col_a1:
+                st.metric("Total Billed Revenue", f"${total_actual:,.2f}")
+            with col_a2:
+                variance_total = total_est - total_actual
+                st.metric("Total AI Estimation Variance", f"${variance_total:,.2f}")
+            with col_a3:
+                # If variance is negative, we spent MORE than estimated (Loss of margin)
+                margin_health = "Healthy" if total_actual <= total_est else "Needs Calibration"
+                st.metric("Estimation Health", margin_health)
+
+            st.write("")
+            st.markdown("##### Completed Project Ledger")
+            analytics_df = pd.DataFrame(analytics_data)
+            st.dataframe(analytics_df, use_container_width=True, hide_index=True)
