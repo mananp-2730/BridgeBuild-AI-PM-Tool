@@ -35,6 +35,7 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 * **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema.
 * **Automated Stakeholder Artifacts:** Instantly generates and downloads localized, department-specific PDF reports and pre-fills email clients to share specs with external stakeholders in one click.
 * **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
+* **1-Click Client Pitch Decks:** Instantly format internal sales and feasibility data into a client-ready, scrubbed, and professional `.pptx` presentation.
 
 ## Steps to Run Locally
 1. **Clone the repo**
