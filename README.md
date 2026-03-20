@@ -24,11 +24,11 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 5. **Admin Control Center:** A global oversight dashboard that calculates total organizational pipeline value, tracks real-time department bottlenecks, and manages Active Directory access.
 
 ## Tech Stack
-* **Core Logic:** Python 3.11
+* **Core Logic:** Python 3.11, Pandas
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
-* **Frontend:** Streamlit 
+* **Frontend:** Streamlit with Custom Dynamic CSS Injection
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
-* **Artifact Generation:** ReportLab (PDFs), Native Mermaid.js
+* **Artifact Generation:** ReportLab (PDFs), Python-PPTX (PowerPoint), Native Mermaid.js
 
 ## Key Architectural Features:
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
