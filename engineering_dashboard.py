@@ -183,6 +183,16 @@ def render_engineering_dashboard(supabase):
     with st.sidebar:
         st.markdown("#### DevOps Settings")
         cloud_target = st.selectbox("Deployment Target:", ["AWS (Enterprise)", "Google Cloud Platform", "Vercel + Supabase", "Self-Hosted / Docker"])
+        
+        # --- NEW: RAG MVP CONTEXT ENGINE ---
+        st.divider()
+        st.markdown("#### 🧠 Company Context Engine")
+        st.caption("Force the AI to follow your specific internal coding standards.")
+        company_guidelines = st.text_area(
+            "Global Engineering Guidelines", 
+            placeholder="e.g., We ONLY use PostgreSQL. Primary keys must be UUIDs. Backend must be Node.js REST API. No GraphQL.",
+            height=150
+        )
 
     user_prefs = st.session_state.get("user_prefs", {})
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
@@ -278,7 +288,15 @@ def render_engineering_dashboard(supabase):
                         os.remove(tmp_path)
                     
                     st.write(f"Designing system for {cloud_target} deployment...")
-                    text_instruction = f"{eng_input}\nTarget Deployment: {cloud_target}" if eng_input else f"Extract engineering requirements for {cloud_target}."
+                    
+                    # --- NEW: PROMPT INJECTION ENGINE ---
+                    text_instruction = ""
+                    if company_guidelines.strip():
+                        text_instruction += f"CRITICAL OVERRIDE - COMPANY GUIDELINES:\nYou must strictly adhere to the following internal coding standards and rules when designing the database, APIs, and tech stack:\n{company_guidelines}\n\n"
+                    
+                    text_instruction += f"PROJECT REQUIREMENTS:\n{eng_input}\nTarget Deployment: {cloud_target}" if eng_input else f"Extract engineering requirements for {cloud_target}."
+                    # ------------------------------------
+                    
                     prompt_contents.append(text_instruction)
                     
                     response = client.models.generate_content(
