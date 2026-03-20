@@ -43,7 +43,7 @@ def _check_page_break(c, current_y, height, threshold=100):
     return current_y
 
 def _draw_header(c, width, height, title):
-    c.setFillColorRGB(0.2, 0.2, 0.2) # Dark grey/black header for Engineering
+    c.setFillColorRGB(0.2, 0.2, 0.2) 
     c.rect(0, height - 100, width, 100, fill=1, stroke=0)
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 22)
@@ -83,7 +83,6 @@ def generate_local_eng_pdf(ticket_data):
     y = _draw_wrapped_text(c, f"Infrastructure: {tech_stack.get('infrastructure', 'N/A')}", 40, y, 500, "Helvetica", 11)
     y -= 15
     
-    # --- Integrations in PDF ---
     integrations = ticket_data.get("third_party_integrations", [])
     if integrations:
         y = _check_page_break(c, y, height)
@@ -151,7 +150,6 @@ def generate_engineering_csv(ticket_data):
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # 1. DATABASE SCHEMA EXPORT
     writer.writerow(["--- DATABASE SCHEMA ---", "", "", ""])
     writer.writerow(["Table Name", "Columns", "Relationships", "Type"])
     
@@ -161,9 +159,8 @@ def generate_engineering_csv(ticket_data):
         columns = "\n".join([f"- {col}" for col in table.get("columns", [])])
         writer.writerow([table_name, columns, relationships, "Database Table"])
         
-    writer.writerow([]) # Blank spacer row
+    writer.writerow([]) 
     
-    # 2. API ENDPOINTS EXPORT
     writer.writerow(["--- API ROUTING ---", "", "", ""])
     writer.writerow(["Method", "Route", "Purpose", "Type"])
     
@@ -184,9 +181,8 @@ def render_engineering_dashboard(supabase):
         st.markdown("#### DevOps Settings")
         cloud_target = st.selectbox("Deployment Target:", ["AWS (Enterprise)", "Google Cloud Platform", "Vercel + Supabase", "Self-Hosted / Docker"])
         
-        # --- NEW: RAG MVP CONTEXT ENGINE ---
         st.divider()
-        st.markdown("#### Company Context Engine")
+        st.markdown("#### 🧠 Company Context Engine")
         st.caption("Force the AI to follow your specific internal coding standards.")
         company_guidelines = st.text_area(
             "Global Engineering Guidelines", 
@@ -204,7 +200,6 @@ def render_engineering_dashboard(supabase):
     if "eng_input" not in st.session_state: 
         st.session_state.eng_input = ""
 
-    # Initialize State Management
     if "active_eng_ticket" not in st.session_state: 
         st.session_state.active_eng_ticket = None
     if "active_eng_ticket_id" not in st.session_state: 
@@ -289,13 +284,11 @@ def render_engineering_dashboard(supabase):
                     
                     st.write(f"Designing system for {cloud_target} deployment...")
                     
-                    # --- NEW: PROMPT INJECTION ENGINE ---
                     text_instruction = ""
                     if company_guidelines.strip():
                         text_instruction += f"CRITICAL OVERRIDE - COMPANY GUIDELINES:\nYou must strictly adhere to the following internal coding standards and rules when designing the database, APIs, and tech stack:\n{company_guidelines}\n\n"
                     
                     text_instruction += f"PROJECT REQUIREMENTS:\n{eng_input}\nTarget Deployment: {cloud_target}" if eng_input else f"Extract engineering requirements for {cloud_target}."
-                    # ------------------------------------
                     
                     prompt_contents.append(text_instruction)
                     
@@ -357,19 +350,25 @@ def render_engineering_dashboard(supabase):
         
         st.divider()
         
+        # --- UI FIX: Native Containers instead of st.code ---
         col_tech1, col_tech2 = st.columns(2)
         tech_stack = data.get("tech_stack_recommendation", {})
         with col_tech1:
-            st.markdown("#### Frontend:")
-            st.code(tech_stack.get("frontend", "N/A"), language="bash")
-            st.markdown("#### Backend:")
-            st.code(tech_stack.get("backend", "N/A"), language="bash")
+            with st.container(border=True):
+                st.caption("FRONTEND")
+                st.markdown(f"**{tech_stack.get('frontend', 'N/A')}**")
+            with st.container(border=True):
+                st.caption("BACKEND")
+                st.markdown(f"**{tech_stack.get('backend', 'N/A')}**")
         with col_tech2:
-            st.markdown("#### Database:")
-            st.code(tech_stack.get("database", "N/A"), language="bash")
-            st.markdown("#### Infrastructure:")
-            st.code(tech_stack.get("infrastructure", "N/A"), language="bash")
-            
+            with st.container(border=True):
+                st.caption("DATABASE")
+                st.markdown(f"**{tech_stack.get('database', 'N/A')}**")
+            with st.container(border=True):
+                st.caption("INFRASTRUCTURE")
+                st.markdown(f"**{tech_stack.get('infrastructure', 'N/A')}**")
+        # ----------------------------------------------------
+                
         integrations = data.get("third_party_integrations", [])
         if integrations:
             st.write("")
@@ -410,7 +409,6 @@ def render_engineering_dashboard(supabase):
         for sec in data.get("security_and_compliance", []):
             st.warning(f"🔒 {sec}")
 
-        # --- EXPLICIT ENGINEERING EXPORT & EMAIL UI ---
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
@@ -423,7 +421,6 @@ def render_engineering_dashboard(supabase):
                 mime="application/pdf", 
                 use_container_width=True
             )
-            # --- NEW: ENGINEERING CSV EXPORT ---
             st.download_button(
                 "Download CSV (DB & API Schema)", 
                 data=generate_engineering_csv(data), 
@@ -464,9 +461,6 @@ def render_engineering_dashboard(supabase):
                 </a>
                 """, unsafe_allow_html=True)
 
-        # ==========================================
-        # THE ACTIVE TICKET FINALIZE PROTOCOL
-        # ==========================================
         st.divider()
         st.markdown("#### Finalize Project")
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
@@ -533,8 +527,6 @@ def render_engineering_dashboard(supabase):
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_eng_pdf(past_data), file_name=f"architecture_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_eng_{item['id']}", use_container_width=True)
-                        
-                        # --- NEW: HISTORY CSV EXPORT BUTTON ---
                         st.download_button("Download CSV (DB & API Schema)", data=generate_engineering_csv(past_data), file_name=f"engineering_schema_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_eng_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col2:
