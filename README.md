@@ -74,6 +74,7 @@ Instead of isolated tools, BridgeBuild features a Department Handoff Protocol. W
 - [x] Engine Auto-Healing: Resilient JSON parsing to prevent AI hallucination crashes.
 - [x] Pitch Deck Generator: Auto-generation of client-ready PowerPoint files.
 - [x] Profitability Calibration Engine: Financial tracking and estimation vs. actual variance analytics.
+- [x] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 
 
 **Upcoming Features** 
