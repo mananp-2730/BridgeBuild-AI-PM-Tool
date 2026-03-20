@@ -186,7 +186,7 @@ def render_engineering_dashboard(supabase):
         
         # --- NEW: RAG MVP CONTEXT ENGINE ---
         st.divider()
-        st.markdown("#### 🧠 Company Context Engine")
+        st.markdown("#### Company Context Engine")
         st.caption("Force the AI to follow your specific internal coding standards.")
         company_guidelines = st.text_area(
             "Global Engineering Guidelines", 
