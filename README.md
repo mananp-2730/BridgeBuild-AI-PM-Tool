@@ -28,9 +28,9 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
-* **Frontend:** Streamlit with Custom Dynamic CSS Injection
+* **Frontend:** Streamlit with Custom Dynamic CSS Injection (Stealth UI)
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
-* **Artifact Generation:** ReportLab (PDFs), Python-PPTX (PowerPoint), Native Mermaid.js
+* **Artifact Generation:** ReportLab (PDFs), Python-PPTX (PowerPoint), Native Mermaid.js, CSV Bulk Exporters
 
 ## Key Architectural Features:
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
