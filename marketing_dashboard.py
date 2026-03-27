@@ -6,7 +6,7 @@ from prompts import get_marketing_prompt
 from utils import clean_json_output, safe_parse_json
 
 def render_marketing_dashboard(supabase):
-    st.title("BridgeBuild AI - Marketing Studio 📣")
+    st.title("BridgeBuild AI - Marketing Studio ")
     st.markdown("### Translate technical features into high-converting Go-To-Market copy.")
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
@@ -35,7 +35,7 @@ def render_marketing_dashboard(supabase):
     st.divider()
 
     # --- 2. GENERATION ENGINE ---
-    if st.button("🚀 Generate Marketing Copy", type="primary"):
+    if st.button("Generate Marketing Copy", type="primary"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline.")
         else:
@@ -81,7 +81,7 @@ def render_marketing_dashboard(supabase):
         st.write("")
         st.success("Go-To-Market Strategy Generated!")
         
-        st.markdown(f"**🎯 Target Audience (ICP):** {data.get('target_audience', 'N/A')}")
+        st.markdown(f"**Target Audience (ICP):** {data.get('target_audience', 'N/A')}")
         st.divider()
         
         col1, col2 = st.columns(2)
