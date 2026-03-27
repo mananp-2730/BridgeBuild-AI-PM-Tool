@@ -10,6 +10,7 @@ from admin_dashboard import render_admin_dashboard
 from sales_dashboard import render_sales_dashboard
 from design_dashboard import render_design_dashboard
 from engineering_dashboard import render_engineering_dashboard
+from marketing_dashboard import render_marketing_dashboard # <-- NEW IMPORT
 from supabase import create_client
 
 # 1. PAGE CONFIG (Must absolute be first)
@@ -322,4 +323,5 @@ else:
     elif role == "design": render_design_dashboard(supabase)
     elif role == "admin": render_admin_dashboard(supabase)
     elif role == "engineering": render_engineering_dashboard(supabase)
+    elif role == "marketing": render_marketing_dashboard(supabase) # <-- NEW ROUTE
     else: render_pm_dashboard(supabase)
