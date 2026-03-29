@@ -36,8 +36,8 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
   * Profitability Calibration Engine to track estimated budgets against actual logged project costs.
 * **Could Have (The "Wow" Factor):**
-  * Zero-shot predictive analytics ("The Oracle") to mathematically forecast future trends on graphs.
-  * Spatial image highlighting using bounding box [ymin, xmin, ymax, xmax] coordinates for static dashboard analysis.
+  * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
+  * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
 * **Won't Have (Deferred to V2):**
   * Multi-player collaboration (sharing dashboards via URL).
   * OAuth 2.0 / Google SSO integration.
