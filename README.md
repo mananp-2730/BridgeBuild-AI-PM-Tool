@@ -36,9 +36,9 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas (like Google Docs or Miro).
   * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep and misaligned budgets. A strict "Department Handoff Protocol" (passing locked JSON states) enforces accountability. It ensures that what Engineering builds is mathematically aligned with the budget Sales originally quoted.
 
-* **Decision 3: Muting the Mic During TTS Playback**
-  * **The Trade-off:** The user cannot interrupt the AI while it is speaking, creating a walkie-talkie-style interaction rather than true full-duplex conversation.
-  * **The PM Rationale:** If the Web Speech API mic remained active while the AI's Text-to-Speech (TTS) engine spoke, the system would transcribe its own voice, creating an infinite hallucination loop. Ensuring data accuracy and system stability took priority over concurrent speaking capabilities.
+* **Decision 3: Custom RegEx JSON Auto-Healing vs. Strict Schema Validation**
+  * **The Trade-off:** We invested engineering hours into building a custom RegEx auto-healing engine to fix broken AI outputs, rather than simply throwing an error if the LLM hallucinated a trailing comma.
+  * **The PM Rationale:** LLMs are inherently probabilistic. Failing an entire 45-second Engineering Architecture generation because of one missing markdown bracket destroys the user experience. The auto-healing engine ensures a resilient, crash-free pipeline, prioritizing workflow completion and user trust over rigid schema enforcement.
 
 * **Decision 4: Skipping API Integrations (Salesforce/HubSpot)**
   * **The Trade-off:** We require the user to upload a CSV or use our dummy SQL database rather than connecting directly to their real SaaS tools.
