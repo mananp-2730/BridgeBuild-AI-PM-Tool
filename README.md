@@ -25,6 +25,25 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 5. **Marketing Studio (GTM Hub):** Analyzes technical architecture and instantly translates it into high-converting Go-To-Market strategies, including landing page copy, SEO metadata, and Product Hunt launch campaigns.
 6. **Admin Control Center:** A global oversight dashboard that calculates total organizational pipeline value, tracks real-time department bottlenecks, and manages Active Directory access.
 
+## **PM Thinking & Strategic Trade-Offs**
+Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
+
+* **Decision 1: Streamlit vs. Custom React/Node.js Frontend**
+  * **The Trade-off:** We sacrificed pixel-perfect frontend customization and complex client-side state management in favor of Streamlit's Python-based rapid UI rendering.
+  * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic* (Sales → PM → Eng), not the UI components. Streamlit provided extreme development velocity, allowing us to build a 6-department platform with complex Supabase routing in weeks rather than months, accelerating our time-to-market.
+
+* **Decision 2: SQLite vs. Cloud PostgreSQL**
+  * **The Trade-off:** We launched with a local SQLite database instead of a scalable, enterprise-grade cloud SQL server.
+  * **The PM Rationale:** The core hypothesis to prove was "Can an LLM reliably translate voice to SQL and render UI components?" SQLite allowed for zero-configuration local testing and immediate validation of this "Text-to-SQL" agent without incurring cloud database costs or setting up complex VPCs for an MVP.
+
+* **Decision 3: Muting the Mic During TTS Playback**
+  * **The Trade-off:** The user cannot interrupt the AI while it is speaking, creating a walkie-talkie-style interaction rather than true full-duplex conversation.
+  * **The PM Rationale:** If the Web Speech API mic remained active while the AI's Text-to-Speech (TTS) engine spoke, the system would transcribe its own voice, creating an infinite hallucination loop. Ensuring data accuracy and system stability took priority over concurrent speaking capabilities.
+
+* **Decision 4: Skipping API Integrations (Salesforce/HubSpot)**
+  * **The Trade-off:** We require the user to upload a CSV or use our dummy SQL database rather than connecting directly to their real SaaS tools.
+  * **The PM Rationale:** Building OAuth pipelines for external APIs would delay the MVP launch by weeks. We prioritized building the core Generative Dashboard Engine first. If users find value in generating Chart.js files from raw CSVs, the logical next iteration is to build the API connectors.
+
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
