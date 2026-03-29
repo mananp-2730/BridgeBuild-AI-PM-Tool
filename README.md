@@ -32,9 +32,9 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We sacrificed pixel-perfect frontend customization and complex client-side state management in favor of Streamlit's Python-based rapid UI rendering.
   * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic* (Sales → PM → Eng), not the UI components. Streamlit provided extreme development velocity, allowing us to build a 6-department platform with complex Supabase routing in weeks rather than months, accelerating our time-to-market.
 
-* **Decision 2: SQLite vs. Cloud PostgreSQL**
-  * **The Trade-off:** We launched with a local SQLite database instead of a scalable, enterprise-grade cloud SQL server.
-  * **The PM Rationale:** The core hypothesis to prove was "Can an LLM reliably translate voice to SQL and render UI components?" SQLite allowed for zero-configuration local testing and immediate validation of this "Text-to-SQL" agent without incurring cloud database costs or setting up complex VPCs for an MVP.
+* **Decision 2: Asynchronous Handoffs vs. Real-Time Collaboration**
+  * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas (like Google Docs or Miro).
+  * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep and misaligned budgets. A strict "Department Handoff Protocol" (passing locked JSON states) enforces accountability. It ensures that what Engineering builds is mathematically aligned with the budget Sales originally quoted.
 
 * **Decision 3: Muting the Mic During TTS Playback**
   * **The Trade-off:** The user cannot interrupt the AI while it is speaking, creating a walkie-talkie-style interaction rather than true full-duplex conversation.
