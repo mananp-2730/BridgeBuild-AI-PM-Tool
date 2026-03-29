@@ -17,3 +17,11 @@
 * **Role:** Lead PM / Scrum Master.
 * **Pain Point:** Wasting countless hours manually writing Agile epics, acceptance criteria, and mapping user journeys from messy sales handoffs.
 * **Goal:** Auto-generate Jira-ready epics, Mermaid.js architecture flowcharts, and maintain strict alignment with the original sales budget.
+
+## **3. Core Use Cases & User Journey**
+**The "Audio-to-Architecture" Journey:**
+1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
+2. **Scope:** The AI calculates feasibility, estimates the MVP budget, and generates a client-facing .pptx Pitch Deck.
+3. **Handoff:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories.
+4. **Architect:** The ticket flows to Engineering, where the Company Context Engine (RAG) enforces internal coding standards to generate PostgreSQL schemas and REST APIs.
+5. **Launch:** The Marketing Studio reads the technical schema and instantly generates SEO metadata and Product Hunt launch copy.
