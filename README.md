@@ -40,10 +40,10 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We invested engineering hours into building a custom RegEx auto-healing engine to fix broken AI outputs, rather than simply throwing an error if the LLM hallucinated a trailing comma.
   * **The PM Rationale:** LLMs are inherently probabilistic. Failing an entire 45-second Engineering Architecture generation because of one missing markdown bracket destroys the user experience. The auto-healing engine ensures a resilient, crash-free pipeline, prioritizing workflow completion and user trust over rigid schema enforcement.
 
-* **Decision 4: Skipping API Integrations (Salesforce/HubSpot)**
-  * **The Trade-off:** We require the user to upload a CSV or use our dummy SQL database rather than connecting directly to their real SaaS tools.
-  * **The PM Rationale:** Building OAuth pipelines for external APIs would delay the MVP launch by weeks. We prioritized building the core Generative Dashboard Engine first. If users find value in generating Chart.js files from raw CSVs, the logical next iteration is to build the API connectors.
-
+* **Decision 4: URL-Parameter Session State vs. Standard Cookie Auth**
+  * **The Trade-off:** We routed the authenticated user's session ID through the URL parameters rather than relying strictly on hidden browser cookies.
+  * **The PM Rationale:** Hosted Python applications (like Streamlit) often face aggressive cross-site iframe security blocks that unexpectedly drop user sessions. By tying the authentication state directly to the URL, we guaranteed zero-friction session persistence. A PM can stay logged in during deep-work sessions without the app timing out and losing their generated Agile epics.
+    
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
