@@ -25,3 +25,19 @@
 3. **Handoff:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories.
 4. **Architect:** The ticket flows to Engineering, where the Company Context Engine (RAG) enforces internal coding standards to generate PostgreSQL schemas and REST APIs.
 5. **Launch:** The Marketing Studio reads the technical schema and instantly generates SEO metadata and Product Hunt launch copy.
+
+## **4. Feature Prioritization (MoSCoW Framework)**
+To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
+* **Must Have (Core MVP):**
+  * Role-Based Access Control (RBAC) via Supabase to ensure users only see their designated department UI.
+  * Department Handoff Protocol to pass locked JSON states sequentially from Sales to Engineering.
+  * Military-grade JSON Auto-Healing to prevent application crashes from LLM hallucinations.
+* **Should Have (Enterprise Value):**
+  * Agentic Text-to-SQL translation allowing direct connections to relational databases (SQLite).
+  * Persistent session memory (SQLite DB) to allow users to save and reload historical insights.
+* **Could Have (The "Wow" Factor):**
+  * Zero-shot predictive analytics ("The Oracle") to mathematically forecast future trends on graphs.
+  * Spatial image highlighting using bounding box [ymin, xmin, ymax, xmax] coordinates for static dashboard analysis.
+* **Won't Have (Deferred to V2):**
+  * Multi-player collaboration (sharing dashboards via URL).
+  * OAuth 2.0 / Google SSO integration.
