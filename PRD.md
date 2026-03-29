@@ -33,8 +33,8 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Department Handoff Protocol to pass locked JSON states sequentially from Sales to Engineering.
   * Military-grade JSON Auto-Healing to prevent application crashes from LLM hallucinations.
 * **Should Have (Enterprise Value):**
-  * Agentic Text-to-SQL translation allowing direct connections to relational databases (SQLite).
-  * Persistent session memory (SQLite DB) to allow users to save and reload historical insights.
+  * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
+  * Profitability Calibration Engine to track estimated budgets against actual logged project costs.
 * **Could Have (The "Wow" Factor):**
   * Zero-shot predictive analytics ("The Oracle") to mathematically forecast future trends on graphs.
   * Spatial image highlighting using bounding box [ymin, xmin, ymax, xmax] coordinates for static dashboard analysis.
