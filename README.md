@@ -25,6 +25,13 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 5. **Marketing Studio (GTM Hub):** Analyzes technical architecture and instantly translates it into high-converting Go-To-Market strategies, including landing page copy, SEO metadata, and Product Hunt launch campaigns.
 6. **Admin Control Center:** A global oversight dashboard that calculates total organizational pipeline value, tracks real-time department bottlenecks, and manages Active Directory access.
 
+## Key Architectural Features:
+* **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
+* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema.
+* **Automated Stakeholder Artifacts:** Instantly generates and downloads localized, department-specific PDF reports and pre-fills email clients to share specs with external stakeholders in one click.
+* **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
+* **1-Click Client Pitch Decks:** Instantly format internal sales and feasibility data into a client-ready, scrubbed, and professional `.pptx` presentation.
+
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
 
@@ -50,13 +57,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Frontend:** Streamlit with Custom Dynamic CSS Injection (Stealth UI)
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
 * **Artifact Generation:** ReportLab (PDFs), Python-PPTX (PowerPoint), Native Mermaid.js, CSV Bulk Exporters
-
-## Key Architectural Features:
-* **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
-* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema.
-* **Automated Stakeholder Artifacts:** Instantly generates and downloads localized, department-specific PDF reports and pre-fills email clients to share specs with external stakeholders in one click.
-* **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
-* **1-Click Client Pitch Decks:** Instantly format internal sales and feasibility data into a client-ready, scrubbed, and professional `.pptx` presentation.
 
 ## Steps to Run Locally
 1. **Clone the repo**
