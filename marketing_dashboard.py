@@ -6,7 +6,7 @@ from prompts import get_marketing_prompt, get_localization_prompt # <-- NEW IMPO
 from utils import clean_json_output, safe_parse_json
 
 def render_marketing_dashboard(supabase):
-    st.title("BridgeBuild AI - Marketing Studio 📣")
+    st.title("BridgeBuild AI - Marketing Studio")
     st.markdown("### Translate technical features into high-converting Go-To-Market copy.")
 
     api_key = st.secrets.get("GOOGLE_API_KEY")
