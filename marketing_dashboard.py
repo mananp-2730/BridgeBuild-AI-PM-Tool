@@ -90,7 +90,7 @@ def render_marketing_dashboard(supabase):
                 ["UAE (Arabic / AED)", "Japan (Japanese / JPY)", "Germany (German / EUR)", "Latin America (Spanish / MXN)", "France (French / EUR)", "India (Hindi / INR)"]
             )
             
-            if st.button("🌐 Translate & Localize Campaign"):
+            if st.button("Translate & Localize Campaign"):
                 try:
                     client = genai.Client(api_key=api_key)
                     LOCALIZATION_PROMPT = get_localization_prompt()
