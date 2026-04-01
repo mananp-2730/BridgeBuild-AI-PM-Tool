@@ -42,7 +42,7 @@ def render_marketing_dashboard(supabase):
         st.session_state.target_region = "Global (English)"
 
     # --- 2. BASE GENERATION ENGINE ---
-    if st.button("🚀 Generate Base GTM Strategy (English)", type="primary"):
+    if st.button("Generate Base GTM Strategy (English)", type="primary"):
         if not api_key:
             st.error("System Error: AI Engine is currently offline.")
         else:
