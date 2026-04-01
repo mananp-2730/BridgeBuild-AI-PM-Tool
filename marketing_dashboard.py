@@ -82,7 +82,7 @@ def render_marketing_dashboard(supabase):
     # --- 3. GLOBAL EXPANSION ENGINE (LOCALIZATION) ---
     if st.session_state.active_marketing_data:
         st.write("")
-        with st.expander("🌍 Global Expansion Engine (Localize Strategy)", expanded=True):
+        with st.expander("Global Expansion Engine (Localize Strategy)", expanded=True):
             st.markdown("Launch this product in a new international market. The AI will adapt the tone, culture, and SEO keywords.")
             
             target_region = st.selectbox(
