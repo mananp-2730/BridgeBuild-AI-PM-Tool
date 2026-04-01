@@ -130,14 +130,14 @@ def render_marketing_dashboard(supabase):
         # --- 4. RENDER OUTPUT UI (WITH TABS) ---
         tab_names = ["🇺🇸 Base GTM (English)"]
         if st.session_state.localized_marketing_data:
-            tab_names.append(f"🌍 Localized ({st.session_state.target_region})")
+            tab_names.append(f"Localized ({st.session_state.target_region})")
             
         tabs = st.tabs(tab_names)
         
         # TAB 1: Base English Render
         with tabs[0]:
             base_data = st.session_state.active_marketing_data
-            st.markdown(f"**🎯 Target Audience (ICP):** {base_data.get('target_audience', 'N/A')}")
+            st.markdown(f"**Target Audience (ICP):** {base_data.get('target_audience', 'N/A')}")
             st.write("")
             
             col1, col2 = st.columns(2)
