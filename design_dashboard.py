@@ -344,7 +344,7 @@ def render_design_dashboard(supabase):
         # NEW: DESIGN-TO-CODE COMPONENT FACTORY
         # ==========================================
         st.divider()
-        st.subheader("💻 Frontend Component Factory")
+        st.subheader("Frontend Component Factory")
         st.markdown("Instantly generate production-ready React + Tailwind boilerplate code for your UI components.")
 
         if st.button("Generate Code Boilerplate", type="primary", use_container_width=True):
