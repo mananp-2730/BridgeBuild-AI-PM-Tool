@@ -390,7 +390,7 @@ def render_engineering_dashboard(supabase):
         # ==========================================
         if st.session_state.get("inherited_frontend"):
             st.divider()
-            st.subheader("🎨 Inherited Frontend Code (From Design)")
+            st.subheader("Inherited Frontend Code (From Design)")
             code_payload = st.session_state.inherited_frontend
             st.info(f"**Styling Guide:** {code_payload.get('global_styles_summary', 'Tailwind CSS classes applied.')}")
             
