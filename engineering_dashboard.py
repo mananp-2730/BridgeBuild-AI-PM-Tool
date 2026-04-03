@@ -215,7 +215,7 @@ def render_engineering_dashboard(supabase):
         inbox_tickets = inbox_res.data
         
         if inbox_tickets:
-            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) waiting for Technical Architecture!")
+            st.info(f"**INCOMING:** You have {len(inbox_tickets)} approved project(s) waiting for Technical Architecture!")
             for item in inbox_tickets:
                 with st.expander(f"Incoming Ticket: {item['summary'][:60]}..."):
                     try:
