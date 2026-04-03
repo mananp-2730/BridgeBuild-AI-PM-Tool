@@ -374,6 +374,11 @@ def render_design_dashboard(supabase):
                     else:
                         status.update(label="Boilerplate Code Ready!", state="complete", expanded=False)
                         st.session_state.active_generated_code = code_data
+                        
+                        # --- NEW: ATTACH CODE TO TICKET AND SAVE TO DB ---
+                        st.session_state.active_design_ticket["generated_frontend_code"] = code_data
+                        if st.session_state.active_design_ticket_id:
+                            supabase.table("tickets").update({"full_data": json.dumps(st.session_state.active_design_ticket)}).eq("id", st.session_state.active_design_ticket_id).execute()
             except Exception as e:
                 st.error(f"Error: {str(e)}")
 
