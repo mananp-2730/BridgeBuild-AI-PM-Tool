@@ -8,7 +8,7 @@ from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_design_prompt
+from prompts import get_design_prompt, get_design_to_code_prompt # <-- NEW IMPORT
 from utils import safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -139,9 +139,11 @@ def render_design_dashboard(supabase):
         st.session_state.active_design_ticket = None
     if "active_design_ticket_id" not in st.session_state: 
         st.session_state.active_design_ticket_id = None
+    if "active_generated_code" not in st.session_state:
+        st.session_state.active_generated_code = None
 
     # ==========================================
-    # NEW: INCOMING PM QUEUE (INBOX)
+    # INCOMING PM QUEUE (INBOX)
     # ==========================================
     try:
         inbox_res = supabase.table("tickets").select("*").eq("status", "Awaiting UI/UX Scoping").eq("target_department", "Design").order("created_at", desc=True).execute()
@@ -159,10 +161,8 @@ def render_design_dashboard(supabase):
                     st.write(f"**Dev Time:** {item['time']} | **Complexity:** {item['complexity']}")
                     
                     if st.button("Accept & Load into Studio", key=f"accept_{item['id']}", type="primary"):
-                        # 1. Update the original PM ticket so it leaves the queue
                         supabase.table("tickets").update({"status": "Accepted by Design"}).eq("id", item['id']).execute()
                         
-                        # 2. Inject the highly structured PM data into the Designer's text area!
                         injection_text = f"PM HANDOFF CONTEXT:\nProject Summary: {pm_data.get('summary', item['summary'])}\n"
                         if "mvp_user_stories" in pm_data:
                             injection_text += "User Stories to Design For:\n"
@@ -172,6 +172,7 @@ def render_design_dashboard(supabase):
                             injection_text += f"Features to Design For: {pm_data.get('mvp_features', [])}\n"
                             
                         st.session_state.design_input = injection_text
+                        st.session_state.active_generated_code = None # Reset code on new ticket
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -246,6 +247,7 @@ def render_design_dashboard(supabase):
                     else:
                         status.update(label="Design Architecture Complete!", state="complete", expanded=False)
                         st.session_state.active_design_ticket = data
+                        st.session_state.active_generated_code = None # Reset code
 
                 # SAVE TO SUPABASE WITH STATUS
                 new_ticket = {
@@ -337,6 +339,53 @@ def render_design_dashboard(supabase):
             st.markdown("#### Accessibility (a11y)")
             for a11y in data.get("accessibility_a11y", []):
                 st.success(f"✓ {a11y}")
+
+        # ==========================================
+        # NEW: DESIGN-TO-CODE COMPONENT FACTORY
+        # ==========================================
+        st.divider()
+        st.subheader("💻 Frontend Component Factory")
+        st.markdown("Instantly generate production-ready React + Tailwind boilerplate code for your UI components.")
+
+        if st.button("Generate Code Boilerplate", type="primary", use_container_width=True):
+            try:
+                client = genai.Client(api_key=api_key)
+                CODE_PROMPT = get_design_to_code_prompt()
+                model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+
+                with st.status("Writing Frontend Code...", expanded=True) as status:
+                    context = f"DESIGN SPECS:\n{json.dumps(data)}"
+                    
+                    st.write("Generating React components and Tailwind styling...")
+                    response = client.models.generate_content(
+                        model=model_id,
+                        config=types.GenerateContentConfig(
+                            system_instruction=CODE_PROMPT,
+                            temperature=0.2, # Lower temp for strict coding
+                            response_mime_type="application/json"
+                        ),
+                        contents=[context]
+                    )
+                    
+                    code_data, error_msg = safe_parse_json(response.text)
+                    if error_msg:
+                        status.update(label="Code Generation Failed", state="error", expanded=True)
+                        st.error(error_msg)
+                    else:
+                        status.update(label="Boilerplate Code Ready!", state="complete", expanded=False)
+                        st.session_state.active_generated_code = code_data
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+
+        if st.session_state.get("active_generated_code"):
+            code_payload = st.session_state.active_generated_code
+            st.info(f"**Styling Guide:** {code_payload.get('global_styles_summary', 'Tailwind CSS classes applied.')}")
+            
+            for comp in code_payload.get("generated_components", []):
+                with st.expander(f"📦 {comp.get('component_name', 'Component')}", expanded=True):
+                    st.caption(comp.get('description', ''))
+                    st.code(comp.get('code', '// Code missing'), language="jsx")
+
 
         # --- EXPLICIT DESIGN EXPORT & EMAIL UI ---
         st.divider()
