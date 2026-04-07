@@ -41,6 +41,7 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
 * **Should Have (Enterprise Value):**
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
   * Profitability Calibration Engine to track estimated budgets against actual logged project costs.
+  * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
   * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
