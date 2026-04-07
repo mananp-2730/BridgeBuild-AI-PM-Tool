@@ -18,6 +18,7 @@
 * **Pain Point:** Wasting countless hours manually writing Agile epics, acceptance criteria, and mapping user journeys from messy sales handoffs.
 * **Goal:** Auto-generate Jira-ready epics, Mermaid.js architecture flowcharts, and maintain strict alignment with the original sales budget.
 
+**Persona 3: The UI/UX Designer & Frontend Engineer (Tertiary)**
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
 1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
