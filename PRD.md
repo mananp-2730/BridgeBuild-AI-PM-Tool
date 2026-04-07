@@ -21,6 +21,8 @@
 **Persona 3: The UI/UX Designer & Frontend Engineer (Tertiary)**
 * **Role:** Lead Designer / Frontend Developer.
 * **Pain Point:** Rebuilding basic UI components from scratch for every project based on vague text descriptions.
+* **Goal:** Instantly generate accessible screen layouts, extract color palettes, and auto-generate copy-pasteable React/Tailwind boilerplate directly from PM requirements.
+
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
 1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
