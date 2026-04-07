@@ -107,6 +107,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] Profitability Calibration Engine: Financial tracking and estimation vs. actual variance analytics.
 - [x] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [x] Marketing Studio: Go-To-Market asset generation from technical schemas.
+- [x] Global Expansion Engine: 1-click international GTM localization.
 
 **Upcoming Features** 
 - [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
