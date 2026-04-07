@@ -56,7 +56,9 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Decision 4: URL-Parameter Session State vs. Standard Cookie Auth**
   * **The Trade-off:** We routed the authenticated user's session ID through the URL parameters rather than relying strictly on hidden browser cookies.
   * **The PM Rationale:** Hosted Python applications (like Streamlit) often face aggressive cross-site iframe security blocks that unexpectedly drop user sessions. By tying the authentication state directly to the URL, we guaranteed zero-friction session persistence. A PM can stay logged in during deep-work sessions without the app timing out and losing their generated Agile epics.
-    
+
+* **Decision 5: Generative Code vs. Drag-and-Drop Builders**
+  
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
