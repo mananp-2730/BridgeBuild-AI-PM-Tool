@@ -58,6 +58,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The PM Rationale:** Hosted Python applications (like Streamlit) often face aggressive cross-site iframe security blocks that unexpectedly drop user sessions. By tying the authentication state directly to the URL, we guaranteed zero-friction session persistence. A PM can stay logged in during deep-work sessions without the app timing out and losing their generated Agile epics.
 
 * **Decision 5: Generative Code vs. Drag-and-Drop Builders**
+  * **The Trade-off:** We opted to auto-generate raw React/Tailwind boilerplate in the Design Studio rather than building a complex drag-and-drop visual canvas (like Webflow).
   
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
