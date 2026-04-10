@@ -57,7 +57,7 @@ def render_admin_dashboard(supabase):
                     st.metric("Active Pipeline Value", f"${total_pipeline_value:,.2f}")
             with col_m3:
                 with st.container(border=True):
-                    st.metric("Ready for Dev ✅", completed)
+                    st.metric("Ready for Dev", completed)
 
             st.write("")
             st.markdown("#### Live Department Bottlenecks")
