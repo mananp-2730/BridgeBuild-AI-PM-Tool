@@ -18,10 +18,9 @@ def extract_average_cost(raw_cost_str):
     return 0
 
 def render_admin_dashboard(supabase):
-    st.title("Admin Control Center")
+    st.title("Admin Control Center 📊")
     st.markdown("### BridgeBuild AI Global Oversight & Access Control")
     
-    # NEW: Added the Profitability Engine Tab
     tab1, tab2, tab3 = st.tabs(["Global Analytics", "Team Management", "Profitability Engine"])
 
     # Fetch all tickets once to use across tabs
@@ -63,22 +62,22 @@ def render_admin_dashboard(supabase):
             st.write("")
             st.markdown("#### Live Department Bottlenecks")
             
-            col_b1, col_b2, col_b3 = st.columns(3)
+            # --- NEW: VISUAL BOTTLENECK CHART ---
+            col_b1, col_b2 = st.columns([1, 2])
             with col_b1:
-                with st.container(border=True):
-                    st.markdown("**Awaiting PM Scoping**")
-                    if pm_queue > 0: st.error(f"## {pm_queue} Ticket(s)")
-                    else: st.success("## 0 Tickets")
+                st.markdown("**Current Queue Load**")
+                st.metric("Awaiting PM", pm_queue)
+                st.metric("Awaiting Design", design_queue)
+                st.metric("Awaiting Engineering", eng_queue)
+                
             with col_b2:
-                with st.container(border=True):
-                    st.markdown("**Awaiting UI/UX Design**")
-                    if design_queue > 0: st.error(f"## {design_queue} Ticket(s)")
-                    else: st.success("## 0 Tickets")
-            with col_b3:
-                with st.container(border=True):
-                    st.markdown("**Awaiting Engineering**")
-                    if eng_queue > 0: st.error(f"## {eng_queue} Ticket(s)")
-                    else: st.success("## 0 Tickets")
+                bottleneck_data = {
+                    "Department": ["PM Scoping", "UI/UX Design", "Engineering"],
+                    "Tickets in Queue": [pm_queue, design_queue, eng_queue]
+                }
+                bottleneck_df = pd.DataFrame(bottleneck_data).set_index("Department")
+                # Native Streamlit bar chart!
+                st.bar_chart(bottleneck_df, color="#ef4444", height=250)
 
             st.divider()
             st.markdown("#### Live Project Radar")
@@ -100,7 +99,7 @@ def render_admin_dashboard(supabase):
                     radar_df, 
                     use_container_width=True, 
                     hide_index=True,
-                    height=400,
+                    height=300,
                     column_config={
                         "Creation Date": st.column_config.TextColumn("Date", width="small"),
                         "Project Summary": st.column_config.TextColumn("Project Vision", width="large"),
@@ -128,7 +127,7 @@ def render_admin_dashboard(supabase):
                 st.warning("No user profiles found.")
             else:
                 df = pd.DataFrame(profiles_data)
-                roles_list = ["pm", "sales", "engineering", "design", "freelancer", "admin"]
+                roles_list = ["pm", "sales", "engineering", "design", "freelancer", "admin", "marketing"]
                 
                 edited_df = st.data_editor(
                     df,
@@ -178,7 +177,7 @@ def render_admin_dashboard(supabase):
         # 1. Close-Out Form
         ready_tickets = [t for t in all_tickets if t.get('status') == 'Ready for Dev']
         
-        with st.expander("Log a Completed Project", expanded=True):
+        with st.expander("Log a Completed Project", expanded=False):
             if not ready_tickets:
                 st.success("No active projects pending close-out. All completed!")
             else:
@@ -226,6 +225,7 @@ def render_admin_dashboard(supabase):
             st.info("Complete your first project above to generate financial analytics.")
         else:
             analytics_data = []
+            chart_data = [] # NEW: Data array specifically for the chart
             total_est = 0
             total_actual = 0
             
@@ -241,12 +241,22 @@ def render_admin_dashboard(supabase):
                     variance = est - act
                     margin_status = "✅ Profitable" if variance >= 0 else "🔴 Loss / Over-budget"
                     
+                    proj_name = t.get("summary", "Unknown")[:30] + "..."
+                    
+                    # Data for the dataframe
                     analytics_data.append({
-                        "Project": t.get("summary", "Unknown")[:40] + "...",
+                        "Project": proj_name,
                         "AI Estimate": f"${est:,.2f}",
                         "Actual Cost": f"${act:,.2f}",
                         "Variance": f"${variance:,.2f}",
                         "Health": margin_status
+                    })
+                    
+                    # Data for the visual chart
+                    chart_data.append({
+                        "Project": proj_name,
+                        "AI Estimate ($)": est,
+                        "Actual Logged Cost ($)": act
                     })
                 except:
                     continue
@@ -263,6 +273,15 @@ def render_admin_dashboard(supabase):
                 margin_health = "Healthy" if total_actual <= total_est else "Needs Calibration"
                 st.metric("Estimation Health", margin_health)
 
+            st.write("")
+            
+            # --- NEW: VISUAL FINANCIAL CHART ---
+            st.markdown("##### 📈 Estimate vs. Actuals Tracker")
+            if chart_data:
+                chart_df = pd.DataFrame(chart_data).set_index("Project")
+                # Renders a side-by-side comparison bar chart!
+                st.bar_chart(chart_df, color=["#3b82f6", "#ef4444"], height=300) 
+            
             st.write("")
             st.markdown("##### Completed Project Ledger")
             analytics_df = pd.DataFrame(analytics_data)
