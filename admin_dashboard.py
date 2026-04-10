@@ -276,7 +276,7 @@ def render_admin_dashboard(supabase):
             st.write("")
             
             # --- NEW: VISUAL FINANCIAL CHART ---
-            st.markdown("##### 📈 Estimate vs. Actuals Tracker")
+            st.markdown("##### Estimate vs. Actuals Tracker")
             if chart_data:
                 chart_df = pd.DataFrame(chart_data).set_index("Project")
                 # Renders a side-by-side comparison bar chart!
