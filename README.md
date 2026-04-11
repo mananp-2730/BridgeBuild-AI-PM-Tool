@@ -112,7 +112,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] Analytics Dashboard Visualizer: Dynamic charts mapping cost trends, margin variance, and department bottlenecks.
 
 **Upcoming Features** 
-- [ ] Company Context Engine: RAG integration to align AI output with internal engineering guidelines.
 - [ ] Analytics Dashboard: Visualize cost trends and project complexity over time.
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
 - [ ] Automated QA Generation: Auto-generate Selenium or Cypress testing scripts based on the PM Hub's Acceptance Criteria.
