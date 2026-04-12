@@ -8,7 +8,7 @@ import csv
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_system_prompt
+from prompts import get_system_prompt, get_change_request_prompt # <-- NEW IMPORT
 from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -209,6 +209,12 @@ def render_pm_dashboard(supabase):
 
     if "sales_input" not in st.session_state: 
         st.session_state.sales_input = ""
+    if "active_ticket" not in st.session_state: 
+        st.session_state.active_ticket = None
+    if "active_ticket_id" not in st.session_state: 
+        st.session_state.active_ticket_id = None
+    if "cr_analysis" not in st.session_state:
+        st.session_state.cr_analysis = None
 
     # ==========================================
     # INCOMING SALES QUEUE (INBOX)
@@ -236,6 +242,7 @@ def render_pm_dashboard(supabase):
                         
                         injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
                         st.session_state.sales_input = injection_text
+                        st.session_state.cr_analysis = None # Reset CR on new load
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -255,8 +262,6 @@ def render_pm_dashboard(supabase):
             
     sales_input = st.text_area("Paste Text or Review Sales Context:", value=st.session_state.sales_input, height=150)
 
-    if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
-    if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
 
     if st.button("Generate Ticket & Budget", type="primary"):
         if not api_key: st.error("System Error: AI Engine is currently offline.")
@@ -305,6 +310,7 @@ def render_pm_dashboard(supabase):
                         status.update(label="Agile Ticket Generated!", state="complete", expanded=False)
                         
                 st.session_state.active_ticket = data
+                st.session_state.cr_analysis = None # Reset CR on new generate
                 st.success("Analysis Complete!")
 
                 raw_cost = data.get("budget_estimate_usd", "0-0")
@@ -388,6 +394,84 @@ def render_pm_dashboard(supabase):
             if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
             else: st.info("No architecture diagram generated.")
 
+        # ==========================================
+        # NEW: SCOPE CREEP / CR CALCULATOR
+        # ==========================================
+        st.divider()
+        st.subheader("⚠️ Scope Creep / Change Request Calculator")
+        st.markdown("Did the client just ask for 'one more tiny feature'? Calculate the exact technical impact, cost, and delay to protect your margins.")
+
+        cr_input = st.text_area("Describe the client's new request:", placeholder="e.g., The client wants to add a social feed where users can comment on each other's orders...")
+
+        if st.button("Calculate Technical Impact & Invoice", type="primary"):
+            if not api_key:
+                st.error("API Key missing.")
+            elif not cr_input:
+                st.warning("Please describe the change request.")
+            else:
+                with st.status("Analyzing Scope Creep Impact...", expanded=True) as status:
+                    try:
+                        client = genai.Client(api_key=api_key)
+                        CR_PROMPT = get_change_request_prompt()
+                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+
+                        st.write("Cross-referencing request against Base Project Data...")
+                        context = f"BASE PROJECT DATA:\n{json.dumps(data)}\n\nNEW CLIENT REQUEST:\n{cr_input}"
+
+                        response = client.models.generate_content(
+                            model=model_id,
+                            config=types.GenerateContentConfig(
+                                system_instruction=CR_PROMPT,
+                                temperature=0.2,
+                                response_mime_type="application/json"
+                            ),
+                            contents=[context]
+                        )
+
+                        cr_data, error_msg = safe_parse_json(response.text)
+
+                        if error_msg:
+                            status.update(label="Calculation Failed", state="error", expanded=True)
+                            st.error(error_msg)
+                        else:
+                            status.update(label="Impact Calculated Successfully!", state="complete", expanded=False)
+                            st.session_state.cr_analysis = cr_data
+
+                    except Exception as e:
+                        status.update(label="Error", state="error")
+                        st.error(f"Error: {str(e)}")
+
+        if st.session_state.get("cr_analysis"):
+            c_data = st.session_state.cr_analysis
+            
+            # Dynamic color for recommendation
+            rec = c_data.get('pm_recommendation', 'N/A')
+            rec_color = "red" if "Reject" in rec else "orange" if "Phase 2" in rec else "green"
+            
+            st.markdown(f"### PM Recommendation: :{rec_color}[{rec}]")
+
+            with st.container(border=True):
+                col_cr1, col_cr2 = st.columns(2)
+                with col_cr1:
+                    st.metric("Estimated Additional Cost", c_data.get("estimated_additional_cost", "$0"))
+                with col_cr2:
+                    st.metric("Estimated Time Delay", c_data.get("estimated_time_delay", "0 Weeks"))
+
+            st.info(f"**Technical Impact:** {c_data.get('technical_impact', '')}")
+
+            col_db, col_api = st.columns(2)
+            with col_db:
+                st.markdown("**Database Modifications:**")
+                for table in c_data.get("new_or_modified_tables", []):
+                    action_color = "green" if "CREATE" in table.get('action', '').upper() else "blue"
+                    st.caption(f":{action_color}[[{table.get('action')}]] Table: `{table.get('table_name')}`")
+                    st.write(f"Cols: {', '.join(table.get('columns', []))}")
+            with col_api:
+                st.markdown("**New API Endpoints:**")
+                for api in c_data.get("new_api_endpoints", []):
+                    st.caption(f"**[{api.get('method')}]** `{api.get('route')}`")
+                    st.write(f"↳ {api.get('purpose')}")
+
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
@@ -434,6 +518,16 @@ def render_pm_dashboard(supabase):
                 for feat in data.get("mvp_features", []): sales_body += f"  - {feat}\n"
             sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
             for feat in data.get("phase_2_features", []): sales_body += f"  - {feat}\n"
+            
+            # Include Change Request data in email if it exists
+            if st.session_state.get("cr_analysis"):
+                c_data = st.session_state.cr_analysis
+                sales_body += f"\n\n⚠️ -> CHANGE REQUEST ANALYSIS\n"
+                sales_body += f"Client Request: {c_data.get('cr_summary')}\n"
+                sales_body += f"Est. Additional Cost: {c_data.get('estimated_additional_cost')}\n"
+                sales_body += f"Est. Time Delay: {c_data.get('estimated_time_delay')}\n"
+                sales_body += f"PM Recommendation: {c_data.get('pm_recommendation')}\n"
+
             sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
             sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
             
