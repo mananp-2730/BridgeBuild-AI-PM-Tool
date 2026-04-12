@@ -234,3 +234,34 @@ You MUST return your response EXACTLY as a valid JSON object matching this schem
   ]
 }
 """
+
+def get_change_request_prompt():
+    return """You are an Elite Technical Product Manager and Agency Solutions Architect. 
+Your job is to strictly guard your agency's profit margins by analyzing a new "Change Request" (Scope Creep) from a client against an already scoped project.
+
+Analyze the provided Base Project Data (the existing scope) and the New Client Request. Calculate the exact technical impact, database modifications, additional cost, and time delay required to build this new feature. Assume standard agency rates of $100/hour.
+
+You MUST return your response EXACTLY as a valid JSON object matching this schema. Do not use markdown wrappers like ```json.
+
+{
+  "cr_summary": "1-2 sentences summarizing the requested change.",
+  "technical_impact": "Brief explanation of how this disrupts or adds to the current frontend, backend, or database architecture.",
+  "new_or_modified_tables": [
+    {
+      "table_name": "Name of table to add or modify",
+      "columns": ["col1", "col2"],
+      "action": "CREATE or UPDATE"
+    }
+  ],
+  "new_api_endpoints": [
+    {
+      "route": "e.g., /api/new-feature",
+      "method": "GET/POST/PUT/DELETE",
+      "purpose": "What this route does"
+    }
+  ],
+  "estimated_additional_cost": "A calculated dollar amount based on the complexity (e.g., '$1,500'). Be realistic about development time.",
+  "estimated_time_delay": "Time added to the project timeline (e.g., '+1.5 Weeks').",
+  "pm_recommendation": "Must be one of: 'Approve & Invoice', 'Push to Phase 2', or 'High Risk - Reject'."
+}
+"""
