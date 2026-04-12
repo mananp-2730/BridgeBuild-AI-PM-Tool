@@ -398,7 +398,7 @@ def render_pm_dashboard(supabase):
         # NEW: SCOPE CREEP / CR CALCULATOR
         # ==========================================
         st.divider()
-        st.subheader("⚠️ Scope Creep / Change Request Calculator")
+        st.subheader("Scope Creep / Change Request Calculator")
         st.markdown("Did the client just ask for 'one more tiny feature'? Calculate the exact technical impact, cost, and delay to protect your margins.")
 
         cr_input = st.text_area("Describe the client's new request:", placeholder="e.g., The client wants to add a social feed where users can comment on each other's orders...")
