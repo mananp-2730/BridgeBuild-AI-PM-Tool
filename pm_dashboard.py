@@ -522,7 +522,7 @@ def render_pm_dashboard(supabase):
             # Include Change Request data in email if it exists
             if st.session_state.get("cr_analysis"):
                 c_data = st.session_state.cr_analysis
-                sales_body += f"\n\n⚠️ -> CHANGE REQUEST ANALYSIS\n"
+                sales_body += f"\n\n-> CHANGE REQUEST ANALYSIS\n"
                 sales_body += f"Client Request: {c_data.get('cr_summary')}\n"
                 sales_body += f"Est. Additional Cost: {c_data.get('estimated_additional_cost')}\n"
                 sales_body += f"Est. Time Delay: {c_data.get('estimated_time_delay')}\n"
