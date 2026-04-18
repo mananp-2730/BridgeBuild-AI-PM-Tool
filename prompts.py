@@ -232,7 +232,7 @@ You MUST return your response EXACTLY as a valid JSON object matching this schem
       "code": "The raw boilerplate code for this specific component."
     }
   ],
-  "live_sandbox_html": "A COMPLETE, valid HTML5 document that stitches all the generated components together into a beautiful, cohesive page. It MUST include <script src='[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)'></script> in the <head>. It MUST be fully responsive and use the project's hex colors. This string will be directly rendered in an iframe, so ensure all tags are closed and it looks like a real, functional prototype."
+  "live_sandbox_html": "A COMPLETE, valid HTML5 document that stitches all the generated components together into a beautiful, cohesive page. \n\nCRITICAL SPA RULES FOR NAVIGATION: If the design includes multiple tabs or pages (e.g., Home, Logs, Profile), you MUST build it as a Single Page Application. Do NOT use standard <a href> tags that cause page reloads. Instead, use inline JavaScript to toggle 'hidden' Tailwind classes on different <section> or <div> containers. You MUST design and include the fully fleshed-out UI for ALL tabs mentioned in the navigation, not just the homepage.\n\nIt MUST include <script src='[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)'></script> in the <head>. It MUST be fully responsive and use the project's hex colors. Ensure all tags are closed and it acts as a fully interactive prototype."
 }
 """
 
