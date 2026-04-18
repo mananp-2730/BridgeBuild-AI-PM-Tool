@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components # <-- NEW IMPORT
 import json
 import os
 import tempfile
@@ -8,7 +9,7 @@ from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_design_prompt, get_design_to_code_prompt # <-- NEW IMPORT
+from prompts import get_design_prompt, get_design_to_code_prompt
 from utils import safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -347,7 +348,7 @@ def render_design_dashboard(supabase):
         st.subheader("Frontend Component Factory")
         st.markdown("Instantly generate production-ready React + Tailwind boilerplate code for your UI components.")
 
-        if st.button("Generate Code Boilerplate", type="primary", use_container_width=True):
+        if st.button("Generate Code Boilerplate & Live Preview", type="primary", use_container_width=True):
             try:
                 client = genai.Client(api_key=api_key)
                 CODE_PROMPT = get_design_to_code_prompt()
@@ -386,8 +387,20 @@ def render_design_dashboard(supabase):
             code_payload = st.session_state.active_generated_code
             st.info(f"**Styling Guide:** {code_payload.get('global_styles_summary', 'Tailwind CSS classes applied.')}")
             
+            # ==========================================
+            # NEW: LIVE-RENDER PROTOTYPE SANDBOX
+            # ==========================================
+            if code_payload.get("live_sandbox_html"):
+                st.write("")
+                st.markdown("### 🔴 Live Prototype Sandbox")
+                st.caption("Interact with the AI-generated Tailwind UI below. This is fully responsive, live-rendered code injected directly into your workspace.")
+                with st.container(border=True):
+                    components.html(code_payload.get("live_sandbox_html"), height=600, scrolling=True)
+            
+            st.divider()
+            st.markdown("#### Raw Component Boilerplate")
             for comp in code_payload.get("generated_components", []):
-                with st.expander(f"📦 {comp.get('component_name', 'Component')}", expanded=True):
+                with st.expander(f"📦 {comp.get('component_name', 'Component')}", expanded=False):
                     st.caption(comp.get('description', ''))
                     st.code(comp.get('code', '// Code missing'), language="jsx")
 
