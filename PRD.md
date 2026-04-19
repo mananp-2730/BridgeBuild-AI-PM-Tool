@@ -16,7 +16,7 @@
 **Persona 2: The Technical Product Manager (Secondary)**
 * **Role:** Lead PM / Scrum Master.
 * **Pain Point:** Wasting countless hours manually writing Agile epics, acceptance criteria, and mapping user journeys from messy sales handoffs.
-* **Goal:** Auto-generate Jira-ready epics, Mermaid.js architecture flowcharts, and maintain strict alignment with the original sales budget.
+* **Goal:** Auto-generate Jira-ready epics, Mermaid.js architecture flowcharts, and mathematically protect profit margins against scope creep with the AI Calculator.
 
 **Persona 3: The UI/UX Designer & Frontend Engineer (Tertiary)**
 * **Role:** Lead Designer / Frontend Developer.
