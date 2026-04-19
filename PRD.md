@@ -27,10 +27,10 @@
 **The "Audio-to-Architecture" Journey:**
 1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
 2. **Scope:** The AI calculates feasibility, estimates the MVP budget, and generates a client-facing .pptx Pitch Deck.
-3. **Handoff:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories.
-4. **Design:** The ticket flows to the Design Studio, where the AI maps user flows, extracts hex colors, and utilizes the Component Factory to write production-ready React+Tailwind code.
-5. **Architect:** The ticket flows to Engineering, where the Company Context Engine (RAG) enforces internal coding standards to generate PostgreSQL schemas and REST APIs.
-6. **Launch:** The Marketing Studio reads the technical schema and instantly generates SEO metadata and Product Hunt launch copy.
+3. **Handoff:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories. If the client asks for new features later, the PM uses the Scope Creep Calculator to instantly generate a revised invoice.
+4. **Design:** The ticket flows to the Design Studio, where the AI maps user flows, extracts hex colors, writes production-ready React code, and renders a live, clickable Single Page Application (SPA) Prototype in the browser.
+5. **Architect:** Engineering inherits the design code and uses the Company Context Engine (RAG) to enforce internal coding standards and generate PostgreSQL schemas and REST APIs.
+6. **Launch:** The Marketing Studio reads the technical schema, generates Product Hunt launch copy, and uses the Global Expansion Engine to localize the campaign for international markets.
 
 ## **4. Feature Prioritization (MoSCoW Framework)**
 To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
