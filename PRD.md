@@ -44,6 +44,7 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Scope Creep (CR) Calculator to calculate the financial and technical impact of mid-sprint feature requests.
   * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
+  * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
   * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
   * Global Expansion Engine to translate and culturally adapt GTM strategies.
