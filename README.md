@@ -30,13 +30,13 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks via dynamic bar charts, visualizes AI estimate vs. actual margin variance, and manages Active Directory access.
 
 ## Key Architectural Features:
+* **Live-Render Prototype Sandbox:** Bypasses static code generation by instantly compiling AI-written React and Tailwind CSS into a live, clickable Single Page Application (SPA) directly inside the platform's iframe.
+* **Scope Creep (CR) Calculator:** A margin-protection engine that cross-references new client feature requests against the existing scoped database to automatically calculate technical impact, additional costs, and timeline delays.
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
-* **Multimodal Audio-to-Architecture:** Don't type. Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into a structured database schema.
-* **Design-to-Code Component Factory:** Bridges the gap between designers and developers by automatically writing syntax-highlighted React + Tailwind CSS boilerplate code based on the AI's generated UI specifications.
+* **Multimodal Audio-to-Architecture:** Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into structured database schemas.
+* **Design-to-Code Component Factory:** Automatically writes syntax-highlighted React + Tailwind CSS boilerplate code based on the AI's generated UI specifications.
 * **Global Expansion Engine:** Instantly localizes Go-To-Market strategies into multiple languages and cultural business etiquettes, turning a local product launch into an international campaign.
-* **Automated Stakeholder Artifacts:** Instantly generates and downloads localized, department-specific PDF reports and pre-fills email clients to share specs with external stakeholders in one click.
 * **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
-* **1-Click Client Pitch Decks:** Instantly format internal sales and feasibility data into a client-ready, scrubbed, and professional `.pptx` presentation.
 
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
