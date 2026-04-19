@@ -40,7 +40,8 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Military-grade JSON Auto-Healing to prevent application crashes from LLM hallucinations.
 * **Should Have (Enterprise Value):**
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
-  * Profitability Calibration Engine to track estimated budgets against actual logged project costs.
+  * Profitability Calibration Engine & Analytics Visualizer to graphically track estimated budgets against actual logged project costs.
+  * Scope Creep (CR) Calculator to calculate the financial and technical impact of mid-sprint feature requests.
   * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
