@@ -23,11 +23,11 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 
 ## Role-Based Workspaces & Pipelines:
 1. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, critical client "Ask Lists", deal-breaker warnings, and dynamic MVP budgeting.
-2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, Technical Risk Analysis, and native Mermaid.js architecture flowcharts.
-3. **UX/UI Design Studio:** Catches approved Agile tickets. Strips away backend tech jargon to generate core user flows, key screen layouts, UI component lists, and extracts hex color swatches for the project's visual identity.
+2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, and Technical Risk Analysis. **Features a Scope Creep Calculator to mathematically price mid-sprint feature requests.**
+3. **UX/UI Design Studio:** Catches approved Agile tickets. Generates core user flows, hex color swatches, writes React/Tailwind boilerplate, and **compiles a Live-Render Prototype Sandbox displaying a fully functional Single Page Application (SPA).**
 4. **Engineering Terminal:** Catches approved Design tickets. Translates business requirements into pure technical execution, providing structured database schemas, REST API routes, tech stack recommendations, and CI/CD pipelines.
 5. **Marketing Studio (GTM Hub):** Analyzes technical architecture and instantly translates it into high-converting Go-To-Market strategies, including landing page copy, SEO metadata, and Product Hunt launch campaigns.
-6. **Admin Control Center:** A global oversight dashboard that calculates total organizational pipeline value, tracks real-time department bottlenecks, and manages Active Directory access.
+6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks via dynamic bar charts, visualizes AI estimate vs. actual margin variance, and manages Active Directory access.
 
 ## Key Architectural Features:
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
