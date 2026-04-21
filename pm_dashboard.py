@@ -5,10 +5,11 @@ import tempfile
 import os
 import io
 import csv
+import re # <-- NEW IMPORT FOR SLIDER LOGIC
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_system_prompt, get_change_request_prompt # <-- NEW IMPORT
+from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt # <-- NEW IMPORT
 from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -395,7 +396,81 @@ def render_pm_dashboard(supabase):
             else: st.info("No architecture diagram generated.")
 
         # ==========================================
-        # NEW: SCOPE CREEP / CR CALCULATOR
+        # NEW: SCOPE-SLIDER BUDGET NEGOTIATOR
+        # ==========================================
+        st.divider()
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
+        st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
+        
+        # Calculate current max budget for the slider bounds
+        raw_cost_str = data.get("budget_estimate_usd", "0")
+        numbers = re.findall(r'\d+', raw_cost_str.replace(',', ''))
+        current_max_budget = int(numbers[-1]) if numbers else 15000
+        slider_max = max(current_max_budget, 5000)
+
+        target_budget = st.slider("Target Maximum Budget ($ USD):", min_value=1000, max_value=slider_max, value=current_max_budget, step=500)
+
+        if st.button("Axe Features & Recalculate Scope", type="primary"):
+            if not api_key:
+                st.error("API Key missing.")
+            elif target_budget >= current_max_budget:
+                st.info("Target budget is equal to or higher than the current estimate. No cuts needed!")
+            else:
+                with st.status(f"Stripping scope to fit ${target_budget:,}...", expanded=True) as status:
+                    try:
+                        client = genai.Client(api_key=api_key)
+                        SCOPE_PROMPT = get_scope_slider_prompt()
+                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+                        
+                        st.write("Moving non-essentials to Phase 2...")
+                        st.write("Downgrading architecture & recalculating timeline...")
+                        
+                        context = f"ORIGINAL PROJECT SCOPE:\n{json.dumps(data)}\n\nTARGET BUDGET: ${target_budget}"
+                        
+                        response = client.models.generate_content(
+                            model=model_id,
+                            config=types.GenerateContentConfig(
+                                system_instruction=SCOPE_PROMPT,
+                                temperature=0.2,
+                                response_mime_type="application/json"
+                            ),
+                            contents=[context]
+                        )
+                        
+                        new_data, error_msg = safe_parse_json(response.text)
+                        
+                        if error_msg:
+                            status.update(label="Recalculation Failed", state="error", expanded=True)
+                            st.error(error_msg)
+                        else:
+                            status.update(label="Scope Successfully Reduced!", state="complete", expanded=False)
+                            st.session_state.active_ticket = new_data
+                            st.session_state.cr_analysis = None # Clear CR analysis on new scope
+                            
+                            # Update the DB
+                            if st.session_state.active_ticket_id:
+                                new_raw = new_data.get("budget_estimate_usd", "0-0")
+                                low_e = new_raw.split("-")[0] if "-" in new_raw else new_raw
+                                high_e = new_raw.split("-")[1] if "-" in new_raw else new_raw
+                                fmt_l = convert_currency(low_e, currency)
+                                fmt_h = convert_currency(high_e, currency)
+                                
+                                supabase.table("tickets").update({
+                                    "summary": new_data.get("summary"), 
+                                    "complexity": new_data.get("complexity_score"), 
+                                    "time": new_data.get("development_time"), 
+                                    "cost": f"{fmt_l} - {fmt_h}",
+                                    "raw_cost": new_raw,
+                                    "full_data": json.dumps(new_data)
+                                }).eq("id", st.session_state.active_ticket_id).execute()
+                                
+                            st.rerun()
+                    except Exception as e:
+                        status.update(label="Error", state="error")
+                        st.error(f"Error: {str(e)}")
+
+        # ==========================================
+        # SCOPE CREEP / CR CALCULATOR
         # ==========================================
         st.divider()
         st.subheader("Scope Creep / Change Request Calculator")
