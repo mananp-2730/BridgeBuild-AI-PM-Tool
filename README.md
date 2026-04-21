@@ -44,7 +44,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 
 * **Decision 1: Streamlit vs. Custom React/Node.js Frontend**
   * **The Trade-off:** We sacrificed pixel-perfect frontend customization and complex client-side state management in favor of Streamlit's Python-based rapid UI rendering.
-  * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic* (Sales → PM → Eng), not the UI components. Streamlit provided extreme development velocity, allowing us to build a 6-department platform with complex Supabase routing in weeks rather than months, accelerating our time-to-market.
+  * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic*, not the UI components. Streamlit provided extreme development velocity, accelerating our time-to-market.
 
 * **Decision 2: Asynchronous Handoffs vs. Real-Time Collaboration**
   * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas (like Google Docs or Miro).
