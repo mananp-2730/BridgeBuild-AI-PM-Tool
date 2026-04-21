@@ -12,7 +12,7 @@
 * **Role:** Chief Executive Officer / Business Development Executive.
 * **Pain Point:** Guessing technical feasibility and budgets on discovery calls, leading to underpriced contracts and lost margins.
 * **Goal:** Instant risk assessment, dynamic budget estimation, 1-click generation of client-ready pitch decks, and a visual Command Center to track margin variance across the agency.
-
+  
 **Persona 2: The Technical Product Manager (Secondary)**
 * **Role:** Lead PM / Scrum Master.
 * **Pain Point:** Wasting countless hours manually writing Agile epics, acceptance criteria, and mapping user journeys from messy sales handoffs.
