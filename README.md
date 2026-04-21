@@ -23,7 +23,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 
 ## Role-Based Workspaces & Pipelines:
 1. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, critical client "Ask Lists", deal-breaker warnings, and dynamic MVP budgeting.
-2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, and Technical Risk Analysis. **Features a Scope Creep Calculator to mathematically price mid-sprint feature requests.**
+2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, and Technical Risk Analysis. **Features a Scope Creep Calculator and an interactive Scope-Slider Budget Negotiator to mathematically price mid-sprint requests and dynamically strip scope to fit strict client budgets.**
 3. **UX/UI Design Studio:** Catches approved Agile tickets. Generates core user flows, hex color swatches, writes React/Tailwind boilerplate, and **compiles a Live-Render Prototype Sandbox displaying a fully functional Single Page Application (SPA).**
 4. **Engineering Terminal:** Catches approved Design tickets. Translates business requirements into pure technical execution, providing structured database schemas, REST API routes, tech stack recommendations, and CI/CD pipelines.
 5. **Marketing Studio (GTM Hub):** Analyzes technical architecture and instantly translates it into high-converting Go-To-Market strategies, including landing page copy, SEO metadata, and Product Hunt launch campaigns.
