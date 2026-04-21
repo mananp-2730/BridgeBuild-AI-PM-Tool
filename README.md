@@ -117,6 +117,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] Analytics Dashboard Visualizer: Dynamic charts mapping cost trends, margin variance, and department bottlenecks.
 - [x] Scope Creep Calculator: AI-driven financial impact analysis for mid-sprint client requests.
 - [x] Live-Render Prototype Sandbox: In-app iframe execution of AI-generated Single Page Applications (SPAs).
+- [x] Scope-Slider Budget Negotiator: Interactive drag-and-drop budget recalculation and automated feature demotion.
 
 **Upcoming Features** 
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
