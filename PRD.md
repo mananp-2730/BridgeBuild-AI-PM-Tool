@@ -42,6 +42,7 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
   * Profitability Calibration Engine & Analytics Visualizer to graphically track estimated budgets against actual logged project costs.
   * Scope Creep (CR) Calculator to calculate the financial and technical impact of mid-sprint feature requests.
+  * Scope-Slider Budget Negotiator for real-time, drag-and-drop architectural downgrades to fit strict client budgets.
   * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
