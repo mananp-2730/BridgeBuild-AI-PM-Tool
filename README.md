@@ -47,8 +47,8 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic*, not the UI components. Streamlit provided extreme development velocity, accelerating our time-to-market.
 
 * **Decision 2: Asynchronous Handoffs vs. Real-Time Collaboration**
-  * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas (like Google Docs or Miro).
-  * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep and misaligned budgets. A strict "Department Handoff Protocol" (passing locked JSON states) enforces accountability. It ensures that what Engineering builds is mathematically aligned with the budget Sales originally quoted.
+  * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas.
+  * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep. A strict "Department Handoff Protocol" enforces accountability and ensures budget alignment.
 
 * **Decision 3: Custom RegEx JSON Auto-Healing vs. Strict Schema Validation**
   * **The Trade-off:** We invested engineering hours into building a custom RegEx auto-healing engine to fix broken AI outputs, rather than simply throwing an error if the LLM hallucinated a trailing comma.
