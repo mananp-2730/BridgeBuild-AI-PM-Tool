@@ -59,9 +59,9 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The PM Rationale:** Hosted Python applications often face aggressive iframe security blocks that drop sessions. URL routing guarantees zero-friction session persistence.
 
 * **Decision 5: Generative Code vs. Drag-and-Drop Builders**
-  * **The Trade-off:** We opted to auto-generate raw React/Tailwind boilerplate in the Design Studio rather than building a complex drag-and-drop visual canvas (like Webflow).
-  * **The PM Rationale:** Developers heavily dislike exported "spaghetti code" from visual builders. By giving them clean, semantic React boilerplate that they can immediately copy-paste, we drastically reduced time-to-first-paint while keeping the engineering team in absolute control of the final architecture.
-
+  * **The Trade-off:** We auto-generate raw React/Tailwind boilerplate rather than building a visual drag-and-drop canvas.
+  * **The PM Rationale:** Developers dislike exported "spaghetti code" from visual builders. Semantic React boilerplate drastically reduces time-to-first-paint while keeping engineers in control.
+    
 * **Decision 6: Single Page Application (SPA) Prototypes vs. Multi-Page HTML**
   * **The Trade-off:** We force the AI to generate complex Javascript to toggle hidden `<div>` elements rather than allowing standard `<a href>` tag navigation.
   * * **The PM Rationale:** Standard HTML links inside a Streamlit iframe cause the parent application to reload and crash the session state. By enforcing SPA architecture, the prototype renders and navigates flawlessly within the Live Sandbox.
