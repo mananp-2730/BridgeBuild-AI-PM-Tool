@@ -344,7 +344,7 @@ def render_pm_dashboard(supabase):
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
             st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
