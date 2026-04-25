@@ -5,11 +5,11 @@ import tempfile
 import os
 import io
 import csv
-import re 
+import re
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt # <-- NEW IMPORT
+from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt
 from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -263,7 +263,6 @@ def render_pm_dashboard(supabase):
             
     sales_input = st.text_area("Paste Text or Review Sales Context:", value=st.session_state.sales_input, height=150)
 
-
     if st.button("Generate Ticket & Budget", type="primary"):
         if not api_key: st.error("System Error: AI Engine is currently offline.")
         elif not sales_input and not uploaded_file: st.warning("Please enter text or upload a file.")
@@ -333,73 +332,135 @@ def render_pm_dashboard(supabase):
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
 
+    # ==========================================
+    # ACTIVE TICKET UI & GOD-MODE
+    # ==========================================
     if st.session_state.active_ticket:
         data = st.session_state.active_ticket
-        raw_cost = data.get("budget_estimate_usd", "0-0")
-        low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
-        high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
-        fmt_low = convert_currency(low_end, currency)
-        fmt_high = convert_currency(high_end, currency)
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: st.metric("Complexity", data.get("complexity_score"))
-        with col2: st.metric("Dev Time", data.get("development_time"))
-        with col3: st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
-        with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
-
-        st.divider()
         
-        with st.expander("Engineering Ticket Summary", expanded=True): st.info(f"**Summary:** {data.get('summary')}")
-            
-        if data.get("ambiguity_flags"):
-            with st.expander("PM Pre-Flight: Missing Context", expanded=False):
-                for flag in data.get("ambiguity_flags", []): st.warning(f"{flag}")
-                    
-        if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
-            with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
-                for i, task in enumerate(data.get("epic_sub_tasks")):
-                    st.markdown(f"**{i+1}. {task.get('task_name', 'Sub-Task')}**")
-                    st.caption(f"Est. Time: {task.get('estimated_days', 'N/A')}")
-                    st.markdown(f"> {task.get('description', '')}")
-                    st.write("")
-                    
-        with st.expander("Phase 1: Core MVP", expanded=False):
-            if "mvp_user_stories" in data:
-                for item in data.get("mvp_user_stories", []):
-                    st.markdown(f"**{item.get('story', 'User Story')}**")
-                    for ac in item.get("acceptance_criteria", []): st.markdown(f"  * {ac}")
-                    st.write("")
-            else:
-                for feat in data.get("mvp_features", []): st.markdown(f"- {feat}")
-                    
-        with st.expander("Phase 2: Future Enhancements", expanded=False):
-            p2_raw = data.get("phase_2_budget_usd", "0-0")
-            p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
-            p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
-            p2_fmt_low = convert_currency(p2_low, currency)
-            p2_fmt_high = convert_currency(p2_high, currency)
-            
-            st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
-            for feat in data.get("phase_2_features", []): st.markdown(f"- {feat}")
-                
-        with st.expander("Technical Risks", expanded=False):
-            for risk in data.get("technical_risks", []): st.warning(f"- {risk}")
-                
-        with st.expander("Suggested Tech Stack", expanded=False):
-            st.code("\n".join(data.get("suggested_stack", [])), language="bash")
-            
-        with st.expander("Data Schema", expanded=False):
-            for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
+        # --- NEW: GOD MODE TOGGLE ---
+        st.divider()
+        col_title, col_toggle = st.columns([3, 1])
+        with col_title:
+            st.subheader("Active Architecture")
+        with col_toggle:
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
-        with st.expander("Architecture & Flowchart", expanded=False):
-            if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
-            else: st.info("No architecture diagram generated.")
+        if god_mode:
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            with st.form("god_mode_form", border=True):
+                st.markdown("#### Top-Level Metrics")
+                new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
+                
+                col_e1, col_e2, col_e3 = st.columns(3)
+                with col_e1: new_complexity = st.text_input("Complexity", value=data.get('complexity_score', ''))
+                with col_e2: new_time = st.text_input("Dev Time", value=data.get('development_time', ''))
+                with col_e3: new_raw_cost = st.text_input("Raw Cost (e.g., 10000-15000)", value=data.get('budget_estimate_usd', '0-0'))
+                
+                st.divider()
+                st.markdown("#### Advanced Architecture Editor")
+                st.caption("Directly modify nested arrays (User Stories, Flowcharts, APIs, Risks) in the raw JSON editor below.")
+                
+                # Raw JSON Editor for the power user
+                advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
+                
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
+                    try:
+                        updated_data = json.loads(advanced_json)
+                        # Ensure top level inputs override the JSON text box to prevent confusion
+                        updated_data['summary'] = new_summary
+                        updated_data['complexity_score'] = new_complexity
+                        updated_data['development_time'] = new_time
+                        updated_data['budget_estimate_usd'] = new_raw_cost
+                        
+                        st.session_state.active_ticket = updated_data
+                        
+                        if st.session_state.active_ticket_id:
+                            low_e = new_raw_cost.split("-")[0] if "-" in new_raw_cost else new_raw_cost
+                            high_e = new_raw_cost.split("-")[1] if "-" in new_raw_cost else new_raw_cost
+                            fmt_l = convert_currency(low_e, currency)
+                            fmt_h = convert_currency(high_e, currency)
+                            
+                            supabase.table("tickets").update({
+                                "summary": new_summary, 
+                                "complexity": new_complexity, 
+                                "time": new_time, 
+                                "cost": f"{fmt_l} - {fmt_h}",
+                                "raw_cost": new_raw_cost,
+                                "full_data": json.dumps(updated_data)
+                            }).eq("id", st.session_state.active_ticket_id).execute()
+                            
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error saving data. Ensure the Raw Data is valid JSON. Details: {e}")
+
+        else:
+            # === STANDARD STATIC UI RENDER ===
+            raw_cost = data.get("budget_estimate_usd", "0-0")
+            low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+            high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+            fmt_low = convert_currency(low_end, currency)
+            fmt_high = convert_currency(high_end, currency)
+
+            col1, col2, col3, col4 = st.columns(4)
+            with col1: st.metric("Complexity", data.get("complexity_score"))
+            with col2: st.metric("Dev Time", data.get("development_time"))
+            with col3: st.metric("Est. Budget", f"{fmt_low} - {fmt_high}")
+            with col4: st.metric("Risks Detected", len(data.get("technical_risks", [])))
+
+            st.divider()
+            
+            with st.expander("Engineering Ticket Summary", expanded=True): st.info(f"**Summary:** {data.get('summary')}")
+                
+            if data.get("ambiguity_flags"):
+                with st.expander("PM Pre-Flight: Missing Context", expanded=False):
+                    for flag in data.get("ambiguity_flags", []): st.warning(f"{flag}")
+                        
+            if data.get("epic_sub_tasks") and len(data.get("epic_sub_tasks")) > 0:
+                with st.expander("Epic Breakdown (Sub-Tasks)", expanded=True):
+                    for i, task in enumerate(data.get("epic_sub_tasks")):
+                        st.markdown(f"**{i+1}. {task.get('task_name', 'Sub-Task')}**")
+                        st.caption(f"Est. Time: {task.get('estimated_days', 'N/A')}")
+                        st.markdown(f"> {task.get('description', '')}")
+                        st.write("")
+                        
+            with st.expander("Phase 1: Core MVP", expanded=False):
+                if "mvp_user_stories" in data:
+                    for item in data.get("mvp_user_stories", []):
+                        st.markdown(f"**{item.get('story', 'User Story')}**")
+                        for ac in item.get("acceptance_criteria", []): st.markdown(f"  * {ac}")
+                        st.write("")
+                else:
+                    for feat in data.get("mvp_features", []): st.markdown(f"- {feat}")
+                        
+            with st.expander("Phase 2: Future Enhancements", expanded=False):
+                p2_raw = data.get("phase_2_budget_usd", "0-0")
+                p2_low = p2_raw.split("-")[0] if "-" in p2_raw else p2_raw
+                p2_high = p2_raw.split("-")[1] if "-" in p2_raw else p2_raw
+                p2_fmt_low = convert_currency(p2_low, currency)
+                p2_fmt_high = convert_currency(p2_high, currency)
+                
+                st.caption(f"**Est. Extra Time:** {data.get('phase_2_time', 'N/A')} | **Est. Extra Budget:** {p2_fmt_low} - {p2_fmt_high}")
+                for feat in data.get("phase_2_features", []): st.markdown(f"- {feat}")
+                    
+            with st.expander("Technical Risks", expanded=False):
+                for risk in data.get("technical_risks", []): st.warning(f"- {risk}")
+                    
+            with st.expander("Suggested Tech Stack", expanded=False):
+                st.code("\n".join(data.get("suggested_stack", [])), language="bash")
+                
+            with st.expander("Data Schema", expanded=False):
+                for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
+
+            with st.expander("Architecture & Flowchart", expanded=False):
+                if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
+                else: st.info("No architecture diagram generated.")
 
         # ==========================================
-        # NEW: SCOPE-SLIDER BUDGET NEGOTIATOR
+        # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         # Calculate current max budget for the slider bounds
