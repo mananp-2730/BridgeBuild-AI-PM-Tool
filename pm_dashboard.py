@@ -338,16 +338,23 @@ def render_pm_dashboard(supabase):
     if st.session_state.active_ticket:
         data = st.session_state.active_ticket
         
+        # --- FIX: GLOBALLY DEFINE CURRENCY VARIABLES FOR ENTIRE ACTIVE TICKET VIEW ---
+        raw_cost = data.get("budget_estimate_usd", "0-0")
+        low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
+        high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
+        fmt_low = convert_currency(low_end, currency)
+        fmt_high = convert_currency(high_end, currency)
+        
         # --- NEW: GOD MODE TOGGLE ---
         st.divider()
         col_title, col_toggle = st.columns([3, 1])
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -364,7 +371,7 @@ def render_pm_dashboard(supabase):
                 # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         # Ensure top level inputs override the JSON text box to prevent confusion
@@ -396,12 +403,6 @@ def render_pm_dashboard(supabase):
 
         else:
             # === STANDARD STATIC UI RENDER ===
-            raw_cost = data.get("budget_estimate_usd", "0-0")
-            low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
-            high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
-            fmt_low = convert_currency(low_end, currency)
-            fmt_high = convert_currency(high_end, currency)
-
             col1, col2, col3, col4 = st.columns(4)
             with col1: st.metric("Complexity", data.get("complexity_score"))
             with col2: st.metric("Dev Time", data.get("development_time"))
@@ -460,7 +461,7 @@ def render_pm_dashboard(supabase):
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         # Calculate current max budget for the slider bounds
