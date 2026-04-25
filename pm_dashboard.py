@@ -371,7 +371,7 @@ def render_pm_dashboard(supabase):
                 # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         # Ensure top level inputs override the JSON text box to prevent confusion
