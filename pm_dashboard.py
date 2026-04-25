@@ -225,7 +225,7 @@ def render_pm_dashboard(supabase):
         inbox_tickets = inbox_res.data
         
         if inbox_tickets:
-            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) from Sales waiting in your queue!")
+            st.info(f"**INCOMING:** You have {len(inbox_tickets)} approved project(s) from Sales waiting in your queue!")
             for item in inbox_tickets:
                 with st.expander(f"🟢 Approved Sales Deal: {item['summary'][:60]}..."):
                     try:
