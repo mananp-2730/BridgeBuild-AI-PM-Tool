@@ -68,6 +68,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The PM Rationale:** Standard HTML links inside a Streamlit iframe cause the parent application to reload and crash the session state. By enforcing SPA architecture, the prototype renders and navigates flawlessly within the Live Sandbox.
  
 * **Decision 7: "God-Mode" Manual Overrides vs. Pure AI Chat Refinement**
+  * **The Trade-off:** We exposed raw JSON editors and direct text inputs for users to manually overwrite AI outputs, rather than forcing them to use the conversational "Refine" chat box for every small typo.
       
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
