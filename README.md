@@ -30,6 +30,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks via dynamic bar charts, visualizes AI estimate vs. actual margin variance, and manages Active Directory access.
 
 ## Key Architectural Features:
+* **"God-Mode" Manual Overrides:** A zero-friction escape hatch that swaps the static UI for raw JSON editors and text fields, allowing humans to instantly overwrite AI hallucinations or make surgical tweaks without spending API credits.
 * **Scope-Slider Budget Negotiator:** An interactive UI tool that dynamically recalculates project scope, cuts non-essential features to Phase 2, and redraws technical architecture to mathematically meet client budget constraints in real-time.
 * **Live-Render Prototype Sandbox:** Bypasses static code generation by instantly compiling AI-written React and Tailwind CSS into a live, clickable Single Page Application (SPA) directly inside the platform's iframe.
 * **Scope Creep (CR) Calculator:** A margin-protection engine that cross-references new client feature requests against the existing scoped database to automatically calculate technical impact, additional costs, and timeline delays.
