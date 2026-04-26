@@ -43,6 +43,7 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Profitability Calibration Engine & Analytics Visualizer to graphically track estimated budgets against actual logged project costs.
   * Scope Creep (CR) Calculator to calculate the financial and technical impact of mid-sprint feature requests.
   * Scope-Slider Budget Negotiator for real-time, drag-and-drop architectural downgrades to fit strict client budgets.
+  * God-Mode Manual Overrides for zero-friction human intervention on the final 5% of the generated architecture.
   * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
