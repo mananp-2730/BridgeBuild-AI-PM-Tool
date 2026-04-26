@@ -58,7 +58,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Decision 4: URL-Parameter Session State vs. Standard Cookie Auth**
   * **The Trade-off:** We routed the authenticated user's session ID through URL parameters rather than relying strictly on hidden browser cookies.
   * **The PM Rationale:** Hosted Python applications often face aggressive iframe security blocks that drop sessions. URL routing guarantees zero-friction session persistence.
-
+    
 * **Decision 5: Generative Code vs. Drag-and-Drop Builders**
   * **The Trade-off:** We auto-generate raw React/Tailwind boilerplate rather than building a visual drag-and-drop canvas.
   * **The PM Rationale:** Developers dislike exported "spaghetti code" from visual builders. Semantic React boilerplate drastically reduces time-to-first-paint while keeping engineers in control.
