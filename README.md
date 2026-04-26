@@ -69,6 +69,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
  
 * **Decision 7: "God-Mode" Manual Overrides vs. Pure AI Chat Refinement**
   * **The Trade-off:** We exposed raw JSON editors and direct text inputs for users to manually overwrite AI outputs, rather than forcing them to use the conversational "Refine" chat box for every small typo.
+  * **The PM Rationale:** While conversational AI is great for heavy lifting (the first 95%), it introduces unnecessary latency and API costs for minor tweaks. "God-Mode" gives the human absolute, zero-friction control over the final 5% of the architecture.
       
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
