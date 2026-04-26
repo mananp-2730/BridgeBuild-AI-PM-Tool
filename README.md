@@ -66,6 +66,8 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Decision 6: Single Page Application (SPA) Prototypes vs. Multi-Page HTML**
   * **The Trade-off:** We force the AI to generate complex Javascript to toggle hidden `<div>` elements rather than allowing standard `<a href>` tag navigation.
   * **The PM Rationale:** Standard HTML links inside a Streamlit iframe cause the parent application to reload and crash the session state. By enforcing SPA architecture, the prototype renders and navigates flawlessly within the Live Sandbox.
+ 
+* **Decision 7: "God-Mode" Manual Overrides vs. Pure AI Chat Refinement**
       
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
