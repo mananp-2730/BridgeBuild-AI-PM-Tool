@@ -696,7 +696,7 @@ def render_pm_dashboard(supabase):
             # --- THE PRE-FLIGHT SAFETY CHECK UI ---
             if st.session_state.get("pending_handoff_dept"):
                 dept = st.session_state.pending_handoff_dept
-                st.markdown("### 🛫 Pre-Flight Safety Check")
+                st.markdown("### Pre-Flight Safety Check")
                 
                 with st.status(f"Running diagnostics for {dept} handoff...", expanded=True) as status:
                     warnings = []
