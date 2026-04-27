@@ -457,7 +457,7 @@ def render_pm_dashboard(supabase):
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("🎚️ Scope-Slider Budget Negotiator")
+        st.subheader("Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         raw_cost_str = data.get("budget_estimate_usd", "0")
