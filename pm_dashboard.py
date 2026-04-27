@@ -208,14 +208,12 @@ def render_pm_dashboard(supabase):
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
 
-    if "sales_input" not in st.session_state: 
-        st.session_state.sales_input = ""
-    if "active_ticket" not in st.session_state: 
-        st.session_state.active_ticket = None
-    if "active_ticket_id" not in st.session_state: 
-        st.session_state.active_ticket_id = None
-    if "cr_analysis" not in st.session_state:
-        st.session_state.cr_analysis = None
+    # State Initializations
+    if "sales_input" not in st.session_state: st.session_state.sales_input = ""
+    if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
+    if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
+    if "cr_analysis" not in st.session_state: st.session_state.cr_analysis = None
+    if "pending_handoff_dept" not in st.session_state: st.session_state.pending_handoff_dept = None # NEW FOR PRE-FLIGHT
 
     # ==========================================
     # INCOMING SALES QUEUE (INBOX)
@@ -225,7 +223,7 @@ def render_pm_dashboard(supabase):
         inbox_tickets = inbox_res.data
         
         if inbox_tickets:
-            st.info(f"**INCOMING:** You have {len(inbox_tickets)} approved project(s) from Sales waiting in your queue!")
+            st.info(f"📥 **INCOMING:** You have {len(inbox_tickets)} approved project(s) from Sales waiting in your queue!")
             for item in inbox_tickets:
                 with st.expander(f"🟢 Approved Sales Deal: {item['summary'][:60]}..."):
                     try:
@@ -338,23 +336,22 @@ def render_pm_dashboard(supabase):
     if st.session_state.active_ticket:
         data = st.session_state.active_ticket
         
-        # --- FIX: GLOBALLY DEFINE CURRENCY VARIABLES FOR ENTIRE ACTIVE TICKET VIEW ---
+        # GLOBALLY DEFINE CURRENCY VARIABLES FOR ENTIRE ACTIVE TICKET VIEW
         raw_cost = data.get("budget_estimate_usd", "0-0")
         low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
         high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
         fmt_low = convert_currency(low_end, currency)
         fmt_high = convert_currency(high_end, currency)
         
-        # --- NEW: GOD MODE TOGGLE ---
         st.divider()
         col_title, col_toggle = st.columns([3, 1])
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -371,10 +368,9 @@ def render_pm_dashboard(supabase):
                 # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
-                        # Ensure top level inputs override the JSON text box to prevent confusion
                         updated_data['summary'] = new_summary
                         updated_data['complexity_score'] = new_complexity
                         updated_data['development_time'] = new_time
@@ -461,10 +457,9 @@ def render_pm_dashboard(supabase):
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
-        # Calculate current max budget for the slider bounds
         raw_cost_str = data.get("budget_estimate_usd", "0")
         numbers = re.findall(r'\d+', raw_cost_str.replace(',', ''))
         current_max_budget = int(numbers[-1]) if numbers else 15000
@@ -507,9 +502,8 @@ def render_pm_dashboard(supabase):
                         else:
                             status.update(label="Scope Successfully Reduced!", state="complete", expanded=False)
                             st.session_state.active_ticket = new_data
-                            st.session_state.cr_analysis = None # Clear CR analysis on new scope
+                            st.session_state.cr_analysis = None
                             
-                            # Update the DB
                             if st.session_state.active_ticket_id:
                                 new_raw = new_data.get("budget_estimate_usd", "0-0")
                                 low_e = new_raw.split("-")[0] if "-" in new_raw else new_raw
@@ -581,7 +575,6 @@ def render_pm_dashboard(supabase):
         if st.session_state.get("cr_analysis"):
             c_data = st.session_state.cr_analysis
             
-            # Dynamic color for recommendation
             rec = c_data.get('pm_recommendation', 'N/A')
             rec_color = "red" if "Reject" in rec else "orange" if "Phase 2" in rec else "green"
             
@@ -616,8 +609,6 @@ def render_pm_dashboard(supabase):
             st.markdown("#### Export Reports")
             st.download_button("Download Detailed Ticket (Engineering PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=True), file_name="bridgebuild_detailed_ticket.pdf", mime="application/pdf", use_container_width=True)
             st.download_button("Download Brief Summary (Sales PDF)", data=generate_local_pm_pdf(data, currency, is_detailed=False), file_name="bridgebuild_brief_summary.pdf", mime="application/pdf", use_container_width=True)
-            
-            # --- NEW: CSV EXPORT BUTTON ---
             st.download_button("Download CSV (Jira/Linear Bulk Import)", data=generate_jira_csv(data), file_name="jira_bulk_import.csv", mime="text/csv", use_container_width=True)
         
         with col_action2:
@@ -656,7 +647,6 @@ def render_pm_dashboard(supabase):
             sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
             for feat in data.get("phase_2_features", []): sales_body += f"  - {feat}\n"
             
-            # Include Change Request data in email if it exists
             if st.session_state.get("cr_analysis"):
                 c_data = st.session_state.cr_analysis
                 sales_body += f"\n\n-> CHANGE REQUEST ANALYSIS\n"
@@ -685,7 +675,7 @@ def render_pm_dashboard(supabase):
             st.code(generate_jira_format(data, currency), language="jira")
 
         # ==========================================
-        # THE ACTIVE TICKET HANDOFF PROTOCOL
+        # THE ACTIVE TICKET HANDOFF PROTOCOL & PRE-FLIGHT
         # ==========================================
         st.divider()
         st.markdown("#### Department Handoff")
@@ -693,20 +683,66 @@ def render_pm_dashboard(supabase):
 
         if st.session_state.active_ticket_id:
             col_handoff1, col_handoff2 = st.columns(2)
+            
             with col_handoff1:
                 if st.button("Approve & Send to Design", type="primary", use_container_width=True):
-                    try:
-                        supabase.table("tickets").update({"status": "Awaiting UI/UX Scoping", "target_department": "Design"}).eq("id", st.session_state.active_ticket_id).execute()
-                        st.success("Boom! Successfully routed to the Design Inbox.")
-                    except Exception as e:
-                        st.error(f"Failed to handoff ticket: {str(e)}")
+                    st.session_state.pending_handoff_dept = "Design"
+                    st.rerun()
             with col_handoff2:
                 if st.button("Approve & Send to Engineering", type="primary", use_container_width=True):
-                    try:
-                        supabase.table("tickets").update({"status": "Awaiting Tech Architecture", "target_department": "Engineering"}).eq("id", st.session_state.active_ticket_id).execute()
-                        st.success("Boom! Successfully routed to the Engineering Inbox.")
-                    except Exception as e:
-                        st.error(f"Failed to handoff ticket: {str(e)}")
+                    st.session_state.pending_handoff_dept = "Engineering"
+                    st.rerun()
+
+            # --- THE PRE-FLIGHT SAFETY CHECK UI ---
+            if st.session_state.get("pending_handoff_dept"):
+                dept = st.session_state.pending_handoff_dept
+                st.markdown("### 🛫 Pre-Flight Safety Check")
+                
+                with st.status(f"Running diagnostics for {dept} handoff...", expanded=True) as status:
+                    warnings = []
+                    
+                    st.write("Checking for PM Ambiguity Flags...")
+                    flags = data.get("ambiguity_flags", [])
+                    if flags:
+                        warnings.append(f"Unresolved Ambiguity: {len(flags)} flag(s) detected. Sales needs to clarify requirements.")
+                    
+                    st.write("Assessing Technical Risks...")
+                    risks = data.get("technical_risks", [])
+                    if len(risks) > 3:
+                        warnings.append(f"High Risk Profile: {len(risks)} technical risks identified. Has engineering reviewed?")
+                    elif len(risks) == 0:
+                        warnings.append("No Technical Risks identified. (Did the AI miss something?)")
+                    
+                    st.write("Verifying Budget Alignment...")
+                    raw_c = data.get("budget_estimate_usd", "0-0")
+                    if raw_c == "0-0" or raw_c == "0":
+                        warnings.append("Budget Estimate is missing or zero. Sales needs financial scoping.")
+
+                    if len(warnings) == 0:
+                        status.update(label="Pre-Flight Check Passed! Routing ticket...", state="complete", expanded=False)
+                        new_status = "Awaiting UI/UX Scoping" if dept == "Design" else "Awaiting Tech Architecture"
+                        supabase.table("tickets").update({"status": new_status, "target_department": dept}).eq("id", st.session_state.active_ticket_id).execute()
+                        st.success(f"Boom! Successfully routed to the {dept} Inbox.")
+                        st.session_state.pending_handoff_dept = None 
+                    else:
+                        status.update(label="⚠️ Pre-Flight Warnings Detected", state="error", expanded=True)
+                        for w in warnings:
+                            st.error(f"- {w}")
+                        
+                        st.warning(f"Sending this ticket to {dept} right now may cause friction or scope creep downstream. Do you want to override and send anyway?")
+                        
+                        col_over1, col_over2 = st.columns(2)
+                        with col_over1:
+                            if st.button("Cancel & Fix Issues", use_container_width=True):
+                                st.session_state.pending_handoff_dept = None
+                                st.rerun()
+                        with col_over2:
+                            if st.button(f"Override & Send to {dept}", type="primary", use_container_width=True):
+                                new_status = "Awaiting UI/UX Scoping" if dept == "Design" else "Awaiting Tech Architecture"
+                                supabase.table("tickets").update({"status": new_status, "target_department": dept}).eq("id", st.session_state.active_ticket_id).execute()
+                                st.success(f"Boom! Successfully routed to the {dept} Inbox (Override Applied).")
+                                st.session_state.pending_handoff_dept = None
+                                st.rerun()
                 
         refine_query = st.chat_input("E.g., Add a risk about third-party API rate limits...")
         if refine_query:
@@ -737,17 +773,14 @@ def render_pm_dashboard(supabase):
     st.divider()
     st.subheader("Saved Tickets History")
     try:
-        # Changed to only show PM tickets in the PM history!
         db_response = supabase.table("tickets").select("*").eq("user_id", st.session_state.user.id).neq("complexity", "Engineering Architecture").neq("complexity", "UI/UX Scoping").order("created_at", desc=True).execute()
         saved_tickets = db_response.data
         
-        # Filter out Sales tickets from the PM History view
         pm_tickets = [t for t in saved_tickets if t.get('complexity') not in ['Green', 'Yellow', 'Red']]
         
         if pm_tickets:
             for i, item in enumerate(pm_tickets):
                 
-                # --- NEW: STATUS BADGE LOGIC ---
                 current_status = item.get('status', 'Draft')
                 if current_status in ['Draft', 'Accepted by PM']:
                     status_icon = "📝"
@@ -764,7 +797,6 @@ def render_pm_dashboard(supabase):
                     except:
                         past_data = {}
                         
-                    # --- SHOW CURRENT STATUS ---
                     if current_status in ['Draft', 'Accepted by PM']:
                         st.caption(f"Status: **{current_status} (Not Sent)**")
                     else:
@@ -812,8 +844,6 @@ def render_pm_dashboard(supabase):
                     hist_btn_col1, hist_btn_col3 = st.columns([4, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_pm_pdf(past_data, currency, is_detailed=True), file_name=f"ticket_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_{item['id']}", use_container_width=True)
-                        
-                        # --- NEW: HISTORY CSV EXPORT BUTTON ---
                         st.download_button("Download CSV", data=generate_jira_csv(past_data), file_name=f"jira_import_{item['id'][:8]}.csv", mime="text/csv", key=f"hist_csv_{item['id']}", use_container_width=True)
                         
                     with hist_btn_col3:
@@ -839,7 +869,6 @@ def render_pm_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
                         
-                    # --- HISTORY HANDOFF BUTTONS ---
                     if current_status in ['Draft', 'Accepted by PM']:
                         st.markdown("##### Route Ticket")
                         hist_hand_col1, hist_hand_col2 = st.columns(2)
