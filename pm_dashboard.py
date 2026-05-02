@@ -9,7 +9,7 @@ import re
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt
+from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt, get_qa_script_prompt # <-- NEW IMPORT
 from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -213,7 +213,8 @@ def render_pm_dashboard(supabase):
     if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
     if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
     if "cr_analysis" not in st.session_state: st.session_state.cr_analysis = None
-    if "pending_handoff_dept" not in st.session_state: st.session_state.pending_handoff_dept = None # NEW FOR PRE-FLIGHT
+    if "pending_handoff_dept" not in st.session_state: st.session_state.pending_handoff_dept = None
+    if "qa_script" not in st.session_state: st.session_state.qa_script = None # <-- NEW QA STATE
 
     # ==========================================
     # INCOMING SALES QUEUE (INBOX)
@@ -241,7 +242,8 @@ def render_pm_dashboard(supabase):
                         
                         injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
                         st.session_state.sales_input = injection_text
-                        st.session_state.cr_analysis = None # Reset CR on new load
+                        st.session_state.cr_analysis = None 
+                        st.session_state.qa_script = None # Reset QA on new load
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -308,7 +310,8 @@ def render_pm_dashboard(supabase):
                         status.update(label="Agile Ticket Generated!", state="complete", expanded=False)
                         
                 st.session_state.active_ticket = data
-                st.session_state.cr_analysis = None # Reset CR on new generate
+                st.session_state.cr_analysis = None
+                st.session_state.qa_script = None # Reset QA on new generate
                 st.success("Analysis Complete!")
 
                 raw_cost = data.get("budget_estimate_usd", "0-0")
@@ -348,10 +351,10 @@ def render_pm_dashboard(supabase):
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -368,7 +371,7 @@ def render_pm_dashboard(supabase):
                 # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         updated_data['summary'] = new_summary
@@ -457,7 +460,7 @@ def render_pm_dashboard(supabase):
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         raw_cost_str = data.get("budget_estimate_usd", "0")
@@ -503,6 +506,7 @@ def render_pm_dashboard(supabase):
                             status.update(label="Scope Successfully Reduced!", state="complete", expanded=False)
                             st.session_state.active_ticket = new_data
                             st.session_state.cr_analysis = None
+                            st.session_state.qa_script = None # Clear QA on new scope
                             
                             if st.session_state.active_ticket_id:
                                 new_raw = new_data.get("budget_estimate_usd", "0-0")
@@ -602,6 +606,74 @@ def render_pm_dashboard(supabase):
                     st.caption(f"**[{api.get('method')}]** `{api.get('route')}`")
                     st.write(f"↳ {api.get('purpose')}")
 
+        # ==========================================
+        # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
+        # ==========================================
+        st.divider()
+        st.subheader("🧪 QA Automation Hub (The Crucible)")
+        st.markdown("Instantly generate production-ready Cypress E2E test scripts based on the approved Acceptance Criteria.")
+
+        if st.button("Generate Cypress QA Scripts", type="primary"):
+            if not api_key:
+                st.error("API Key missing.")
+            elif not data.get("mvp_user_stories"):
+                st.warning("No MVP User Stories found in this ticket to test.")
+            else:
+                with st.status("Writing E2E Test Scripts...", expanded=True) as status:
+                    try:
+                        client = genai.Client(api_key=api_key)
+                        QA_PROMPT = get_qa_script_prompt()
+                        model_id = "gemini-2.5-flash" if "Flash" in model_choice else "gemini-2.5-pro"
+
+                        st.write("Analyzing Acceptance Criteria...")
+                        
+                        # Only send the relevant parts to save tokens and focus the AI
+                        qa_context = {
+                            "summary": data.get("summary"),
+                            "mvp_user_stories": data.get("mvp_user_stories")
+                        }
+                        context = f"PROJECT SCOPE:\n{json.dumps(qa_context)}"
+
+                        response = client.models.generate_content(
+                            model=model_id,
+                            config=types.GenerateContentConfig(
+                                system_instruction=QA_PROMPT,
+                                temperature=0.1, # Low temp for deterministic code generation
+                                response_mime_type="application/json"
+                            ),
+                            contents=[context]
+                        )
+
+                        qa_data, error_msg = safe_parse_json(response.text)
+
+                        if error_msg:
+                            status.update(label="QA Generation Failed", state="error", expanded=True)
+                            st.error(error_msg)
+                        else:
+                            status.update(label="Test Scripts Generated Successfully!", state="complete", expanded=False)
+                            st.session_state.qa_script = qa_data
+
+                    except Exception as e:
+                        status.update(label="Error", state="error")
+                        st.error(f"Error: {str(e)}")
+
+        if st.session_state.get("qa_script"):
+            qa_res = st.session_state.qa_script
+            st.success(f"**Framework:** {qa_res.get('test_framework', 'Cypress')}")
+            st.info(f"**Test Coverage Summary:** {qa_res.get('qa_summary', '')}")
+            
+            st.markdown("#### Raw Test Script (`.spec.js`)")
+            test_code = qa_res.get('test_code', '// No code generated')
+            st.code(test_code, language="javascript")
+            
+            st.download_button(
+                label="Download Cypress Script",
+                data=test_code,
+                file_name="bridgebuild_e2e_tests.spec.js",
+                mime="text/javascript",
+                use_container_width=True
+            )
+
         st.divider()
         col_action1, col_action2 = st.columns([1, 1], gap="medium")
         
@@ -696,7 +768,7 @@ def render_pm_dashboard(supabase):
             # --- THE PRE-FLIGHT SAFETY CHECK UI ---
             if st.session_state.get("pending_handoff_dept"):
                 dept = st.session_state.pending_handoff_dept
-                st.markdown("### Pre-Flight Safety Check")
+                st.markdown("### 🛫 Pre-Flight Safety Check")
                 
                 with st.status(f"Running diagnostics for {dept} handoff...", expanded=True) as status:
                     warnings = []
