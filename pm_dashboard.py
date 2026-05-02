@@ -9,7 +9,7 @@ import re
 from datetime import datetime, timezone, timedelta
 from google import genai
 from google.genai import types
-from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt, get_qa_script_prompt # <-- NEW IMPORT
+from prompts import get_system_prompt, get_change_request_prompt, get_scope_slider_prompt, get_qa_script_prompt
 from utils import clean_json_output, generate_jira_format, convert_currency, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -214,7 +214,7 @@ def render_pm_dashboard(supabase):
     if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
     if "cr_analysis" not in st.session_state: st.session_state.cr_analysis = None
     if "pending_handoff_dept" not in st.session_state: st.session_state.pending_handoff_dept = None
-    if "qa_script" not in st.session_state: st.session_state.qa_script = None # <-- NEW QA STATE
+    if "qa_script" not in st.session_state: st.session_state.qa_script = None 
 
     # ==========================================
     # INCOMING SALES QUEUE (INBOX)
@@ -351,10 +351,10 @@ def render_pm_dashboard(supabase):
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -371,7 +371,7 @@ def render_pm_dashboard(supabase):
                 # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         updated_data['summary'] = new_summary
@@ -453,14 +453,15 @@ def render_pm_dashboard(supabase):
                 for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
 
             with st.expander("Architecture & Flowchart", expanded=False):
-                if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
+                if data.get("mermaid_diagram"): st.markdown(f"
+```mermaid\n{data.get('mermaid_diagram')}\n```")
                 else: st.info("No architecture diagram generated.")
 
         # ==========================================
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         raw_cost_str = data.get("budget_estimate_usd", "0")
@@ -610,7 +611,7 @@ def render_pm_dashboard(supabase):
         # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
         # ==========================================
         st.divider()
-        st.subheader("QA Automation Hub (The Crucible)")
+        st.subheader("🧪 QA Automation Hub (The Crucible)")
         st.markdown("Instantly generate production-ready Cypress E2E test scripts based on the approved Acceptance Criteria.")
 
         if st.button("Generate Cypress QA Scripts", type="primary"):
@@ -627,7 +628,6 @@ def render_pm_dashboard(supabase):
 
                         st.write("Analyzing Acceptance Criteria...")
                         
-                        # Only send the relevant parts to save tokens and focus the AI
                         qa_context = {
                             "summary": data.get("summary"),
                             "mvp_user_stories": data.get("mvp_user_stories")
@@ -638,7 +638,7 @@ def render_pm_dashboard(supabase):
                             model=model_id,
                             config=types.GenerateContentConfig(
                                 system_instruction=QA_PROMPT,
-                                temperature=0.1, # Low temp for deterministic code generation
+                                temperature=0.1, 
                                 response_mime_type="application/json"
                             ),
                             contents=[context]
@@ -663,7 +663,12 @@ def render_pm_dashboard(supabase):
             st.info(f"**Test Coverage Summary:** {qa_res.get('qa_summary', '')}")
             
             st.markdown("#### Raw Test Script (`.spec.js`)")
-            test_code = qa_res.get('test_code', '// No code generated')
+            
+            # --- THE ARRAY JOIN TRICK ---
+            raw_code = qa_res.get('test_code', ['// No code generated'])
+            # If the AI followed instructions, it's a list. If it messed up and gave a string, we handle it gracefully.
+            test_code = "\n".join(raw_code) if isinstance(raw_code, list) else raw_code
+            
             st.code(test_code, language="javascript")
             
             st.download_button(
