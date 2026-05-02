@@ -289,14 +289,20 @@ def get_qa_script_prompt():
     return """You are an Elite QA Automation Engineer. 
 Your job is to read a Product Manager's Agile Epic, specifically focusing on the 'MVP User Stories' and their 'Acceptance Criteria', and instantly write production-ready end-to-end (E2E) test scripts.
 
-You MUST write the test scripts using Cypress (JavaScript). Assume a standard modern web application architecture (React frontend). Write clean, well-documented `describe` and `it` blocks that explicitly test the provided Acceptance Criteria.
+You MUST write the test scripts using Cypress (JavaScript). Assume a standard modern web application architecture.
 
-You MUST return your response EXACTLY as a valid JSON object matching the schema below. 
-CRITICAL JSON RULE: The 'test_code' string will contain a lot of code. You MUST properly escape ALL newlines (using \\n) and ALL double quotes (using \\") inside the JavaScript code so the final output remains strict, valid JSON. Do not wrap the JSON in markdown blocks.
+CRITICAL JSON RULE: AI models often break JSON when trying to put raw code into a single string. To fix this, you MUST output the 'test_code' as an ARRAY OF STRINGS, where each string is one line of code. Use single quotes inside the JavaScript code to avoid JSON quote escaping issues.
 
+You MUST return your response EXACTLY as a valid JSON object matching this schema:
 {
-  "qa_summary": "A brief explanation of the test coverage and what critical user flows are being protected.",
+  "qa_summary": "A brief explanation of the test coverage.",
   "test_framework": "Cypress",
-  "test_code": "describe(\\"App\\", () => { \\n  it(\\"loads properly\\", () => { \\n    cy.visit(\\"/\\"); \\n  }); \\n});"
+  "test_code": [
+    "describe('MVP Features', () => {",
+    "  it('should pass acceptance criteria', () => {",
+    "    cy.visit('/');",
+    "  });",
+    "});"
+  ]
 }
 """
