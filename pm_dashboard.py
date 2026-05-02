@@ -160,7 +160,6 @@ def generate_jira_csv(ticket_data):
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Standard Jira Import Headers
     writer.writerow(["Issue Type", "Summary", "Description", "Priority"])
     
     project_summary = ticket_data.get("summary", "No project summary provided.")
@@ -170,7 +169,6 @@ def generate_jira_csv(ticket_data):
             story_title = item.get("story", "User Story")
             ac_list = item.get("acceptance_criteria", [])
             
-            # Format the description beautifully for Jira
             description = f"Context:\n{project_summary}\n\nAcceptance Criteria:\n"
             for ac in ac_list:
                 description += f"- {ac}\n"
@@ -180,7 +178,6 @@ def generate_jira_csv(ticket_data):
         for feat in ticket_data.get("mvp_features", []):
             writer.writerow(["Story", feat, f"Context:\n{project_summary}", "Highest"])
             
-    # Optionally export Phase 2 as Low Priority
     for feat in ticket_data.get("phase_2_features", []):
         writer.writerow(["Story", f"[Phase 2] {feat}", "Future enhancement", "Low"])
         
@@ -208,7 +205,6 @@ def render_pm_dashboard(supabase):
     st.title("BridgeBuild AI - PM Hub")
     st.markdown("### Translate vague sales requests into structured Agile tickets.")
 
-    # State Initializations
     if "sales_input" not in st.session_state: st.session_state.sales_input = ""
     if "active_ticket" not in st.session_state: st.session_state.active_ticket = None
     if "active_ticket_id" not in st.session_state: st.session_state.active_ticket_id = None
@@ -243,7 +239,7 @@ def render_pm_dashboard(supabase):
                         injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
                         st.session_state.sales_input = injection_text
                         st.session_state.cr_analysis = None 
-                        st.session_state.qa_script = None # Reset QA on new load
+                        st.session_state.qa_script = None
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -311,7 +307,7 @@ def render_pm_dashboard(supabase):
                         
                 st.session_state.active_ticket = data
                 st.session_state.cr_analysis = None
-                st.session_state.qa_script = None # Reset QA on new generate
+                st.session_state.qa_script = None
                 st.success("Analysis Complete!")
 
                 raw_cost = data.get("budget_estimate_usd", "0-0")
@@ -320,7 +316,6 @@ def render_pm_dashboard(supabase):
                 fmt_low = convert_currency(low_end, currency)
                 fmt_high = convert_currency(high_end, currency)
 
-                # NEW PM TICKET SAVED TO DB
                 new_ticket = {
                     "user_id": st.session_state.user.id, "summary": data.get("summary"), "cost": f"{fmt_low} - {fmt_high}",
                     "raw_cost": raw_cost, "complexity": data.get("complexity_score"), "time": data.get("development_time"), 
@@ -339,7 +334,6 @@ def render_pm_dashboard(supabase):
     if st.session_state.active_ticket:
         data = st.session_state.active_ticket
         
-        # GLOBALLY DEFINE CURRENCY VARIABLES FOR ENTIRE ACTIVE TICKET VIEW
         raw_cost = data.get("budget_estimate_usd", "0-0")
         low_end = raw_cost.split("-")[0] if "-" in raw_cost else raw_cost
         high_end = raw_cost.split("-")[1] if "-" in raw_cost else raw_cost
@@ -351,10 +345,10 @@ def render_pm_dashboard(supabase):
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -366,12 +360,11 @@ def render_pm_dashboard(supabase):
                 
                 st.divider()
                 st.markdown("#### Advanced Architecture Editor")
-                st.caption("Directly modify nested arrays (User Stories, Flowcharts, APIs, Risks) in the raw JSON editor below.")
+                st.caption("Directly modify nested arrays in the raw JSON editor below.")
                 
-                # Raw JSON Editor for the power user
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         updated_data['summary'] = new_summary
@@ -401,7 +394,6 @@ def render_pm_dashboard(supabase):
                         st.error(f"Error saving data. Ensure the Raw Data is valid JSON. Details: {e}")
 
         else:
-            # === STANDARD STATIC UI RENDER ===
             col1, col2, col3, col4 = st.columns(4)
             with col1: st.metric("Complexity", data.get("complexity_score"))
             with col2: st.metric("Dev Time", data.get("development_time"))
@@ -453,15 +445,14 @@ def render_pm_dashboard(supabase):
                 for entity in data.get("primary_entities", []): st.success(f"🆔 {entity}")
 
             with st.expander("Architecture & Flowchart", expanded=False):
-                if data.get("mermaid_diagram"): st.markdown(f"
-```mermaid\n{data.get('mermaid_diagram')}\n```")
+                if data.get("mermaid_diagram"): st.markdown(f"```mermaid\n{data.get('mermaid_diagram')}\n```")
                 else: st.info("No architecture diagram generated.")
 
         # ==========================================
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("Scope-Slider Budget Negotiator")
+        st.subheader("🎚️ Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         raw_cost_str = data.get("budget_estimate_usd", "0")
@@ -507,7 +498,7 @@ def render_pm_dashboard(supabase):
                             status.update(label="Scope Successfully Reduced!", state="complete", expanded=False)
                             st.session_state.active_ticket = new_data
                             st.session_state.cr_analysis = None
-                            st.session_state.qa_script = None # Clear QA on new scope
+                            st.session_state.qa_script = None
                             
                             if st.session_state.active_ticket_id:
                                 new_raw = new_data.get("budget_estimate_usd", "0-0")
@@ -611,7 +602,7 @@ def render_pm_dashboard(supabase):
         # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
         # ==========================================
         st.divider()
-        st.subheader("QA Automation Hub (The Crucible)")
+        st.subheader("🧪 QA Automation Hub (The Crucible)")
         st.markdown("Instantly generate production-ready Cypress E2E test scripts based on the approved Acceptance Criteria.")
 
         if st.button("Generate Cypress QA Scripts", type="primary"):
@@ -666,7 +657,6 @@ def render_pm_dashboard(supabase):
             
             # --- THE ARRAY JOIN TRICK ---
             raw_code = qa_res.get('test_code', ['// No code generated'])
-            # If the AI followed instructions, it's a list. If it messed up and gave a string, we handle it gracefully.
             test_code = "\n".join(raw_code) if isinstance(raw_code, list) else raw_code
             
             st.code(test_code, language="javascript")
@@ -712,7 +702,11 @@ def render_pm_dashboard(supabase):
             eng_body += f"\n\n-> SUGGESTED TECH STACK\n"
             for tech in data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
             eng_body += "\n\nBest,\nProduct Management"
-            eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
+            
+            # FIXED: Avoid nested f-strings in url construction to prevent syntax errors on strict parsers
+            eng_subject = urllib.parse.quote(f"Eng Ticket: {ticket_name}")
+            eng_body_encoded = urllib.parse.quote(eng_body)
+            eng_mailto = f"mailto:?subject={eng_subject}&body={eng_body_encoded}"
             
             sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
             sales_body += f"-> SUMMARY:\n{data.get('summary', 'N/A')}\n\n"
@@ -733,7 +727,10 @@ def render_pm_dashboard(supabase):
                 sales_body += f"PM Recommendation: {c_data.get('pm_recommendation')}\n"
 
             sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
-            sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
+            
+            sales_subject = urllib.parse.quote(f"Sales Scoping: {ticket_name}")
+            sales_body_encoded = urllib.parse.quote(sales_body)
+            sales_mailto = f"mailto:?subject={sales_subject}&body={sales_body_encoded}"
             
             st.markdown(f"""
                 <a href="{eng_mailto}" target="_blank" style="text-decoration: none;">
@@ -770,10 +767,9 @@ def render_pm_dashboard(supabase):
                     st.session_state.pending_handoff_dept = "Engineering"
                     st.rerun()
 
-            # --- THE PRE-FLIGHT SAFETY CHECK UI ---
             if st.session_state.get("pending_handoff_dept"):
                 dept = st.session_state.pending_handoff_dept
-                st.markdown("### Pre-Flight Safety Check")
+                st.markdown("### 🛫 Pre-Flight Safety Check")
                 
                 with st.status(f"Running diagnostics for {dept} handoff...", expanded=True) as status:
                     warnings = []
@@ -904,7 +900,11 @@ def render_pm_dashboard(supabase):
                     eng_body += f"\n\n-> SUGGESTED TECH STACK\n"
                     for tech in past_data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
                     eng_body += "\n\nBest,\nProduct Management"
-                    eng_mailto = f"mailto:?subject={urllib.parse.quote(f'Eng Ticket: {ticket_name}')}&body={urllib.parse.quote(eng_body)}"
+                    
+                    # FIXED FOR HISTORY EMAILS AS WELL
+                    hist_eng_subject = urllib.parse.quote(f"Eng Ticket: {ticket_name}")
+                    hist_eng_body_encoded = urllib.parse.quote(eng_body)
+                    eng_mailto = f"mailto:?subject={hist_eng_subject}&body={hist_eng_body_encoded}"
 
                     sales_body = f"Hello Sales Team,\n\nHere is the initial feasibility scoping for {ticket_name}:\n\n"
                     sales_body += f"-> SUMMARY:\n{past_data.get('summary', 'N/A')}\n\n"
@@ -916,7 +916,10 @@ def render_pm_dashboard(supabase):
                     sales_body += f"\n\n-> PHASE 2: FUTURE ENHANCEMENTS\nEst. Extra Time: {past_data.get('phase_2_time', 'N/A')} | Est. Extra Budget: {p2_low_email} - {p2_high_email}\n"
                     for feat in past_data.get("phase_2_features", []): sales_body += f"  - {feat}\n"
                     sales_body += "\n\nSee the attached PDF for the client-facing Executive Summary.\n\nBest,\nProduct Management"
-                    sales_mailto = f"mailto:?subject={urllib.parse.quote(f'Sales Scoping: {ticket_name}')}&body={urllib.parse.quote(sales_body)}"
+                    
+                    hist_sales_subject = urllib.parse.quote(f"Sales Scoping: {ticket_name}")
+                    hist_sales_body_encoded = urllib.parse.quote(sales_body)
+                    sales_mailto = f"mailto:?subject={hist_sales_subject}&body={hist_sales_body_encoded}"
 
                     hist_btn_col1, hist_btn_col3 = st.columns([4, 1])
                     with hist_btn_col1:
