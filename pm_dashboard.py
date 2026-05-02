@@ -345,10 +345,10 @@ def render_pm_dashboard(supabase):
         with col_title:
             st.subheader("Active Architecture")
         with col_toggle:
-            god_mode = st.toggle("⚙️ Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
+            god_mode = st.toggle("Enable God-Mode", value=False, help="Manually override AI outputs instantly.")
 
         if god_mode:
-            st.warning("⚠️ **God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
+            st.warning("**God-Mode Active:** You are bypassing the AI. Changes made here will permanently overwrite the architecture in the database.")
             with st.form("god_mode_form", border=True):
                 st.markdown("#### Top-Level Metrics")
                 new_summary = st.text_area("Ticket Summary", value=data.get('summary', ''))
@@ -364,7 +364,7 @@ def render_pm_dashboard(supabase):
                 
                 advanced_json = st.text_area("Raw JSON Data", value=json.dumps(data, indent=4), height=400)
                 
-                if st.form_submit_button("💾 Save Overrides & Recalculate", type="primary", use_container_width=True):
+                if st.form_submit_button("Save Overrides & Recalculate", type="primary", use_container_width=True):
                     try:
                         updated_data = json.loads(advanced_json)
                         updated_data['summary'] = new_summary
@@ -452,7 +452,7 @@ def render_pm_dashboard(supabase):
         # SCOPE-SLIDER BUDGET NEGOTIATOR
         # ==========================================
         st.divider()
-        st.subheader("🎚️ Scope-Slider Budget Negotiator")
+        st.subheader("Scope-Slider Budget Negotiator")
         st.markdown("Client pushing back on the price? Slide the budget down to let the AI instantly strip non-essentials to Phase 2 and recalculate the MVP architecture.")
         
         raw_cost_str = data.get("budget_estimate_usd", "0")
@@ -602,7 +602,7 @@ def render_pm_dashboard(supabase):
         # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
         # ==========================================
         st.divider()
-        st.subheader("🧪 QA Automation Hub (The Crucible)")
+        st.subheader("QA Automation Hub (The Crucible)")
         st.markdown("Instantly generate production-ready Cypress E2E test scripts based on the approved Acceptance Criteria.")
 
         if st.button("Generate Cypress QA Scripts", type="primary"):
@@ -769,7 +769,7 @@ def render_pm_dashboard(supabase):
 
             if st.session_state.get("pending_handoff_dept"):
                 dept = st.session_state.pending_handoff_dept
-                st.markdown("### 🛫 Pre-Flight Safety Check")
+                st.markdown("### Pre-Flight Safety Check")
                 
                 with st.status(f"Running diagnostics for {dept} handoff...", expanded=True) as status:
                     warnings = []
