@@ -610,7 +610,7 @@ def render_pm_dashboard(supabase):
         # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
         # ==========================================
         st.divider()
-        st.subheader("🧪 QA Automation Hub (The Crucible)")
+        st.subheader("QA Automation Hub (The Crucible)")
         st.markdown("Instantly generate production-ready Cypress E2E test scripts based on the approved Acceptance Criteria.")
 
         if st.button("Generate Cypress QA Scripts", type="primary"):
