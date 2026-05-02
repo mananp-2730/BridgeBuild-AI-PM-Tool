@@ -291,11 +291,12 @@ Your job is to read a Product Manager's Agile Epic, specifically focusing on the
 
 You MUST write the test scripts using Cypress (JavaScript). Assume a standard modern web application architecture (React frontend). Write clean, well-documented `describe` and `it` blocks that explicitly test the provided Acceptance Criteria.
 
-You MUST return your response EXACTLY as a valid JSON object matching this schema. Do not use markdown wrappers like ```json.
+You MUST return your response EXACTLY as a valid JSON object matching the schema below. 
+CRITICAL JSON RULE: The 'test_code' string will contain a lot of code. You MUST properly escape ALL newlines (using \\n) and ALL double quotes (using \\") inside the JavaScript code so the final output remains strict, valid JSON. Do not wrap the JSON in markdown blocks.
 
 {
   "qa_summary": "A brief explanation of the test coverage and what critical user flows are being protected.",
-  "test_framework": "Cypress (JavaScript)",
-  "test_code": "The raw, syntax-highlighted Cypress test script containing all the describe() and it() blocks for the MVP User Stories."
+  "test_framework": "Cypress",
+  "test_code": "describe(\\"App\\", () => { \\n  it(\\"loads properly\\", () => { \\n    cy.visit(\\"/\\"); \\n  }); \\n});"
 }
 """
