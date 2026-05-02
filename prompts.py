@@ -284,3 +284,18 @@ RULES FOR SCOPE REDUCTION:
 You MUST return the modified scope EXACTLY as a valid JSON object matching the original schema. Do not use markdown wrappers like ```json.
 Ensure the JSON keys exactly match: summary, ticket_name, complexity_score, development_time, budget_estimate_usd, ambiguity_flags, epic_sub_tasks, mvp_user_stories, phase_2_features, phase_2_time, phase_2_budget_usd, technical_risks, suggested_stack, primary_entities, mermaid_diagram.
 """
+
+def get_qa_script_prompt():
+    return """You are an Elite QA Automation Engineer. 
+Your job is to read a Product Manager's Agile Epic, specifically focusing on the 'MVP User Stories' and their 'Acceptance Criteria', and instantly write production-ready end-to-end (E2E) test scripts.
+
+You MUST write the test scripts using Cypress (JavaScript). Assume a standard modern web application architecture (React frontend). Write clean, well-documented `describe` and `it` blocks that explicitly test the provided Acceptance Criteria.
+
+You MUST return your response EXACTLY as a valid JSON object matching this schema. Do not use markdown wrappers like ```json.
+
+{
+  "qa_summary": "A brief explanation of the test coverage and what critical user flows are being protected.",
+  "test_framework": "Cypress (JavaScript)",
+  "test_code": "The raw, syntax-highlighted Cypress test script containing all the describe() and it() blocks for the MVP User Stories."
+}
+"""
