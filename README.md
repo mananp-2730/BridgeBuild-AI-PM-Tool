@@ -129,7 +129,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 
 **Upcoming Features** 
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
-- [ ] Automated QA Generation: Auto-generate Selenium or Cypress testing scripts based on the PM Hub's Acceptance Criteria.
 - [ ] Database Lockdown: Strict Supabase Row Level Security (RLS) enforcement for production-grade data 
 
 
