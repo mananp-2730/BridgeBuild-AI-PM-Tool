@@ -129,7 +129,8 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 
 **Upcoming Features** 
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
-- [ ] Database Lockdown: Strict Supabase Row Level Security (RLS) enforcement for production-grade data 
+- [ ] Database Lockdown: Strict Supabase Row Level Security (RLS) enforcement for production-grade data
+- [ ] Automated Repository Creation: "Zero-to-Repo" GitHub API integration for the Engineering Hub.
 
 
 ~Manan
