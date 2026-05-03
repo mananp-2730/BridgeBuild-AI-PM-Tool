@@ -78,7 +78,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Frontend:** Streamlit with Custom Dynamic CSS Injection (Stealth UI)
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
 * **Artifact Generation:** ReportLab (PDFs), Python-PPTX (PowerPoint), Native Mermaid.js, CSV Bulk Exporters
-
+  
 ## Steps to Run Locally
 1. **Clone the repo**
    ```bash
