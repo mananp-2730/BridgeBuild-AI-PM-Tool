@@ -17,3 +17,5 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
 1. Install dependencies:
    ```bash
    pip install -r requirements.txt
+
+2. Create a .streamlit folder in the root directory and add a secrets.toml file inside it.
