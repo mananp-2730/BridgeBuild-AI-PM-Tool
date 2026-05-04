@@ -237,9 +237,16 @@ def render_pm_dashboard(supabase):
                         supabase.table("tickets").update({"status": "Accepted by PM"}).eq("id", item['id']).execute()
                         
                         injection_text = f"SALES HANDOFF CONTEXT:\nProject Summary: {sales_data.get('project_summary', item['summary'])}\nBudget: {item['cost']}\nTimeline: {item['time']}\nDeal Breakers: {sales_data.get('deal_breakers', [])}\nClient Asks: {sales_data.get('client_questions', [])}"
+                        
                         st.session_state.sales_input = injection_text
+                        
+                        # --- FIX: CLEAR PREVIOUS CONTEXT AND ACTIVE TICKET UI ---
+                        st.session_state.active_ticket = None 
+                        st.session_state.active_ticket_id = None 
+                        st.session_state.pending_handoff_dept = None 
                         st.session_state.cr_analysis = None 
                         st.session_state.qa_script = None
+                        
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -250,6 +257,9 @@ def render_pm_dashboard(supabase):
     # ==========================================
     if st.button("Load Sample Email", key="pm_load_sample_btn"):
         st.session_state.sales_input = "Client wants a mobile app for food delivery. Needs GPS tracking for drivers, a menu for customers, and a payment gateway. They have a budget of $15k."
+        # --- FIX: CLEAR PREVIOUS CONTEXT ON SAMPLE LOAD ---
+        st.session_state.active_ticket = None
+        st.session_state.active_ticket_id = None
     
     uploaded_file = st.file_uploader("Upload Meeting Audio or Transcript (.mp3, .wav, .txt, .pdf)", type=["mp3", "wav", "m4a", "txt", "pdf"])
     
@@ -599,7 +609,7 @@ def render_pm_dashboard(supabase):
                     st.write(f"↳ {api.get('purpose')}")
 
         # ==========================================
-        # NEW: QA AUTOMATION HUB (THE CRUCIBLE)
+        # QA AUTOMATION HUB (THE CRUCIBLE)
         # ==========================================
         st.divider()
         st.subheader("QA Automation Hub (The Crucible)")
@@ -703,7 +713,6 @@ def render_pm_dashboard(supabase):
             for tech in data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
             eng_body += "\n\nBest,\nProduct Management"
             
-            # FIXED: Avoid nested f-strings in url construction to prevent syntax errors on strict parsers
             eng_subject = urllib.parse.quote(f"Eng Ticket: {ticket_name}")
             eng_body_encoded = urllib.parse.quote(eng_body)
             eng_mailto = f"mailto:?subject={eng_subject}&body={eng_body_encoded}"
@@ -901,7 +910,6 @@ def render_pm_dashboard(supabase):
                     for tech in past_data.get("suggested_stack", []): eng_body += f"  - {tech}\n"
                     eng_body += "\n\nBest,\nProduct Management"
                     
-                    # FIXED FOR HISTORY EMAILS AS WELL
                     hist_eng_subject = urllib.parse.quote(f"Eng Ticket: {ticket_name}")
                     hist_eng_body_encoded = urllib.parse.quote(eng_body)
                     eng_mailto = f"mailto:?subject={hist_eng_subject}&body={hist_eng_body_encoded}"
