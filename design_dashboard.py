@@ -44,7 +44,7 @@ def _check_page_break(c, current_y, height, threshold=100):
     return current_y
 
 def _draw_header(c, width, height, title):
-    c.setFillColorRGB(0.5, 0.1, 0.5) # Purple header for Design Studio
+    c.setFillColorRGB(0.5, 0.1, 0.5) 
     c.rect(0, height - 100, width, 100, fill=1, stroke=0)
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 22)
@@ -135,7 +135,6 @@ def render_design_dashboard(supabase):
     if "design_input" not in st.session_state: 
         st.session_state.design_input = ""
         
-    # Initialize State Management
     if "active_design_ticket" not in st.session_state: 
         st.session_state.active_design_ticket = None
     if "active_design_ticket_id" not in st.session_state: 
@@ -173,7 +172,7 @@ def render_design_dashboard(supabase):
                             injection_text += f"Features to Design For: {pm_data.get('mvp_features', [])}\n"
                             
                         st.session_state.design_input = injection_text
-                        st.session_state.active_generated_code = None # Reset code on new ticket
+                        st.session_state.active_generated_code = None 
                         st.rerun()
             st.divider()
     except Exception as e:
@@ -248,9 +247,8 @@ def render_design_dashboard(supabase):
                     else:
                         status.update(label="Design Architecture Complete!", state="complete", expanded=False)
                         st.session_state.active_design_ticket = data
-                        st.session_state.active_generated_code = None # Reset code
+                        st.session_state.active_generated_code = None 
 
-                # SAVE TO SUPABASE WITH STATUS
                 new_ticket = {
                     "user_id": st.session_state.user.id,
                     "summary": data.get("project_vision", "Design Architecture")[:200],
@@ -270,7 +268,7 @@ def render_design_dashboard(supabase):
                 st.error(f"An error occurred: {str(e)}")
 
     # ==========================================
-    # RENDER THE ACTIVE DESIGN UI (POLISHED)
+    # RENDER THE ACTIVE DESIGN UI 
     # ==========================================
     if st.session_state.active_design_ticket:
         data = st.session_state.active_design_ticket
@@ -278,7 +276,6 @@ def render_design_dashboard(supabase):
         st.write("")
         st.success("Design Architecture Ready!")
         
-        # --- HERO SECTION ---
         with st.container(border=True):
             st.markdown("#### Project Vision")
             st.info(data.get('project_vision'))
@@ -286,7 +283,6 @@ def render_design_dashboard(supabase):
         
         st.write("")
         
-        # --- THEME & COLOR SWATCH CARD ---
         theme = data.get("design_theme", {})
         vibe = theme.get("vibe", "Modern & Clean")
         typography = theme.get("typography_pairing", "Standard sans-serif")
@@ -303,7 +299,6 @@ def render_design_dashboard(supabase):
                 st.write(f"*{typography}*")
             with col_color:
                 st.markdown("#### Primary Color")
-                # Massive dynamic color swatch
                 st.markdown(f"""
                 <div style='background-color: {safe_hex}; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 2px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);'>
                     {raw_color_text}
@@ -322,7 +317,6 @@ def render_design_dashboard(supabase):
                         
             st.write("")
             st.markdown("#### UI Component Library")
-            # --- INLINE COMPONENT PILLS ---
             components_html = ""
             for comp in data.get("ui_components_needed", []):
                 components_html += f"<span style='background-color: #e2e8f0; color: #1e293b; padding: 6px 12px; border-radius: 20px; margin-right: 8px; margin-bottom: 8px; display: inline-block; font-size: 13px; font-weight: 600; border: 1px solid #cbd5e1;'>{comp}</span>"
@@ -342,7 +336,7 @@ def render_design_dashboard(supabase):
                 st.success(f"✓ {a11y}")
 
         # ==========================================
-        # NEW: DESIGN-TO-CODE COMPONENT FACTORY
+        # DESIGN-TO-CODE COMPONENT FACTORY
         # ==========================================
         st.divider()
         st.subheader("Frontend Component Factory")
@@ -362,7 +356,7 @@ def render_design_dashboard(supabase):
                         model=model_id,
                         config=types.GenerateContentConfig(
                             system_instruction=CODE_PROMPT,
-                            temperature=0.2, # Lower temp for strict coding
+                            temperature=0.2, 
                             response_mime_type="application/json"
                         ),
                         contents=[context]
@@ -376,7 +370,6 @@ def render_design_dashboard(supabase):
                         status.update(label="Boilerplate Code Ready!", state="complete", expanded=False)
                         st.session_state.active_generated_code = code_data
                         
-                        # --- NEW: ATTACH CODE TO TICKET AND SAVE TO DB ---
                         st.session_state.active_design_ticket["generated_frontend_code"] = code_data
                         if st.session_state.active_design_ticket_id:
                             supabase.table("tickets").update({"full_data": json.dumps(st.session_state.active_design_ticket)}).eq("id", st.session_state.active_design_ticket_id).execute()
@@ -387,9 +380,6 @@ def render_design_dashboard(supabase):
             code_payload = st.session_state.active_generated_code
             st.info(f"**Styling Guide:** {code_payload.get('global_styles_summary', 'Tailwind CSS classes applied.')}")
             
-            # ==========================================
-            # NEW: LIVE-RENDER PROTOTYPE SANDBOX
-            # ==========================================
             if code_payload.get("live_sandbox_html"):
                 st.write("")
                 st.markdown("### 🔴 Live Prototype Sandbox")
@@ -474,7 +464,6 @@ def render_design_dashboard(supabase):
         if saved_tickets:
             for item in saved_tickets:
                 
-                # --- NEW: STATUS BADGE LOGIC ---
                 current_status = item.get('status', 'Draft')
                 if current_status in ['Draft', 'Accepted by Design']:
                     status_icon = "📝"
@@ -485,16 +474,20 @@ def render_design_dashboard(supabase):
 
                 with st.expander(f"{status_icon} Design: {item['summary'][:60]}..."):
                     
-                    # --- SHOW CURRENT STATUS ---
                     if current_status in ['Draft', 'Accepted by Design']:
                         st.caption(f"Status: **{current_status} (Not Sent)**")
                     else:
                         st.caption(f"Status: **{current_status}** 🚀")
 
-                    past_data = json.loads(item['full_data'])
+                    # --- FIXED: ADDED TRY/EXCEPT BLOCK FOR BULLETPROOF HISTORY PARSING ---
+                    try:
+                        past_data = json.loads(item['full_data'])
+                    except Exception as e:
+                        st.error(f"Corrupted Design Data in Database. Cannot load this record.")
+                        past_data = {} # Failsafe
+                        
                     theme = past_data.get("design_theme", {})
                     
-                    # History Email Payload
                     hist_vibe = theme.get("vibe", "Modern & Clean")
                     hist_typography = theme.get("typography_pairing", "Standard sans-serif")
                     hist_hex = theme.get("primary_color_suggestion", "#012169")
@@ -508,12 +501,10 @@ def render_design_dashboard(supabase):
                     hist_body += "\nSee the attached PDF for full specs.\n\nBest,\nBridgeBuild Design Hub"
                     hist_mailto = f"mailto:?subject={quote('Historical UX/UI Design Specs')}&body={quote(hist_body)}"
 
-                    # Add the color swatch to history too!
                     match_hist = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', hist_hex)
                     safe_hist_hex = match_hist.group(0) if match_hist else "#012169"
                     st.markdown(f"**Vibe:** {hist_vibe} | **Font:** {hist_typography} | **Color:** <span style='background-color: {safe_hist_hex}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'>{hist_hex}</span>", unsafe_allow_html=True)
                     
-                    # Render localized PDF and Delete inside History
                     hist_btn_col1, hist_btn_col2 = st.columns([3, 1])
                     with hist_btn_col1:
                         st.download_button("Download PDF", data=generate_local_design_pdf(past_data), file_name=f"design_{item['id'][:8]}.pdf", mime="application/pdf", key=f"hist_pdf_design_{item['id']}", use_container_width=True)
@@ -527,7 +518,6 @@ def render_design_dashboard(supabase):
                                 except Exception as e:
                                     st.error(f"Failed to delete: {str(e)}")
                     
-                    # Embed Email Button
                     st.markdown(f"""
                         <div style="margin-top: 5px; margin-bottom: 15px;">
                             <a href="{hist_mailto}" target="_blank" style="text-decoration: none;">
@@ -538,7 +528,6 @@ def render_design_dashboard(supabase):
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    # --- NEW: HISTORY HANDOFF BUTTONS ---
                     if current_status in ['Draft', 'Accepted by Design']:
                         st.markdown("##### Route Ticket")
                         if st.button("Send to Engineering", key=f"hist_eng_{item['id']}", use_container_width=True):
