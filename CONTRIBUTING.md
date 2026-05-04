@@ -28,3 +28,5 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
    SUPABASE_KEY = "your_supabase_anon_key"
 
 ## Code Style & Architecture Guidelines
+
+* **Python Version:** Use Python 3.11+.
