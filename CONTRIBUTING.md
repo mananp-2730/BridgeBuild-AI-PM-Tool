@@ -30,3 +30,4 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
 ## Code Style & Architecture Guidelines
 
 * **Python Version:** Use Python 3.11+.
+* **Linting:** Follow PEP 8 guidelines. Keep functions modular.
