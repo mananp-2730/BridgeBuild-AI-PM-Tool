@@ -1,6 +1,6 @@
 # Contributing to BridgeBuild AI
 
-First off, thank you for considering contributing to BridgeBuild AI! We are building the ultimate Enterprise Agile Operating System, and contributions from the community are highly welcome.
+Thank you for considering contributing to BridgeBuild AI! We are building the ultimate Enterprise Agile Operating System, and contributions from the community are highly welcome.
 
 ## The Workflow
 
