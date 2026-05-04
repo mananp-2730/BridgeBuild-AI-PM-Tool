@@ -19,3 +19,10 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
    pip install -r requirements.txt
 
 2. Create a .streamlit folder in the root directory and add a secrets.toml file inside it.
+
+3. Add your development API keys to .streamlit/secrets.toml:
+   ```TOML
+   GOOGLE_API_KEY = "your_google_gemini_key_here"
+   [supabase]
+   SUPABASE_URL = "your_supabase_project_url"
+   SUPABASE_KEY = "your_supabase_anon_key"
