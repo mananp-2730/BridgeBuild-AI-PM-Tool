@@ -1,14 +1,29 @@
+# --- Project Specific Scripts ---
 gemini_translator.py 
 check_models.py 
-.env 
 
-# --- Standard Python Ignores ---
+# --- Secrets & Environment (CRITICAL) ---
+.env 
+key.env
+.streamlit/secrets.toml
+
+# --- Python Standard ---
 __pycache__/
 *.pyc
-
-# --- Streamlit Cloud Specifics ---
-.streamlit/secrets.toml
-packages.txt
-
-key.env
+*.pyo
 venv/
+env/
+.venv/
+
+# --- IDE & OS Junk ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Generated Local Test Artifacts ---
+*.pdf
+*.csv
+*.pptx
+*.mp3
+*.wav
