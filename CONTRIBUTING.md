@@ -26,3 +26,5 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
    [supabase]
    SUPABASE_URL = "your_supabase_project_url"
    SUPABASE_KEY = "your_supabase_anon_key"
+
+## Code Style & Architecture Guidelines
