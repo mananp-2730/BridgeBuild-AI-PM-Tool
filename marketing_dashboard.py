@@ -2,7 +2,7 @@ import streamlit as st
 import json
 from google import genai
 from google.genai import types
-from prompts import get_marketing_prompt, get_localization_prompt # <-- NEW IMPORT
+from prompts import get_marketing_prompt, get_localization_prompt
 from utils import clean_json_output, safe_parse_json
 
 def render_marketing_dashboard(supabase):
@@ -12,6 +12,17 @@ def render_marketing_dashboard(supabase):
     api_key = st.secrets.get("GOOGLE_API_KEY")
     user_prefs = st.session_state.get("user_prefs", {})
     model_choice = user_prefs.get("ai_model", "Gemini 1.5 Flash (Fast)")
+
+    # --- STATE MANAGEMENT ---
+    if "active_marketing_data" not in st.session_state:
+        st.session_state.active_marketing_data = None
+    if "localized_marketing_data" not in st.session_state:
+        st.session_state.localized_marketing_data = None
+    if "target_region" not in st.session_state:
+        st.session_state.target_region = "Global (English)"
+    # NEW: Track the currently selected project to prevent Stale Data UI bugs
+    if "current_marketing_project_id" not in st.session_state:
+        st.session_state.current_marketing_project_id = None
 
     # --- 1. PROJECT SELECTOR ---
     st.markdown("#### Select Project for GTM Launch")
@@ -27,19 +38,18 @@ def render_marketing_dashboard(supabase):
         selected_project_name = st.selectbox("Select an internal project:", list(project_options.keys()))
         selected_project = project_options[selected_project_name]
         
+        # --- NEW: STALE DATA WIPER ---
+        # If the user selects a new project from the dropdown, clear out the old marketing copy
+        if st.session_state.current_marketing_project_id != selected_project['id']:
+            st.session_state.current_marketing_project_id = selected_project['id']
+            st.session_state.active_marketing_data = None
+            st.session_state.localized_marketing_data = None
+        
     except Exception as e:
         st.error(f"Failed to load projects: {str(e)}")
         return
 
     st.divider()
-
-    # --- STATE MANAGEMENT ---
-    if "active_marketing_data" not in st.session_state:
-        st.session_state.active_marketing_data = None
-    if "localized_marketing_data" not in st.session_state:
-        st.session_state.localized_marketing_data = None
-    if "target_region" not in st.session_state:
-        st.session_state.target_region = "Global (English)"
 
     # --- 2. BASE GENERATION ENGINE ---
     if st.button("Generate Base GTM Strategy (English)", type="primary"):
