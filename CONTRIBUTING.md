@@ -33,3 +33,4 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
 * **Linting:** Follow PEP 8 guidelines. Keep functions modular.
 * **Streamlit State:** Never mutate st.session_state variables directly inside rendering loops unless triggered by a specific user action (like a button click) to prevent infinite reload loops.
 * **Testing Roles:** BridgeBuild AI relies heavily on Role-Based Access Control (RBAC). If you add a feature to a specific dashboard (e.g., design_dashboard.py), ensure you test it by logging in with a Supabase user account assigned to that specific role.
+* **Error Handling:** Always wrap API calls (Gemini/Supabase) or JSON parsing in try/except blocks to prevent application crashes from LLM hallucinations.
