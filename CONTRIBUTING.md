@@ -31,3 +31,4 @@ Because BridgeBuild AI relies on external APIs and cloud databases, you must set
 
 * **Python Version:** Use Python 3.11+.
 * **Linting:** Follow PEP 8 guidelines. Keep functions modular.
+* **Streamlit State:** Never mutate st.session_state variables directly inside rendering loops unless triggered by a specific user action (like a button click) to prevent infinite reload loops.
