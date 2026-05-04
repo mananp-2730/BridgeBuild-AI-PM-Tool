@@ -518,7 +518,12 @@ def render_engineering_dashboard(supabase):
                     else:
                         st.caption(f"Status: **{current_status}**")
 
-                    past_data = json.loads(item['full_data'])
+                    # --- FIXED: ADDED TRY/EXCEPT BLOCK FOR BULLETPROOF HISTORY PARSING ---
+                    try:
+                        past_data = json.loads(item['full_data'])
+                    except Exception as e:
+                        st.error("Corrupted Architecture Data in Database. Cannot load this record.")
+                        past_data = {} # Failsafe
                     
                     hist_tech_stack = past_data.get("tech_stack_recommendation", {})
                     hist_body = f"Hello Dev Team,\n\nPlease review the generated System Architecture for a previous concept.\n\n"
