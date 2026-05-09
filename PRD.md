@@ -42,6 +42,7 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
 * **Should Have (Enterprise Value):**
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
   * Profitability Calibration Engine & Analytics Visualizer to graphically track estimated budgets against actual logged project costs.
+  * Monte Carlo Margin Predictor to run 1,000 probabilistic simulations of project timelines to forecast cash flow burn rates.
   * Scope Creep (CR) Calculator to calculate the financial and technical impact of mid-sprint feature requests.
   * Scope-Slider Budget Negotiator for real-time, drag-and-drop architectural downgrades to fit strict client budgets.
   * God-Mode Manual Overrides for zero-friction human intervention on the final 5% of the generated architecture.
