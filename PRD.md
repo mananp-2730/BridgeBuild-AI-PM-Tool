@@ -31,6 +31,7 @@
 4. **Design:** The ticket flows to the Design Studio, where the AI maps user flows, extracts hex colors, writes production-ready React code, and renders a live, clickable Single Page Application (SPA) Prototype in the browser.
 5. **Architect:** Engineering inherits the design code and uses the Company Context Engine (RAG) to enforce internal coding standards and generate PostgreSQL schemas and REST APIs.
 6. **Launch:** The Marketing Studio reads the technical schema, generates Product Hunt launch copy, and uses the Global Expansion Engine to localize the campaign for international markets.
+7. **Executive Oversight:** The Admin Control Center tracks pipeline bottlenecks, records actual ledger costs against AI estimates, and runs **1,000-iteration Monte Carlo simulations** to predict the exact day active projects will burn through their budget margins.
 
 ## **4. Feature Prioritization (MoSCoW Framework)**
 To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
