@@ -27,7 +27,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 3. **UX/UI Design Studio:** Catches approved Agile tickets. Generates core user flows, hex color swatches, writes React/Tailwind boilerplate, and **compiles a Live-Render Prototype Sandbox displaying a fully functional Single Page Application (SPA).**
 4. **Engineering Terminal:** Catches approved Design tickets. Translates business requirements into pure technical execution, providing structured database schemas, REST API routes, tech stack recommendations, and CI/CD pipelines.
 5. **Marketing Studio (GTM Hub):** Analyzes technical architecture and instantly translates it into high-converting Go-To-Market strategies, including landing page copy, SEO metadata, and Product Hunt launch campaigns.
-6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks via dynamic bar charts, visualizes AI estimate vs. actual margin variance, and manages Active Directory access.
+6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks, visualizes AI estimate vs. actual margin variance, **and runs 1,000-iteration Monte Carlo simulations to mathematically predict project margin burndown.**
 
 ## Key Architectural Features:
 * **QA Automation Hub:** Automatically reverse-engineers the PM's Acceptance Criteria and generates production-ready, copy-pasteable Cypress (JavaScript) End-to-End test scripts (`.spec.js`).
