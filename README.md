@@ -130,6 +130,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] Scope-Slider Budget Negotiator: Interactive drag-and-drop budget recalculation and automated feature demotion.
 - [x] God-Mode Manual Overrides: Instant, zero-friction raw data editing to manually tweak AI-generated architectures without extra API calls.
 - [x] QA Automation Hub: Auto-generate production-ready Cypress (.spec.js) E2E test scripts based directly on the PM Hub's Acceptance Criteria.
+- [x] Monte Carlo Margin Predictor: Quantitative finance engine running 1,000 statistical simulations to forecast project cash flow and predict budget bankruptcy.
 
 **Upcoming Features** 
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
