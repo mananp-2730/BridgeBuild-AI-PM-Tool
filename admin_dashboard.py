@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 import re
 import json
+import random
 
+# ==========================================
+# MATH & PARSING HELPER FUNCTIONS
+# ==========================================
 def extract_average_cost(raw_cost_str):
     """Helper function to turn '15000-20000' into a mathematical average for the pipeline."""
     if not raw_cost_str or raw_cost_str == "0-0" or raw_cost_str == "N/A (Design Phase)" or raw_cost_str == "N/A (Engineering Phase)":
@@ -17,13 +21,109 @@ def extract_average_cost(raw_cost_str):
         return (int(numbers[0]) + int(numbers[1])) / 2
     return 0
 
+def parse_time_to_days(time_str):
+    """Converts AI timeline strings (e.g., '4-6 Weeks') into base working days."""
+    if not time_str or time_str in ["TBD", "Unknown"]:
+        return 30 # Default assumption
+        
+    numbers = [int(n) for n in re.findall(r'\d+', str(time_str))]
+    if not numbers:
+        return 30
+        
+    avg_val = sum(numbers) / len(numbers)
+    lower_str = str(time_str).lower()
+    
+    if "week" in lower_str:
+        return int(avg_val * 5) # 5 working days a week
+    elif "month" in lower_str:
+        return int(avg_val * 20) # 20 working days a month
+    elif "day" in lower_str:
+        return int(avg_val)
+    else:
+        return int(avg_val * 5) # Default assumption is weeks
+
+# ==========================================
+# THE MONTE CARLO BURN-RATE ENGINE
+# ==========================================
+def run_monte_carlo(budget, estimated_days, complexity):
+    """Runs 1,000 probabilistic simulations of the project lifecycle."""
+    
+    # 1. Calibrate Risk Probability based on AI Complexity Score
+    if "Red" in str(complexity) or "High" in str(complexity):
+        delay_chance = 0.35  # 35% chance every day is a blocker/delay
+    elif "Yellow" in str(complexity) or "Medium" in str(complexity):
+        delay_chance = 0.20  # 20% chance
+    else:
+        delay_chance = 0.05  # 5% chance (Standard friction)
+
+    daily_burn = budget / estimated_days if estimated_days > 0 else 0
+    
+    all_runs = []
+    bankruptcies = 0
+    
+    # 2. Run 1,000 Independent Project Lifecycles
+    for _ in range(1000):
+        work_done = 0
+        cash_remaining = budget
+        run_path = [cash_remaining]
+
+        # The project isn't over until 'estimated_days' of actual work is completed
+        while work_done < estimated_days:
+            if random.random() < delay_chance:
+                # Developer is blocked: We pay them (burn cash), but make 0 progress
+                cash_remaining -= daily_burn 
+            else:
+                # Productive day: We pay them, and make 1 day of progress
+                cash_remaining -= daily_burn
+                work_done += 1
+                
+            run_path.append(cash_remaining)
+
+        if cash_remaining < 0:
+            bankruptcies += 1
+            
+        all_runs.append(run_path)
+
+    # 3. Pad the arrays so they are all the same length for dataframe alignment
+    max_duration = max(len(r) for r in all_runs)
+    for r in all_runs:
+        while len(r) < max_duration:
+            r.append(r[-1]) # Project finished, cash remains flat
+    
+    # 4. Calculate P10, P50, and P90 Percentiles per day
+    chart_data = []
+    for day in range(max_duration):
+        day_vals = [r[day] for r in all_runs]
+        day_vals.sort()
+        
+        chart_data.append({
+            "Day": day,
+            "Worst Case (P10)": day_vals[int(1000 * 0.1)],
+            "Expected Path (P50)": day_vals[int(1000 * 0.5)],
+            "Best Case (P90)": day_vals[int(1000 * 0.9)],
+            "Zero Line (Bankruptcy)": 0
+        })
+        
+    df = pd.DataFrame(chart_data).set_index("Day")
+    prob_loss = (bankruptcies / 1000) * 100
+    
+    # Calculate Cross-Over points (When does cash drop below $0?)
+    exp_cross = next((i for i, v in enumerate(df["Expected Path (P50)"]) if v <= 0), None)
+    worst_cross = next((i for i, v in enumerate(df["Worst Case (P10)"]) if v <= 0), None)
+    
+    return df, prob_loss, exp_cross, worst_cross
+
+
+# ==========================================
+# ADMIN DASHBOARD RENDERER
+# ==========================================
 def render_admin_dashboard(supabase):
     st.title("Admin Control Center")
     st.markdown("### BridgeBuild AI Global Oversight & Access Control")
     
-    tab1, tab2, tab3 = st.tabs(["Global Analytics", "Team Management", "Profitability Engine"])
+    # --- ADDED TAB 4 FOR MONTE CARLO ---
+    tab1, tab2, tab3, tab4 = st.tabs(["Global Analytics", "Team Management", "Profitability Engine", "Monte Carlo Risk Engine"])
 
-    # Fetch all tickets once to use across tabs
     try:
         all_tickets_response = supabase.table("tickets").select("*").execute()
         all_tickets = all_tickets_response.data
@@ -62,7 +162,6 @@ def render_admin_dashboard(supabase):
             st.write("")
             st.markdown("#### Live Department Bottlenecks")
             
-            # --- NEW: VISUAL BOTTLENECK CHART ---
             col_b1, col_b2 = st.columns([1, 2])
             with col_b1:
                 st.markdown("**Current Queue Load**")
@@ -76,7 +175,6 @@ def render_admin_dashboard(supabase):
                     "Tickets in Queue": [pm_queue, design_queue, eng_queue]
                 }
                 bottleneck_df = pd.DataFrame(bottleneck_data).set_index("Department")
-                # Native Streamlit bar chart!
                 st.bar_chart(bottleneck_df, color="#ef4444", height=250)
 
             st.divider()
@@ -174,7 +272,6 @@ def render_admin_dashboard(supabase):
         st.markdown("#### Project Financial Close-Out")
         st.info("Log actual costs for completed projects to calibrate AI estimations and track agency profitability.")
 
-        # 1. Close-Out Form
         ready_tickets = [t for t in all_tickets if t.get('status') == 'Ready for Dev']
         
         with st.expander("Log a Completed Project", expanded=False):
@@ -198,12 +295,10 @@ def render_admin_dashboard(supabase):
                         
                     if st.button("Finalize & Log Financials", type="primary", use_container_width=True):
                         try:
-                            # Safely load existing JSON to append actuals
                             full_data = json.loads(active_t['full_data']) if active_t.get('full_data') else {}
                             full_data['actual_cost'] = actual_cost
                             full_data['actual_time'] = actual_time
                             
-                            # Update the database
                             supabase.table("tickets").update({
                                 "status": "Completed & Billed",
                                 "target_department": "None",
@@ -218,14 +313,13 @@ def render_admin_dashboard(supabase):
         st.divider()
         st.markdown("#### Margin & Variance Analytics")
         
-        # 2. Financial Analytics Engine
         completed_tickets = [t for t in all_tickets if t.get('status') == 'Completed & Billed']
         
         if not completed_tickets:
             st.info("Complete your first project above to generate financial analytics.")
         else:
             analytics_data = []
-            chart_data = [] # NEW: Data array specifically for the chart
+            chart_data = [] 
             total_est = 0
             total_actual = 0
             
@@ -243,7 +337,6 @@ def render_admin_dashboard(supabase):
                     
                     proj_name = t.get("summary", "Unknown")[:30] + "..."
                     
-                    # Data for the dataframe
                     analytics_data.append({
                         "Project": proj_name,
                         "AI Estimate": f"${est:,.2f}",
@@ -252,7 +345,6 @@ def render_admin_dashboard(supabase):
                         "Health": margin_status
                     })
                     
-                    # Data for the visual chart
                     chart_data.append({
                         "Project": proj_name,
                         "AI Estimate ($)": est,
@@ -261,7 +353,6 @@ def render_admin_dashboard(supabase):
                 except:
                     continue
             
-            # Top-Line Margin Metrics
             col_a1, col_a2, col_a3 = st.columns(3)
             with col_a1:
                 st.metric("Total Billed Revenue", f"${total_actual:,.2f}")
@@ -269,20 +360,96 @@ def render_admin_dashboard(supabase):
                 variance_total = total_est - total_actual
                 st.metric("Total AI Estimation Variance", f"${variance_total:,.2f}")
             with col_a3:
-                # If variance is negative, we spent MORE than estimated (Loss of margin)
                 margin_health = "Healthy" if total_actual <= total_est else "Needs Calibration"
                 st.metric("Estimation Health", margin_health)
 
             st.write("")
-            
-            # --- NEW: VISUAL FINANCIAL CHART ---
             st.markdown("##### Estimate vs. Actuals Tracker")
             if chart_data:
                 chart_df = pd.DataFrame(chart_data).set_index("Project")
-                # Renders a side-by-side comparison bar chart!
                 st.bar_chart(chart_df, color=["#3b82f6", "#ef4444"], height=300) 
             
             st.write("")
             st.markdown("##### Completed Project Ledger")
             analytics_df = pd.DataFrame(analytics_data)
             st.dataframe(analytics_df, use_container_width=True, hide_index=True)
+
+    # ==========================================
+    # TAB 4: THE MONTE CARLO RISK ENGINE (NEW)
+    # ==========================================
+    with tab4:
+        st.write("")
+        st.markdown("#### Quantitative Margin Predictor")
+        st.info("Run 1,000 probabilistic simulations against an active project to predict exactly when the agency will start burning cash.")
+
+        active_projects = [t for t in all_tickets if t.get('status') != 'Completed & Billed' and t.get('status') != 'Draft']
+        
+        if not active_projects:
+            st.warning("No active projects found in the pipeline. Please generate an Agile Ticket first.")
+        else:
+            mc_options = {f"{t['summary'][:60]}...": t for t in active_projects}
+            selected_mc_proj = st.selectbox("Select Active Project to Simulate:", list(mc_options.keys()))
+            
+            if selected_mc_proj:
+                mc_ticket = mc_options[selected_mc_proj]
+                
+                # Extract Base Metrics
+                mc_budget = extract_average_cost(mc_ticket.get('raw_cost', '0'))
+                mc_time_str = mc_ticket.get('time', 'TBD')
+                mc_days = parse_time_to_days(mc_time_str)
+                mc_complexity = mc_ticket.get('complexity', 'Unknown')
+                
+                with st.container(border=True):
+                    col_b1, col_b2, col_b3 = st.columns(3)
+                    with col_b1: st.metric("Base AI Budget", f"${mc_budget:,.2f}")
+                    with col_b2: st.metric("Base Timeline", mc_time_str, help=f"Parsed as {mc_days} working days.")
+                    with col_b3: st.metric("Complexity Risk", mc_complexity)
+
+                if st.button("Run 1,000 Monte Carlo Simulations", type="primary", use_container_width=True):
+                    if mc_budget == 0 or mc_days == 0:
+                        st.error("Cannot run simulation: Budget or Timeline is zero. Please use God-Mode in the PM Hub to set proper estimates.")
+                    else:
+                        with st.status("Initializing Quantitative Engine...", expanded=True) as status:
+                            st.write("Extracting volatility modifiers...")
+                            st.write("Running 1,000 independent statistical lifetimes...")
+                            st.write("Aggregating percentiles...")
+                            
+                            try:
+                                mc_df, prob_loss, exp_cross, worst_cross = run_monte_carlo(mc_budget, mc_days, mc_complexity)
+                                status.update(label="Simulation Complete!", state="complete", expanded=False)
+                                
+                                st.write("")
+                                st.markdown("### Margin Burndown Forecast")
+                                st.caption("This chart tracks 'Remaining Cash' over 'Days in Development'. If a line drops below the white zero-line, the agency is actively losing money on the project.")
+                                
+                                # Render the visual! Streamlit maps colors to dataframe columns in order.
+                                # Colors: Red (Worst), Blue (Expected), Green (Best), Gray (Zero Line)
+                                st.line_chart(mc_df, color=["#ef4444", "#3b82f6", "#22c55e", "#d1d5db"], height=400)
+                                
+                                st.divider()
+                                st.markdown("#### Executive Risk Analysis")
+                                
+                                col_r1, col_r2, col_r3 = st.columns(3)
+                                with col_r1:
+                                    risk_color = "normal" if prob_loss < 20 else "inverse"
+                                    st.metric("Probability of Net Loss", f"{prob_loss:.1f}%", delta_color=risk_color)
+                                    
+                                with col_r2:
+                                    if exp_cross:
+                                        st.error(f"**Expected Bankruptcy:** Day {exp_cross}")
+                                        st.caption("Statistically, the most likely path wipes out the margin on this day.")
+                                    else:
+                                        st.success("**Expected Bankruptcy:** None")
+                                        st.caption("The median simulation finishes profitably.")
+                                        
+                                with col_r3:
+                                    if worst_cross:
+                                        st.warning(f"**Worst Case Bankruptcy:** Day {worst_cross}")
+                                        st.caption("The 10th percentile disaster scenario wipes out margin here.")
+                                    else:
+                                        st.success("**Worst Case Bankruptcy:** None")
+                                        st.caption("Even disaster scenarios remain profitable.")
+                                        
+                            except Exception as e:
+                                status.update(label="Simulation Failed", state="error", expanded=True)
+                                st.error(f"Mathematical Error: {str(e)}")
