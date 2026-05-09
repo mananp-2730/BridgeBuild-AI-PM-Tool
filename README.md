@@ -30,6 +30,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks, visualizes AI estimate vs. actual margin variance, **and runs 1,000-iteration Monte Carlo simulations to mathematically predict project margin burndown.**
 
 ## Key Architectural Features:
+* **Monte Carlo Margin Predictor:** A quantitative finance engine that runs 1,000 probabilistic simulations per project to forecast daily cash flow, charting expected, worst-case, and best-case margin burndown to predict agency bankruptcy on active projects.
 * **QA Automation Hub:** Automatically reverse-engineers the PM's Acceptance Criteria and generates production-ready, copy-pasteable Cypress (JavaScript) End-to-End test scripts (`.spec.js`).
 * **"God-Mode" Manual Overrides:** A zero-friction escape hatch that swaps the static UI for raw JSON editors and text fields, allowing humans to instantly overwrite AI hallucinations or make surgical tweaks without spending API credits.
 * **Scope-Slider Budget Negotiator:** An interactive UI tool that dynamically recalculates project scope, cuts non-essential features to Phase 2, and redraws technical architecture to mathematically meet client budget constraints in real-time.
@@ -39,7 +40,6 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 * **Multimodal Audio-to-Architecture:** Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into structured database schemas.
 * **Design-to-Code Component Factory:** Automatically writes syntax-highlighted React + Tailwind CSS boilerplate code based on the AI's generated UI specifications.
 * **Global Expansion Engine:** Instantly localizes Go-To-Market strategies into multiple languages and cultural business etiquettes, turning a local product launch into an international campaign.
-* **Real-Time Dynamic Quoting:** Toggles multi-thousand dollar budget estimations between USD ($) and INR (₹), automatically recalculating historical database records on the fly.
 
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
