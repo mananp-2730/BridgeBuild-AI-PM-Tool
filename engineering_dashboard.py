@@ -13,6 +13,7 @@ from utils import clean_json_output, safe_parse_json
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
+from github import Github
 
 # ==========================================
 # LOCALIZED ENGINEERING PDF ENGINE
