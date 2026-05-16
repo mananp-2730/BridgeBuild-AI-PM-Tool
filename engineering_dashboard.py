@@ -539,6 +539,39 @@ def render_engineering_dashboard(supabase):
                 """, unsafe_allow_html=True)
 
         st.divider()
+        
+        # --- NEW: GITHUB ZERO-TO-REPO UI ---
+        st.divider()
+        st.markdown("#### Cloud DevOps: Zero-to-Repo")
+        st.info("Automatically provision a private GitHub repository, commit the AI-generated React components, and push the `.sql` schema to the `main` branch.")
+        
+        col_gh1, col_gh2 = st.columns([2, 1])
+        with col_gh1:
+            repo_input_name = st.text_input("Repository Name", placeholder="e.g., bridgebuild-client-app", key="gh_repo_name")
+        with col_gh2:
+            st.markdown("<br>", unsafe_allow_html=True) # Alignment fix
+            if st.button("Provision GitHub Repo 🚀", type="primary", use_container_width=True):
+                gh_token = st.secrets.get("GITHUB_TOKEN")
+                if not gh_token:
+                    st.error("Missing GITHUB_TOKEN in secrets.toml!")
+                elif not repo_input_name:
+                    st.warning("Please enter a repository name.")
+                else:
+                    with st.status("Authenticating with GitHub...", expanded=True) as gh_status:
+                        st.write("Provisioning private repository...")
+                        st.write("Committing `schema.sql`...")
+                        st.write("Committing React `src/components/`...")
+                        
+                        frontend_data = st.session_state.get("inherited_frontend")
+                        repo_url, gh_err = provision_github_repo(gh_token, repo_input_name, data, frontend_data)
+                        
+                        if gh_err:
+                            gh_status.update(label="Deployment Failed", state="error", expanded=True)
+                            st.error(gh_err)
+                        else:
+                            gh_status.update(label="Repository Provisioned!", state="complete", expanded=False)
+                            st.success(f"Success! View your new codebase here: {repo_url}")
+                            
         st.markdown("#### Finalize Project")
         st.info("Architecture complete? Mark this project as fully scoped and ready for development.")
 
