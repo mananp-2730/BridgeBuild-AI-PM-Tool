@@ -14,6 +14,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from github import Github
+from github import Auth
 
 # ==========================================
 # LOCALIZED ENGINEERING PDF ENGINE
