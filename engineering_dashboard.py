@@ -15,6 +15,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from github import Github
 from github import Auth
+import re
 
 # ==========================================
 # LOCALIZED ENGINEERING PDF ENGINE
