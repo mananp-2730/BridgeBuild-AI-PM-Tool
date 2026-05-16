@@ -1,6 +1,7 @@
 streamlit
-pandas
 google-genai
 supabase
 reportlab
 python-pptx
+pandas
+PyGithub
