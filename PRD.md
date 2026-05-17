@@ -21,7 +21,7 @@
 **Persona 3: The UI/UX Designer & Frontend Engineer (Tertiary)**
 * **Role:** Lead Designer / Frontend Developer.
 * **Pain Point:** Rebuilding basic UI components from scratch for every project based on vague text descriptions.
-* **Goal:** Instantly generate accessible screen layouts, extract color palettes, auto-generate React/Tailwind boilerplate, and compile live-rendering Single Page Application (SPA) prototypes.
+* **Goal:** Instantly generate accessible screen layouts, extract color palettes, auto-generate React/Tailwind boilerplate, and use the Zero-to-Repo engine to automatically provision GitHub repositories with the generated code.
 
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
