@@ -78,7 +78,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The PM Rationale:** Executive users (CEOs/Founders) need instant risk predictions without context switching. Building an in-house quantitative engine elevates the app from a simple workflow tool into a hardcore financial risk platform.
 
 * **Decision 9: Automated Cloud Provisioning vs. Manual Copy-Paste**
-  
+  * **The Trade-off:** We required exposing GitHub API tokens and handling remote commits programmatically, rather than simply letting the user copy the generated code to their clipboard.
     
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas
