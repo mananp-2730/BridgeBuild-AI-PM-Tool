@@ -30,6 +30,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks, visualizes AI estimate vs. actual margin variance, **and runs 1,000-iteration Monte Carlo simulations to mathematically predict project margin burndown.**
 
 ## Key Architectural Features:
+* **Zero-to-Repo Cloud Provisioning:** Authenticates with the GitHub API to dynamically create private repositories and physically commit AI-generated React components, `README.md` files, and `.sql` database schemas directly to the `main` branch.
 * **Monte Carlo Margin Predictor:** A quantitative finance engine that runs 1,000 probabilistic simulations per project to forecast daily cash flow, charting expected, worst-case, and best-case margin burndown to predict agency bankruptcy on active projects.
 * **QA Automation Hub:** Automatically reverse-engineers the PM's Acceptance Criteria and generates production-ready, copy-pasteable Cypress (JavaScript) End-to-End test scripts (`.spec.js`).
 * **"God-Mode" Manual Overrides:** A zero-friction escape hatch that swaps the static UI for raw JSON editors and text fields, allowing humans to instantly overwrite AI hallucinations or make surgical tweaks without spending API credits.
