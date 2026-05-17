@@ -82,7 +82,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * * **The PM Rationale:** True enterprise tools don't just generate text; they take action. Pushing code directly to a secure repository bridges the gap between 'AI Chatbot' and 'AI Developer', saving massive amounts of manual DevOps setup time.
     
 ## Tech Stack
-* **Core Logic:** Python 3.11, Pandas
+* **Core Logic:** Python 3.11, Pandas, PyGithub
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
 * **Frontend:** Streamlit with Custom Dynamic CSS Injection (Stealth UI)
 * **Backend & Auth:** Supabase (PostgreSQL, Row Level Security, Secure Email Auth)
