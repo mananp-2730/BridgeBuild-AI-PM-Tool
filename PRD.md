@@ -56,7 +56,6 @@ To ensure rapid deployment of the enterprise OS, features were prioritized based
   * Global Expansion Engine to translate and culturally adapt GTM strategies.
 * **Won't Have (Deferred to V3):**
   * Freelancer Mode (a unified single-page God Dashboard bypassing queues).
-  * Automated Repository Creation (GitHub API).
 
 ## **5. Success Metrics (KPIs)**
 How do we know BridgeBuild AI is actually solving the problem?
