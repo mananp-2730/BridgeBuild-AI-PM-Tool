@@ -136,6 +136,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] God-Mode Manual Overrides: Instant, zero-friction raw data editing to manually tweak AI-generated architectures without extra API calls.
 - [x] QA Automation Hub: Auto-generate production-ready Cypress (.spec.js) E2E test scripts based directly on the PM Hub's Acceptance Criteria.
 - [x] Monte Carlo Margin Predictor: Quantitative finance engine running 1,000 statistical simulations to forecast project cash flow and predict budget bankruptcy.
+- [x] Zero-to-Repo Cloud Provisioning: Automated GitHub API integration to provision private repositories and commit AI-generated code directly from the Engineering Hub.
 
 **Upcoming Features** 
 - [ ] Freelancer Mode: An end-to-end pipeline combining Sales, PM, and Engineering views for solo developers.
