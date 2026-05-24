@@ -10,7 +10,7 @@ from admin_dashboard import render_admin_dashboard
 from sales_dashboard import render_sales_dashboard
 from design_dashboard import render_design_dashboard
 from engineering_dashboard import render_engineering_dashboard
-from marketing_dashboard import render_marketing_dashboard # <-- NEW IMPORT
+from marketing_dashboard import render_marketing_dashboard 
 from freelancer_dashboard import render_freelancer_dashboard
 from supabase import create_client
 
