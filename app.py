@@ -324,6 +324,6 @@ else:
     elif role == "design": render_design_dashboard(supabase)
     elif role == "admin": render_admin_dashboard(supabase)
     elif role == "engineering": render_engineering_dashboard(supabase)
-    elif role == "marketing": render_marketing_dashboard(supabase) # <-- NEW ROUTE
+    elif role == "marketing": render_marketing_dashboard(supabase)
     elif role == 'freelancer': render_freelancer_dashboard(supabase)
     else: st.warning("Role not recognized. Please contact Admin.")
