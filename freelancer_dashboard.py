@@ -10,7 +10,7 @@ from utils import safe_parse_json
 # FREELANCER DASHBOARD RENDERER
 # ==========================================
 def render_freelancer_dashboard(supabase):
-    st.title("⚡ The God Dashboard (Freelancer Mode)")
+    st.title("The God Dashboard (Freelancer Mode)")
     st.markdown("### End-to-End Continuous Pipeline")
     st.caption("Bypass department queues. Upload your idea and watch the entire architecture build out in a single flow.")
 
