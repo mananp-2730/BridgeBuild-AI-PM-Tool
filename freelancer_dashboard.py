@@ -160,7 +160,7 @@ def render_freelancer_dashboard(supabase):
                         Agile Epics: {st.session_state.fl_pm_data.get('epics', [])}"""
 
                         response = client.models.generate_content(
-                            model="gemini-2.5-pro", 
+                            model="gemini-2.5-flash", 
                             config=types.GenerateContentConfig(temperature=0.1, response_mime_type="application/json"),
                             contents=[eng_prompt]
                         )
