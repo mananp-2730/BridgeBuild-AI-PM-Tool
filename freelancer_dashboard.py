@@ -225,19 +225,38 @@ def render_freelancer_dashboard(supabase):
                         for col in table.get('columns', []): st.caption(f"- {col}")
 
     # ==========================================
-    # STAGE 3: CLOUD DEPLOYMENT (Coming in Step 3!)
+    # STAGE 3: CLOUD DEPLOYMENT 
     # ==========================================
     if st.session_state.fl_stage >= 3:
         st.write("⬇️")
         with st.container(border=True):
-            st.markdown("#### Zero-to-Repo Deployment")
+            st.markdown("#### 🚀 Zero-to-Repo Deployment")
             st.info("Pipeline Complete. Your architecture is ready to be pushed to GitHub.")
             
             col_d1, col_d2 = st.columns([2, 1])
             with col_d1:
-                st.text_input("Repository Name", placeholder="e.g., solo-founder-app", key="fl_repo_name")
+                repo_input = st.text_input("Repository Name", placeholder="e.g., solo-founder-app", key="fl_repo_name")
             with col_d2:
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Provision GitHub Repo", type="primary", use_container_width=True):
-                    st.balloons()
-                    st.success("Data is ready! We will wire the GitHub API here in Step 3.")
+                    gh_token = st.secrets.get("GITHUB_TOKEN")
+                    if not gh_token:
+                        st.error("Missing GITHUB_TOKEN in secrets.toml!")
+                    elif not repo_input:
+                        st.warning("Please enter a repository name.")
+                    else:
+                        with st.status("Authenticating with GitHub...", expanded=True) as gh_status:
+                            st.write("Provisioning private repository...")
+                            st.write("Committing AI Architecture and `schema.sql`...")
+                            
+                            eng_data = st.session_state.fl_eng_data
+                            # Pass None for frontend_code since we bypassed the Design Hub in this MVP
+                            repo_url, gh_err = provision_github_repo(gh_token, repo_input, eng_data, None)
+                            
+                            if gh_err:
+                                gh_status.update(label="Deployment Failed", state="error", expanded=True)
+                                st.error(gh_err)
+                            else:
+                                gh_status.update(label="Repository Provisioned!", state="complete", expanded=False)
+                                st.balloons()
+                                st.success(f"Success! View your new codebase here: {repo_url}")
