@@ -230,7 +230,7 @@ def render_freelancer_dashboard(supabase):
     if st.session_state.fl_stage >= 3:
         st.write("⬇️")
         with st.container(border=True):
-            st.markdown("#### 🚀 Zero-to-Repo Deployment")
+            st.markdown("#### Zero-to-Repo Deployment")
             st.info("Pipeline Complete. Your architecture is ready to be pushed to GitHub.")
             
             col_d1, col_d2 = st.columns([2, 1])
