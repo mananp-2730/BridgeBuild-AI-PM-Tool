@@ -6,6 +6,7 @@ from google import genai
 from google.genai import types
 from utils import safe_parse_json
 from github import Github
+from github import Auth
 
 # ==========================================
 # FREELANCER DASHBOARD RENDERER
