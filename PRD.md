@@ -24,6 +24,7 @@
 * **Goal:** Instantly generate accessible screen layouts, extract color palettes, auto-generate React/Tailwind boilerplate, and use the Zero-to-Repo engine to automatically provision GitHub repositories with the generated code.
 
 **Persona 4: The Indie Hacker / Solo Founder (Quaternary)**
+* **Role:** Solo Developer / SaaS Creator.
 
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
