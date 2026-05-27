@@ -29,14 +29,13 @@
 * **Goal:** A continuous, single-page "God Dashboard" that flows instantly from concept to cloud deployment without requiring manual approvals or queue management.
 
 ## **3. Core Use Cases & User Journey**
-**The "Audio-to-Architecture" Journey:**
+**The "Audio-to-Architecture" Agency Journey:**
 1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
 2. **Scope:** The AI calculates feasibility, estimates the MVP budget, and generates a client-facing .pptx Pitch Deck.
-3. **Handoff & Negotiation:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories. The PM uses the **QA Automation Hub** to auto-generate E2E test scripts for the engineers. If the client pushes back on the price, the PM uses the interactive **Scope-Slider** to dynamically downgrade the architecture. The PM can also use **God-Mode** to directly edit raw JSON elements.
-4. **Design:** The ticket flows to the Design Studio, where the AI maps user flows, extracts hex colors, writes production-ready React code, and renders a live, clickable Single Page Application (SPA) Prototype in the browser.
+3. **Handoff & Negotiation:** The ticket is routed to the PM Hub, where the AI breaks the approved scope into Agile Epics and User Stories. The PM uses the **QA Automation Hub** to auto-generate E2E test scripts. The PM uses the interactive **Scope-Slider** to dynamically downgrade the architecture to fit strict budgets.
+4. **Design:** The ticket flows to the Design Studio to map user flows, extract hex colors, write production-ready React code, and render a live, clickable Single Page Application (SPA) Prototype in the browser.
 5. **Architect & Deploy:** Engineering inherits the design code and uses the Company Context Engine (RAG) to enforce internal coding standards and generate PostgreSQL schemas and REST APIs. Finally, the **Zero-to-Repo Engine** authenticates with GitHub, provisions a private repository, and commits the boilerplate code and SQL schemas directly to the main branch.
-6. **Launch:** The Marketing Studio reads the technical schema, generates Product Hunt launch copy, and uses the Global Expansion Engine to localize the campaign for international markets.
-7. **Executive Oversight:** The Admin Control Center tracks pipeline bottlenecks, records actual ledger costs against AI estimates, and runs **1,000-iteration Monte Carlo simulations** to predict the exact day active projects will burn through their budget margins.
+6. **Executive Oversight:** The Admin Control Center tracks pipeline bottlenecks, records actual ledger costs against AI estimates, and runs **1,000-iteration Monte Carlo simulations** to predict project margin burndown.
 
 ## **4. Feature Prioritization (MoSCoW Framework)**
 To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
