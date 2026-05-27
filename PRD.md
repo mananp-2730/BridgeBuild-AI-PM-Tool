@@ -59,7 +59,6 @@
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
   * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
-  * Global Expansion Engine to translate and culturally adapt GTM strategies.
 * **Won't Have (Deferred to V3):**
   * Freelancer Mode (a unified single-page God Dashboard bypassing queues).
 
