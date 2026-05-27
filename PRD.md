@@ -41,7 +41,6 @@
 * The user logs in as a "Freelancer" and bypasses the entire agency queue system, using the single-page God Dashboard to run the entire Audio-to-Architecture pipeline in one continuous, state-managed waterfall session.
 
 ## **4. Feature Prioritization (MoSCoW Framework)**
-To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
 * **Must Have (Core MVP):**
   * Role-Based Access Control (RBAC) via Supabase to ensure users only see their designated department UI.
   * Department Handoff Protocol to pass locked JSON states sequentially from Sales to Engineering.
