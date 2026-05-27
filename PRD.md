@@ -25,6 +25,7 @@
 
 **Persona 4: The Indie Hacker / Solo Founder (Quaternary)**
 * **Role:** Solo Developer / SaaS Creator.
+* **Pain Point:** Agency-focused tools with department inboxes are too slow and gated for a single person trying to build quickly.
 
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
