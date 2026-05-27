@@ -60,7 +60,7 @@
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
   * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
 * **Won't Have (Deferred to V3):**
-  * Freelancer Mode (a unified single-page God Dashboard bypassing queues).
+  * Database Lockdown (Strict Supabase RLS policies for multi-tenant isolation).
 
 ## **5. Success Metrics (KPIs)**
 How do we know BridgeBuild AI is actually solving the problem?
