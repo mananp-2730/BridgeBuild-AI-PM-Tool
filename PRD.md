@@ -23,6 +23,8 @@
 * **Pain Point:** Rebuilding basic UI components from scratch for every project based on vague text descriptions.
 * **Goal:** Instantly generate accessible screen layouts, extract color palettes, auto-generate React/Tailwind boilerplate, and use the Zero-to-Repo engine to automatically provision GitHub repositories with the generated code.
 
+**Persona 4: The Indie Hacker / Solo Founder (Quaternary)**
+
 ## **3. Core Use Cases & User Journey**
 **The "Audio-to-Architecture" Journey:**
 1. **Intake:** The Sales/BDE uploads a raw .mp3 client meeting recording or pastes messy notes into the Sales Portal.
