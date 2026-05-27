@@ -46,6 +46,7 @@
   * Department Handoff Protocol to pass locked JSON states sequentially from Sales to Engineering.
   * Military-grade JSON Auto-Healing to prevent application crashes from LLM hallucinations.
 * **Should Have (Enterprise Value):**
+  * The God Dashboard (Freelancer Mode) for continuous, un-gated AI generation.
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
   * Profitability Calibration Engine & Analytics Visualizer to graphically track estimated budgets against actual logged project costs.
   * Monte Carlo Margin Predictor to run 1,000 probabilistic simulations of project timelines to forecast cash flow burn rates.
@@ -54,7 +55,6 @@
   * Scope-Slider Budget Negotiator for real-time, drag-and-drop architectural downgrades to fit strict client budgets.
   * God-Mode Manual Overrides for zero-friction human intervention on the final 5% of the generated architecture.
   * Automated QA Generation (auto-writing Cypress test scripts) based on approved Acceptance Criteria.
-  * Design-to-Code Component Factory to accelerate frontend development.
 * **Could Have (The "Wow" Factor):**
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
