@@ -38,6 +38,7 @@
 6. **Executive Oversight:** The Admin Control Center tracks pipeline bottlenecks, records actual ledger costs against AI estimates, and runs **1,000-iteration Monte Carlo simulations** to predict project margin burndown.
 
 **The Solo Journey (Freelancer Mode):**
+* The user logs in as a "Freelancer" and bypasses the entire agency queue system, using the single-page God Dashboard to run the entire Audio-to-Architecture pipeline in one continuous, state-managed waterfall session.
 
 ## **4. Feature Prioritization (MoSCoW Framework)**
 To ensure rapid deployment of the enterprise OS, features were prioritized based on cross-functional value and data integrity.
