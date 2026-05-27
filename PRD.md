@@ -63,7 +63,6 @@
   * Database Lockdown (Strict Supabase RLS policies for multi-tenant isolation).
 
 ## **5. Success Metrics (KPIs)**
-How do we know BridgeBuild AI is actually solving the problem?
 1. **Time-to-Scope (TTS):** Measure the time from the initial Sales upload to the final GitHub repo generation. Target: < 15 minutes.
 2. **Estimation Variance:** The percentage difference between the AI's initial budget estimation and the actual final project cost logged in the Admin ledger. Target: < 10% variance.
 3. **Handoff Friction Rate:** The reduction in cross-department clarification meetings and Slack messages required before engineering can begin a sprint.
