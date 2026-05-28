@@ -30,6 +30,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 6. **Admin Control Center:** A "God View" global oversight dashboard featuring real-time visual analytics. It calculates total organizational pipeline value, tracks department bottlenecks, visualizes AI estimate vs. actual margin variance, **and runs 1,000-iteration Monte Carlo simulations to mathematically predict project margin burndown.**
 
 ## Key Architectural Features:
+* **The God Dashboard (Freelancer Mode):** A unified, single-page continuous waterfall pipeline designed for solo-founders to bypass department queues and execute end-to-end AI generations in one fluid session.
 * **Zero-to-Repo Cloud Provisioning:** Authenticates with the GitHub API to dynamically create private repositories and physically commit AI-generated React components, `README.md` files, and `.sql` database schemas directly to the `main` branch.
 * **Monte Carlo Margin Predictor:** A quantitative finance engine that runs 1,000 probabilistic simulations per project to forecast daily cash flow, charting expected, worst-case, and best-case margin burndown to predict agency bankruptcy on active projects.
 * **QA Automation Hub:** Automatically reverse-engineers the PM's Acceptance Criteria and generates production-ready, copy-pasteable Cypress (JavaScript) End-to-End test scripts (`.spec.js`).
@@ -38,9 +39,6 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 * **Live-Render Prototype Sandbox:** Bypasses static code generation by instantly compiling AI-written React and Tailwind CSS into a live, clickable Single Page Application (SPA) directly inside the platform's iframe.
 * **Scope Creep (CR) Calculator:** A margin-protection engine that cross-references new client feature requests against the existing scoped database to automatically calculate technical impact, additional costs, and timeline delays.
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
-* **Multimodal Audio-to-Architecture:** Upload raw .mp3 or .wav client meeting recordings directly into the engine and watch it synthesize 45 minutes of messy dialogue into structured database schemas.
-* **Design-to-Code Component Factory:** Automatically writes syntax-highlighted React + Tailwind CSS boilerplate code based on the AI's generated UI specifications.
-* **Global Expansion Engine:** Instantly localizes Go-To-Market strategies into multiple languages and cultural business etiquettes, turning a local product launch into an international campaign.
 
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
