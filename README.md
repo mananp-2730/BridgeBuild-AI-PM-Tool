@@ -109,7 +109,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
    streamlit run app.py
 
 ## Roadmap
-
 **Completed Milestones** 
 - [x] Multi-tenant Modular Refactoring: Scalable, role-based dashboards.
 - [x] Super Admin God View: Global pipeline analytics and Active Directory RBAC.
