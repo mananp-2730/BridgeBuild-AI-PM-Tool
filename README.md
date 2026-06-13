@@ -128,7 +128,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 - [x] Design-to-Code Factory: Automated React + Tailwind CSS boilerplate generation.
 - [x] Analytics Dashboard Visualizer: Dynamic charts mapping cost trends, margin variance, and department bottlenecks.
 - [x] Scope Creep Calculator: AI-driven financial impact analysis for mid-sprint client requests.
-
 - [x] Scope-Slider Budget Negotiator: Interactive drag-and-drop budget recalculation and automated feature demotion.
 - [x] God-Mode Manual Overrides: Instant, zero-friction raw data editing to manually tweak AI-generated architectures without extra API calls.
 - [x] QA Automation Hub: Auto-generate production-ready Cypress (.spec.js) E2E test scripts based directly on the PM Hub's Acceptance Criteria.
