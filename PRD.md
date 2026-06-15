@@ -12,7 +12,6 @@
 * **Role:** Chief Executive Officer / Business Development Executive.
 * **Pain Point:** Guessing technical feasibility and budgets on discovery calls, leading to underpriced contracts and lost margins.
 * **Goal:** Instant risk assessment, dynamic budget estimation, 1-click generation of client-ready pitch decks, and a visual Command Center to track margin variance and run Monte Carlo simulations to mathematically predict project cash flow burndown.
-
    
 **Persona 2: The Technical Product Manager (Secondary)**
 * **Role:** Lead PM / Scrum Master.
