@@ -18,7 +18,6 @@
 * **Pain Point:** Wasting countless hours manually writing Agile epics, acceptance criteria, mapping user journeys from messy sales handoffs, and arguing with clients over budget cuts.
 * **Goal:** Auto-generate Jira-ready epics, Mermaid.js architecture flowcharts, mathematically protect profit margins against scope creep, auto-generate Cypress QA scripts, and utilize "God-Mode" manual overrides for absolute control over the final outputs.
 
-
 **Persona 3: The UI/UX Designer & Frontend Engineer (Tertiary)**
 * **Role:** Lead Designer / Frontend Developer.
 * **Pain Point:** Rebuilding basic UI components from scratch for every project based on vague text descriptions.
