@@ -23,6 +23,7 @@ BridgeBuild AI acts as an intelligent, continuous feasibility pipeline. A single
 
 Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol**. When one department finishes their scoping, they route the locked ticket to the next department's inbox. The AI instantly reads the previous department's constraints (budgets, deal-breakers, user stories) and injects them into the next phase of development—ensuring zero data loss and mathematical budget alignment from kickoff to deployment.
 
+
 ## Role-Based Workspaces & Pipelines:
 1. **Sales Intake Portal:** Generates rapid Red/Yellow/Green feasibility scores, critical client "Ask Lists", deal-breaker warnings, and dynamic MVP budgeting.
 2. **Product Management (PM) Hub:** Catches approved Sales tickets. Breaks requirements down into Agile Epics, MVP User Stories, and Technical Risk Analysis. **Features a Scope Creep Calculator, an interactive Scope-Slider Budget Negotiator, and a QA Automation Hub to instantly write Cypress E2E test scripts.**
