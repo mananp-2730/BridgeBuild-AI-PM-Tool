@@ -9,7 +9,6 @@ A multi-department, role-based SaaS platform that uses Google Gemini to instantl
 As a product-led platform, BridgeBuild AI was architected with a strict focus on user personas, cross-functional workflows, and business KPIs.
 * **Read the full Product Requirements Document (PRD) [here](./PRD.md)** to explore the product strategy, persona breakdowns, and success metrics.
 
-
 ## The Problem: The "Translation Gap"
 In B2B software agencies, the biggest point of failure is department handoffs:
 1. **Sales** promises features without realizing technical complexity or deal-breakers.
