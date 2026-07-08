@@ -83,6 +83,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We used `pandas` and Streamlit to run 1,000 probabilistic simulations entirely in-memory, instead of piping the pipeline data out to a tool like Tableau or PowerBI.
   * **The PM Rationale:** Executive users (CEOs/Founders) need instant risk predictions without context switching. Building an in-house quantitative engine elevates the app from a simple workflow tool into a hardcore financial risk platform.
 
+
 * **Decision 9: Automated Cloud Provisioning vs. Manual Copy-Paste**
   * **The Trade-off:** We required exposing GitHub API tokens and handling remote commits programmatically, rather than simply letting the user copy the generated code to their clipboard.
   * * **The PM Rationale:** True enterprise tools don't just generate text; they take action. Pushing code directly to a secure repository bridges the gap between 'AI Chatbot' and 'AI Developer', saving massive amounts of manual DevOps setup time.
