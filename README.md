@@ -67,6 +67,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 * **Decision 5: Generative Code vs. Drag-and-Drop Builders**
   * **The Trade-off:** We auto-generate raw React/Tailwind boilerplate rather than building a visual drag-and-drop canvas.
   * **The PM Rationale:** Developers dislike exported "spaghetti code" from visual builders. Semantic React boilerplate drastically reduces time-to-first-paint while keeping engineers in control.
+
     
 * **Decision 6: Single Page Application (SPA) Prototypes vs. Multi-Page HTML**
   * **The Trade-off:** We force the AI to generate complex Javascript to toggle hidden `<div>` elements rather than allowing standard `<a href>` tag navigation.
