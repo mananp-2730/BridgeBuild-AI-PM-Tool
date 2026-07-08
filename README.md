@@ -3,6 +3,7 @@
 
 ## **BridgeBuild AI: The Enterprise Agile Operating System**
 
+
 A multi-department, role-based SaaS platform that uses Google Gemini to instantly translate messy client notes and audio transcripts into structured, actionable workflows. BridgeBuild AI eliminates organizational data silos by passing a single source of truth from Sales, to Product Management, to Design, Engineering, and Marketing—without a single manual copy-paste.
 
 
