@@ -56,7 +56,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We sacrificed pixel-perfect frontend customization and complex client-side state management in favor of Streamlit's Python-based rapid UI rendering.
   * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic*, not the UI components. Streamlit provided extreme development velocity, accelerating our time-to-market.
 
-
 * **Decision 2: Asynchronous Handoffs vs. Real-Time Collaboration**
   * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas.
   * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep. A strict "Department Handoff Protocol" enforces accountability and ensures budget alignment.
