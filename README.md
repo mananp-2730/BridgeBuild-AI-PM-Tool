@@ -19,6 +19,7 @@ In B2B software agencies, the biggest point of failure is department handoffs:
 4. **Engineers** receive unstructured requirements, leading to missed deadlines and messy database schemas.
 5. **Marketing** struggles to extract actual customer benefits from highly technical engineering documentation.
 
+
 ## The Solution: The BridgeBuild OS
 BridgeBuild AI acts as an intelligent, continuous feasibility pipeline. A single AI engine shape-shifts its personality, logic, and UI based on the user's secure department role (managed via Supabase RBAC).
 
