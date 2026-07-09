@@ -60,7 +60,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We built a gated, asynchronous "Inbox" system where departments must explicitly "Approve" and send tickets, rather than a real-time collaborative canvas.
   * **The PM Rationale:** In B2B agencies, uncontrolled real-time edits lead to massive scope creep. A strict "Department Handoff Protocol" enforces accountability and ensures budget alignment.
 
-
 * **Decision 3: Custom RegEx JSON Auto-Healing vs. Strict Schema Validation**
   * **The Trade-off:** We invested engineering hours into building a custom RegEx auto-healing engine to fix broken AI outputs, rather than throwing an error if the LLM hallucinated a trailing comma.
   * **The PM Rationale:** LLMs are probabilistic. Failing a 45-second generation over a missing bracket destroys UX. Auto-healing ensures a resilient, crash-free pipeline.
