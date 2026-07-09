@@ -47,6 +47,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 * **Scope Creep (CR) Calculator:** A margin-protection engine that cross-references new client feature requests against the existing scoped database to automatically calculate technical impact, additional costs, and timeline delays.
 * **Zero-Friction Session Persistence:** Bypasses aggressive iframe browser security using an ironclad URL-parameter session architecture, keeping users securely logged in across deep-work sessions.
 
+
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
 
