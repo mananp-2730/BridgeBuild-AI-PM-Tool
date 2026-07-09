@@ -80,7 +80,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We exposed raw JSON editors and direct text inputs for users to manually overwrite AI outputs, rather than forcing them to use the conversational "Refine" chat box for every small typo.
   * **The PM Rationale:** While conversational AI is great for heavy lifting (the first 95%), it introduces unnecessary latency and API costs for minor tweaks. "God-Mode" gives the human absolute, zero-friction control over the final 5% of the architecture.
 
-
 * **Decision 8: Native Monte Carlo Simulations vs. External BI Tools**
   * **The Trade-off:** We used `pandas` and Streamlit to run 1,000 probabilistic simulations entirely in-memory, instead of piping the pipeline data out to a tool like Tableau or PowerBI.
   * **The PM Rationale:** Executive users (CEOs/Founders) need instant risk predictions without context switching. Building an in-house quantitative engine elevates the app from a simple workflow tool into a hardcore financial risk platform.
