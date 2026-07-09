@@ -88,7 +88,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
   * **The Trade-off:** We required exposing GitHub API tokens and handling remote commits programmatically, rather than simply letting the user copy the generated code to their clipboard.
   * * **The PM Rationale:** True enterprise tools don't just generate text; they take action. Pushing code directly to a secure repository bridges the gap between 'AI Chatbot' and 'AI Developer', saving massive amounts of manual DevOps setup time.
   
-  
 ## Tech Stack
 * **Core Logic:** Python 3.11, Pandas, PyGithub
 * **AI Engine:** Google Gemini 1.5 Flash & Pro (Multimodal File API)
