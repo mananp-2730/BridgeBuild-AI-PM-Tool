@@ -68,6 +68,7 @@
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
   * Marketing Studio to reverse-engineer technical DB schemas into Go-To-Market copywriting.
+
 * **Won't Have (Deferred to V3):**
   * Database Lockdown (Strict Supabase RLS policies for multi-tenant isolation).
 
