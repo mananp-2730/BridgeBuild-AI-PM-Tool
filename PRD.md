@@ -55,6 +55,7 @@
   * Role-Based Access Control (RBAC) via Supabase to ensure users only see their designated department UI.
   * Department Handoff Protocol to pass locked JSON states sequentially from Sales to Engineering.
   * Military-grade JSON Auto-Healing to prevent application crashes from LLM hallucinations.
+
 * **Should Have (Enterprise Value):**
   * The God Dashboard (Freelancer Mode) for continuous, un-gated AI generation.
   * Company Context Engine (RAG) to force the AI to adhere to specific internal engineering guidelines.
