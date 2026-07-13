@@ -41,7 +41,6 @@
 **The Solo Journey (Freelancer Mode):**
 * The user logs in as a "Freelancer" and bypasses the entire agency queue system, using the single-page God Dashboard to run the entire Audio-to-Architecture pipeline in one continuous, state-managed waterfall session.
 
-
 ## **4. Feature Prioritization (MoSCoW Framework)**
 * **Must Have (Core MVP):**
   * Role-Based Access Control (RBAC) via Supabase to ensure users only see their designated department UI.
