@@ -75,6 +75,7 @@
 * **Won't Have (Deferred to V3):**
   * Database Lockdown (Strict Supabase RLS policies for multi-tenant isolation).
 
+
 ## **5. Success Metrics (KPIs)**
 1. **Time-to-Scope (TTS):** Measure the time from the initial Sales upload to the final GitHub repo generation. Target: < 15 minutes.
 2. **Estimation Variance:** The percentage difference between the AI's initial budget estimation and the actual final project cost logged in the Admin ledger. Target: < 10% variance.
