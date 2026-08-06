@@ -82,8 +82,7 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 1. **Clone the repo**
    ```bash
    git clone [https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git](https://github.com/mananp-2730/BridgeBuild-AI-PM-Tool.git)
-   cd BridgeBuild-AI-PM-Tool
-   
+   cd BridgeBuild-AI-PM-Tool   
 2. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
