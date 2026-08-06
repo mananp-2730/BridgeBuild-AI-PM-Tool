@@ -86,7 +86,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
 2. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
-
 3. **Set up your API Keys**
    Create a folder named .streamlit in the root directory and create a secrets.toml file inside it:
    ```toml
