@@ -93,7 +93,6 @@ Building an Enterprise Agile OS required balancing complex AI pipelines with a f
    [supabase]
    SUPABASE_URL = "your_supabase_project_url"
    SUPABASE_KEY = "your_supabase_anon_key"
-
 4. **Run the application**
    ```bash
    streamlit run app.py
