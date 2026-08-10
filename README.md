@@ -1,6 +1,5 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://bridgebuild-ai-pm-tool-hxpamzy2hsnyxfksaqqk7c.streamlit.app/)
 
-
 ## **BridgeBuild AI: The Enterprise Agile Operating System**
 
 
