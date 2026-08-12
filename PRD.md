@@ -58,7 +58,6 @@
   * God-Mode Manual Overrides for zero-friction human intervention on the final 5% of the generated architecture.
   * Automated QA Generation (auto-writing Cypress test scripts) based on approved Acceptance Criteria.
 
-
 * **Could Have (The "Wow" Factor):**
   * Live-Render Prototype Sandbox to compile and display functional SPA prototypes inside the dashboard.
   * 1-Click Pitch Deck generation (.pptx) directly from initial sales feasibility data.
