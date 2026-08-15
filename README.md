@@ -51,6 +51,7 @@ Instead of isolated tools, BridgeBuild features a **Department Handoff Protocol*
 ## **PM Thinking & Strategic Trade-Offs**
 Building an Enterprise Agile OS required balancing complex AI pipelines with a frictionless, scalable user experience. Here are the key product decisions made during the development of BridgeBuild AI:
 
+
 * **Decision 1: Streamlit vs. Custom React/Node.js Frontend**
   * **The Trade-off:** We sacrificed pixel-perfect frontend customization and complex client-side state management in favor of Streamlit's Python-based rapid UI rendering.
   * **The PM Rationale:** For an MVP, the core hypothesis to validate was the *cross-department AI handoff logic*, not the UI components. Streamlit provided extreme development velocity, accelerating our time-to-market.
